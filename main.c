@@ -1,0 +1,53 @@
+#include "avl.c"            // the trees.
+#include "cint.c"           // the integers.
+#include "fac_headers.h"    // factor headers.
+#include "fac_utils.c"      // utilities and front-end.
+#include "fac_quadratic.c"  // quadratic sieve source.
+#include "fac_lanczos.c"    // quadratic sieve Lanczos.
+#include "fac_testing.c"    // quadratic sieve tests.
+
+static inline void display_verbose_answer(fac_cint **);
+static inline void display_factor_help(char *name);
+
+int main(int argc, char *argv[]){
+	cint N ;
+	fac_params config = {0};
+	char * n ; // the number string in base 10.
+	n = fac_fill_params(&config, argc, argv);
+	if (config.testing) factor_mini_test(&config);
+	else if (config.help) display_factor_help(argv[0]);
+	else if (n) {
+		const int bits = 64 + 4 * (int) strlen(n);
+		cint_init_by_string(&N, bits, n, 10); // init the number as a cint.
+		fac_cint ** answer = c_factor(&N, &config); // execute the routine.
+		display_verbose_answer(answer); // print answer.
+		free(answer); // release answer memory.
+		free(N.mem); // release number memory.
+	} else
+		fputs("usage : qs [-h] [-s] [number]", stderr);
+}
+
+void display_verbose_answer(fac_cint ** ans) {
+	for(int i = 0; i < 100; ++i)
+		putchar(' ');
+	putchar('\r');
+	char * str = fac_answer_to_string(ans);
+	puts(str);
+	free(str);
+}
+void display_factor_help(char *name) {
+	char * str = 1 + strrchr(name, '/');
+	if (str < name) str = 1 + strrchr(name, '\\');
+	if (str < name) str = name;
+	puts("=== [ Welcome to the factor function help ] === \n");
+	printf(" - use     ./%s 123     to see the factors of 123\n", str);
+	printf(" - use     ./%s -test=130     to see a 130-bit factorization test (30 seconds)\n", str);
+	printf(" - use     ./%s -limit=150     to define a limit of bit for the quadratic sieve\n", str);
+	printf(" - use     ./%s -s [number]    to not see the progress of quadratic sieve\n", str);
+	printf(" - numbers around quotes are identified not to be prime\n");
+	printf(" - numbers shown have passed some tests like perfect square, perfect cube, primality, trial divisions\n");
+	printf(" - best function for > 64-bit numbers is a quadratic sieve largely inspired by a William Hart FLINT implementation\n");
+	printf(" - use     gcc -Wall -pedantic -O3 main.c -o qs     to make the software compile with a great optimizer\n\n");
+	printf("Bests in math with your factorizer...\n");
+	putchar('\n');
+}
