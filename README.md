@@ -15,8 +15,8 @@ This ~2500 lines project :
 # GNU General Public License
 
 - As an undergraduate student, this project is part of my computer science + maths training.
-- This software proposition is from Michel Leonard
-- There is of course no guarantee of any kind on the software
+- This software proposition is from Michel Leonard (student at Université de Franche-Comté)
+- There is no guarantee of any kind on the software
 - C code is shared under the terms of the **GNU General Public License**
 - The **main mathematical and logical inspiration source** is located at :
     - [http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp](http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp) - **GNU General Public License**
@@ -84,11 +84,6 @@ Tens of thousands of random factorization tests have been performed using:
 - [GMP](https://www.php.net/manual/en/book.gmp.php) (input proposition + answer verification)
 
 I thanks [William Hart](https://github.com/wbhart), a factor has always been shown ... an extract of tested numbers is provided in text files.
-
-## Particular cases
-
-The software was rated reasonably fast with:
-- factorials up to 3000 multiplied by RSA 200-bit numbers
 
 ## Primes
 
@@ -159,7 +154,7 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | N | Prime factors are removed from **N** and **N** is updated until `N = 1`  |
 | kN | Algorithm computes with **kN** which always remains a constant |
 
-### prepare_manager, preparation_part_4
+### qs_parametrize, preparation_part_4
 - define the algorithm parameters, you may try to ameliore
 - allocates a block of memory for the quadratic sieve computations
 - prepare constants, variables, buffers, data arrays ...
