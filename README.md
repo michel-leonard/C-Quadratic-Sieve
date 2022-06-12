@@ -164,6 +164,7 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 There is a struct inside the **qs_sheet** (or manager) called **mem** :
 - it holds the  **base** entry point of the malloced memory
 - it holds a **now** void* pointer which represent the current available memory
+- this project only passes the memory to **assert**, no additional error handlers are used
 
 **qs_sheet** holds 2 AVL tree manager :
 - one to store the relations
