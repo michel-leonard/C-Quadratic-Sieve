@@ -107,7 +107,7 @@ Memory allocations are reasonably sized, so this project passes pointers to **as
 - the program will stop if the memory is refused, showing you an error message
 - it would be recommended to restart your device if you see this kind of message
 
-Technical : allocations are like 10MB (130-bit RSA), 10MB (4096-bit RSA) and 70MB (210-bit RSA).
+Technical : allocations are like 10MB (130-bit RSA), 10MB (2048-bit RSA) and 70MB (210-bit RSA).
 
 # cint
 
