@@ -165,6 +165,9 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | kN | Algorithm computes with **kN** which always remains a constant |
 
 ### qs_parametrize, preparation_part_4
+
+*Good parameters can improve the speed of quadratic sieve by at least 20%, this is verified by a development version*.
+
 - define the algorithm parameters, you may try to ameliore
 - allocates a block of memory for the quadratic sieve computations
 - prepare constants, variables, buffers, data arrays ...
