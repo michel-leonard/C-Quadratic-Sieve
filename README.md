@@ -1,3 +1,4 @@
+
 # C Factorization using Quadratic Sieve
 
 Pure C factorizer using self-initialising  **Quadratic Sieve**.
@@ -37,6 +38,9 @@ The compilation took a few seconds, you can use the software :
 The software will show you its answer. To see the help use the `-h` option.
 
 # RSA factorization
+
+Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
+
 |Bits| Command| Took  |
 |--|--|--|
 | 130 | `./qs 982374584994591973035454918323883152991`  | 0.1 s
@@ -45,17 +49,16 @@ The software will show you its answer. To see the help use the `-h` option.
 | 190 | `./qs 995209482127497644492758995962031762505687007535997155961`  | 3 s
 | 210 | `./qs 1143938601578848425045957187554857460827103223569512762813742971`  | 20 s
 | 230 | `./qs 1268631359685752304166485771456206118633849920528997030903788793364933`  | 1 min 40 s
-| 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 18 min 20 s
+| 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 18 min
 
-The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.
-
-Only a few dozen of RSA numbers greater than 230-bit have been tested.
+The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
+Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.
 
 # Fermat numbers factorization
 |F| Value | Took  |
 |--|--|--|
 | 7 | `340282366920938463463374607431768211457`  | 150 ms
-| 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 28 minutes
+| 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 28 min
 
 Tests like software development were made by laptop Honor MagicBook on Windows (64-bit).\
 Largest number factored during development was the 79 digits 8th Fermat Number.
@@ -83,27 +86,28 @@ Tens of thousands of random factorization tests have been performed using:
 - PHP7.4 (time measure + output analysis)
 - [GMP](https://www.php.net/manual/en/book.gmp.php) (input proposition + answer verification)
 
-I thanks [William Hart](https://github.com/wbhart), a factor has always been shown ... an extract of tested numbers is provided in text files.
+I again thanks [William Hart](https://github.com/wbhart), a factor has always been shown ... an extract of tested numbers is provided in text files.
 
 ## Primes
 
-- quotes around a number means the software know it's not a prime
 - the usual answers contain prime numbers
+- quotes around a number means the software know it's not a prime
 
 # Testing
 
 Not needed at all for regular use, a basic ~ 100 lines testing feature is available :
-- the goal is simply to give you a little background
+- the goal is simply to give users and developers some context
 - test durations are between 30 seconds (130-bit) and 3 minutes (200-bit)
-- test start with `./qs test=1` for a crescendo, or `./qs test=160` for 160-bit
+- the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
+- the `./qs test=160` test offers a minute of 160-bit random odd numbers
 
 # cint
 
-You have access to the source code of **cint**, the lite "big num" library **cint** can :
+You have access to the source code of **cint**, the lite "big num" library **cint** is designed to :
 - take input from an regular integer
-- take input from an "arbitrary" long string, in any base from 2 to 62
+- take input from an "arbitrary" long string in base 2 to 62
 - perform basic math operations, including nth_root, modular_inverse, is_prime
-- output its content as a string in any base from 2 to 62
+- output its content as a string in base from 2 to 62
 
 To perform intermediates computations **cint** does not use global variable, excepting rand it's thread-safe.
 
@@ -113,24 +117,22 @@ You have access to the source code of **AVL**, a fast self-balancing binary sear
 
 - used to store relations and answers
 - uses a **height field** and a **parent pointer** for each tree node
-- a worst case is "less complex" than `1.44 * log2(number of entries)`
-- duplicate keys aren't possible in the tree, and keys remain sorted
+- tree can store and retrieve keys in worst case `1.44 * log2 (number of entries)`
 - this software implementation use **cint** as tree entries (or keys)
-- tested (and fast) with many more keys than quadratic sieve uses
+- tested and fast with many more keys than quadratic sieve uses
 
 **cint** and **AVL** are initially separate projects from the quadratic sieve.
 
 # The file main.c
 
-This file contains the factor function, the entry point of any factorization :
-- just 70 lines, so you can easily check the software structure
-- `inner_continuation_condition` function decide if sieving continue or stop
-- `outer_continuation_condition` function decide **after data analysis** if algorithm sieve again or returns
+This file  has just 70 lines, so you can easily check the software structure.
+
 
 # The file fac_utils.c
 
 The file contains utilities that are not specifically intended for a quadratic sieve :
-- `c_factor`, the front end factorizer that format the solution
+- `c_factor`, the front-end factorizer that format the solution
+- `is_prime_1062961`, a fast small primes generator
 - `log_computation` 
 - `multiplication_modulo` 
 - `power_modulo` 
@@ -161,23 +163,23 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 
 There is a struct inside the **qs_sheet** (or manager) called **mem** :
 - it holds the  **base** entry point of the malloced memory
-- it holds a **now** void* pointer which is the available memory pointer
+- it holds a **now** void* pointer which represent the current available memory
 
 **qs_sheet** holds 2 AVL tree manager :
 - one to store the relations
 - one to store the known divisors of N
 
-At any moment with small precautions you are supposed to be able to store someting in **now**, then to update **now** accordingly to what you stored.  **now** is always supposed to contain only zero until its end, this is the main allocation technique used by this software.  `mem_align` aims to offset any pointer to a nice pointer, wasting a few bits if necessary.
+With small precautions you are supposed to be able to store anything in **now**, then to update **now** accordingly to what you stored.  **now** is always supposed to contain only zero until its end. This is the main memory management technique used by this software.  `mem_align` aims to provide aligned pointers, wasting a few bits if necessary.
 
 ### preparation_part_5 .. 6
-Fill the manager's **base** array with prime numbers provided [by](https://stackoverflow.com/a/61895974/18765627) a fast constant expression :
+Fill the manager's **base** array with prime numbers provided [by](https://stackoverflow.com/a/61895974/18765627) a constant expression :
 - verify that kN is a square mod prime, ignore it otherwise
 - associates the prime with square root of kN mod prime
 - associates the prime with its size (log2)
 - computes invariants like **D** used to generate the **A** polynomial coefficient
 
 ### iteration_analyzer
-- normally do nothing (very large majority of tested cases, and all < 220-bit cases)
+- normally do nothing (very large majority of tested cases, all cases < 220-bit)
 - may help you if you try to better configure the software (helped me around 230-bit)
 - can unblock sieving by randomizing **D**, an important variable
 
@@ -185,46 +187,48 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 
 ### Polynomial `AX^2 + 2BX + C` coefficients : 
 
-| coefficient | const qualified after  | const qualified until |
+| coefficient | qualified as constant after  | qualified as constant until|
 |--|--|--|
 | A | `iteration_part_2` |`inner_continuation_condition` completion
 | B | `iteration_part_5` |for loop final expression
 | C | `iteration_part_7` |for loop final expression
 
+What is a for loop final expression ? `for ([initialization]; [condition]; [final-expression])`.
+
 Polynomial and related data are computed until `iteration_part_7` complete.
 `iteration_part_8` and `iteration_part_9` are used for sieving.
 
 ### Search sieve for relations
--  `register_relations` defines the variable **X** , computes the polynomial value in **X** then searches sieve for relations. Data are buffered and sent to `register_relation_kind_1` or `register_relation_kind_2`.
+ `register_relations` defines the variable **X** , computes the polynomial value in **X** then searches sieve for relations.
 
-Knowledge is then structured by `register_relations_commons` :
+Buffered knowledge is structured by `register_relation_kind_1` ans `register_relation_kind_2` :
 - informations potentially useful are saved into a struct **qs_relation***
 - `register_relation_kind_1` immediately build a matrix of **qs_relation***, using AVL tree
 - `register_relation_kind_2` combine **qs_relation*** together, using AVL tree
 
-The AVL tree is used as a hashmap.
+The AVL tree is used to identify duplicates and retrieve their data.
 
 ### inner_continuation_condition
-Decides if sieving shoud continue or break.
+Decides if sieving shoud continue or break, the relation counter is usually the condition.
 
 ### lanczos_block
 This algorithm is supposed to find matrix eigenvalues.
 - the process need memory, **fac_lanczos.c** have its own array builder
-- all but answer is zeroed and reusable after computations
+- all memory taken in **mem.now** is zeroed and reusable after calculations
 
 ### finalization_part_1 .. 2 .. 3
 
-The function exploit `lanczos_block` answer, it use a worker to remove prime factors from N.
+The function exploit `lanczos_block` answer, a worker is used to remove prime factors from N.
 
 In certain cases such as :
 ```
 ./qs 51460938795049063955433175628971167803839994111348342302522016010379
 ```
-when N is not fully factored, it tries to complete the factorization with GCDs and perfect power checks.
+when N is not fully factored, it completes the factorization with GCDs and perfect power checks.
 
 ### outer_continuation_condition
 This function is used to decide if the algorithm should return the control, or return to sieving.
 - normal case is to return the control, answer was found
-- other case is when no answer was found
+- unusual case is when N isn't fully factored (maybe parameters was wrong)
 
-By default, if no answer was found the algorithm searches 10%, 25% then 50% more relations before giving up.
+So before giving up, the algorithm searches 10%, 25% then 50% more relations.
