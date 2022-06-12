@@ -499,8 +499,8 @@ static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nt
 	switch(nth){
 		case 0 : cint_reinit(res, num->end == num->mem + 1 && *num->mem == 1) ; break;
 		case 1 : cint_dup(res, num); break;
-		//case 2 : cint_sqrt(sheet, num, res, h_cint_tmp(sheet, 2, num)); break;
-		//case 3 : cint_cbrt(sheet, num, res, h_cint_tmp(sheet, 2, num)); break;
+		case 2 : cint_sqrt(sheet, num, res, h_cint_tmp(sheet, 2, num)); break;
+		case 3 : cint_cbrt(sheet, num, res, h_cint_tmp(sheet, 2, num)); break;
 		default:
 			if (num->end > num->mem + 1 || *num->mem > 1) {
 				cint *a = h_cint_tmp(sheet, 2, num),
@@ -570,7 +570,7 @@ static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cin
 }
 
 int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
-	// Perform a Miller-Rabin test, returns a truthy value (the iteration count if number is large).
+	// Perform a Miller-Rabin test, returns a truthy value.
 	int res, i;
 		if (N->mem + 1 >= N->end && *N->mem < 119) {
 			const int n = (int) *N->mem; // returns hardcoded if number < 7 bits.
@@ -581,15 +581,16 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 					*C = h_cint_tmp(sheet, 7, N);
 			size_t a, b, bits = cint_count_bits(N), rand_mod = bits - 3;
 			if (iterations < 0)
-				iterations = bits < 256 ? 32 : bits < 1024 ? 16 : bits < 2048 ? 6 : 3;
+				iterations = bits < 128 ? 16 : bits < 256 ? 8 : bits < 1024 ? 6 : bits < 2048 ? 4 : 2;
 			cint_dup(A, N);
 			cint_reinit(B, 1);
 			cint_subi(A, B);
 			cint_dup(C, A);
-			a = cint_count_zeros(C); // the trailing zeros...
+			a = cint_count_zeros(C); // trailing zeros...
 			cint_right_shifti(C, a);
-			for (i = 0; i < iterations && res; ++i) {
-				cint_random_bits(B, 3 + *B->mem % rand_mod);
+			for (bits = 2, i = 0; i < iterations && res; ++i) {
+				cint_random_bits(B, bits);
+				bits = 3 + *B->mem % rand_mod ;
 				cint_pow_modi(sheet, B, C, N);
 				if (*B->mem != 1 || B->end != B->mem + 1) {
 					for (b = a; b-- && (res = h_cint_compare(A, B));)

@@ -528,7 +528,7 @@ static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B
 	uint8_t *s_1 = qs->others.sieve, mask;
 	uint64_t *s_2 = (uint64_t *) qs->others.sieve;
 	qs_sm a, b, c, bits, extra, mod, v_1, v_2, verification, *data;
-	// at every iteration writes data into buffer, it will be used by next function if conditions are fulfilled.
+	// at every iteration writes data into buffer, it may be used by next function.
 	for (a = 0; a < qs->info.m.divided;) {
 		do {
 			for (; !(s_2[a] & sieve_mask); ++a);
@@ -870,7 +870,7 @@ static inline void finalization_part_2(qs_sheet *qs) {
 }
 
 static inline int finalization_part_3(qs_sheet *qs) {
-	// Usually do nothing, N equals 1 with prime factors removed
+	// Usually do nothing, N equals 1
 	// Otherwise push something non-trivial to the caller's routine
 	int res = h_cint_compare(qs->vars.N, qs->constants.ONE) == 0 ;
 	if (res == 0){

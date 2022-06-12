@@ -382,7 +382,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 		for (; *s && !(*s >= '1' && *s <= '9') && !(*s >= 'a' && *s <= 'z'); ++s);
 		if (*s >= 'a' && *s <= 'z') {
 			int a =
-					fac_apply_custom_param("limit=", s, 1, &params->limit) // add your parameters...
+					fac_apply_custom_param("limit=", s, 1, &params->limit) // add your CLI parameters...
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("help=", s, 1, &params->help);
@@ -425,7 +425,7 @@ static char *fac_answer_to_string(fac_cint **ans) {
 }
 static inline void fac_display_progress(const char *name, int percentage) {
 	// Functions are allowed to print their silent in silent-mode.
-	// So the silent caller must print a new line or clear 50 chars.
+	// So a silent caller must print a new line or clear 50 chars.
 	printf("%s at %d%%...", name, percentage);
 	putchar('\r');
 	fflush(stdout);
