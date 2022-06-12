@@ -38,7 +38,7 @@ static inline void fac_mini_tests(fac_params *m) {
 				goto retry; // it's not a prime
 
 			for (int n = 3; n < trial_max; n += 2)
-				if (is_prime_1062961(n))
+				if (is_prime_4669921(n))
 					if (cint_reinit(Q, n), cint_remove(sheet, N, Q))
 						goto retry; // it's not an 'easily' divisible
 		}

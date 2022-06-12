@@ -67,7 +67,7 @@ static inline int fac_pollard_rho_64_bits(fac_caller *);
 static inline void fac_push(fac_caller *, const fac_cint *, int);
 
 // Math
-static inline int is_prime_1062961(qs_sm);
+static inline int is_prime_4669921(const qs_sm n);
 static int kronecker_symbol(qs_md, qs_md);
 static double log_computation(double);
 static inline qs_md multiplication_modulo(qs_md, qs_md, qs_md);

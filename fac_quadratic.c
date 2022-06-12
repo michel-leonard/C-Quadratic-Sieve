@@ -180,7 +180,7 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 	}
 	b = 10 + (int) (cint_count_bits(kN) << 1); // Function of the bit count of number.
 	for (a = 3; b; a += 2)
-		if (is_prime_1062961(a)) {
+		if (is_prime_4669921(a)) {
 			logarithm = log_computation(a) / a;
 			simple_int_to_cint(B, a);
 			cint_div(qs->calc, kN, B, C, D);
@@ -280,7 +280,7 @@ static inline void preparation_part_5(qs_sheet *qs) {
 	++a;
 
 	for (qs_sm i = 3; a < qs->base.length; i += 2)
-		if (is_prime_1062961(i)) {
+		if (is_prime_4669921(i)) {
 			cint_div(qs->calc, qs->constants.kN, cint_immediate(qs->calc, i), B, C);
 			qs->base.data[a].sqrt = tonelli_shanks(simple_cint_to_int(C), i);
 			if (qs->base.data[a].sqrt) {
