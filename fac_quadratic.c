@@ -25,30 +25,30 @@ static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm bit
 }
 
 static inline void qs_parametrize(qs_sheet *qs) {
-	const int bits = (int) cint_count_bits(qs->constants.kN);
+	const qs_sm bits = (qs_sm) cint_count_bits(qs->constants.kN);
 	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
+	// params are { bits, value }
 	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 60000}, {0} };
 	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
 	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
 	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
 	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
-	static const double param_errors      [][2]= { {110, 14}, {290, 32}, {0} };
+	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
 	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
 
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
 	qs->matrix.length.expected = linear_param_resolution(param_base_size, bits);
 	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
+	qs->info.error_bits = linear_param_resolution(param_error, bits);
+	qs->info.threshold = linear_param_resolution(param_threshold, bits);
+
 	// Other parameters
 	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
 	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
 	qs->info.poly_max = (1 << qs->s.values.subtract_one) - 1;
 	qs->info.cache_block_size = 32000;
-
-	qs->info.error_bits = linear_param_resolution(param_errors, bits);
-	qs->info.threshold = linear_param_resolution(param_threshold, bits);
-	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
 
 	// Computations
 	qs->info.p_list[0] = 1; // one
@@ -56,7 +56,8 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->info.p_list[2] = 768; // medium
 	qs->info.p_list[3] = qs->base.length < 2048 ? qs->base.length : 2048; // mid
 	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
-	qs->info.p_list[5] = qs->base.length; // factor base_size size
+	qs->info.p_list[5] = qs->base.length; // factor base size
+	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
 	qs->info.the_span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2;
 	assert(qs->info.cache_block_size <= qs->info.m.value);
 	{
