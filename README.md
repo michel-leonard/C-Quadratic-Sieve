@@ -107,7 +107,7 @@ Memory allocations are reasonably sized, so this project passes pointers to **as
 - the program will stop if the memory is refused, showing you an error message
 - it would be recommended to restart your device if you see this kind of message
 
-Technical : the quadratic sieve uses most of the memory, valgrind shows around **10MB** and **70MB** depending on input.
+Technical : [valgrind](https://valgrind.org/) shows around **10MB** and **70MB** allocated depending on the the quadratic sieve input.
 
 # cint
 
