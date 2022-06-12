@@ -21,12 +21,12 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
 	static const double
-			lim[] = {110, 130, 150, 170, 190, 200, 210, 220, 230, 260} // number of bits of kN.
-	, np[] = {800, 1000, 1800, 1000, 4500, 5200, 6400, 7000, 8600, 13000} // number of primes in factor base_size.
-	, ex[] = {800, 1000, 1800, 1000, 4500, 5000, 6200, 7000, 8600, 13000} // total relation needs, first guess.
-	, lp[] = {3e5, 5e5, 1e6, 2e6, 4e6, 6e6, 1e7, 3e7, 8e7, 13e7} // large prime.
-	, m2[] = {64e3, 64e3, 128e3, 196e3, 256e3, 256e3, 256e3, 256e3, 256e3, 256e3} // m_div2 value.
-	, mem[] = {100, 100, 200, 300, 400, 600, 900, 1200, 1600, 2200}; // this number * 64Ko memory allocated.
+	lim[] = {  110,  130,  150,   170,   190,   200,   210,   220,   230,   260  } // number of bits of kN.
+	, np[] = { 800,  1000, 1800,  1000,  4500,  5200,  6400,  7000,  8600,  13000} // number of primes in factor base_size.
+	, ex[] = { 800,  1000, 1800,  1000,  4500,  5000,  6200,  7000,  8600,  13000} // total relation needs, first guess.
+	, lp[] = { 3e5,  5e5,  1e6,   2e6,   4e6,   6e6,   1e7,   3e7,   8e7,   13e7 } // large prime.
+	, m2[] = { 64e3, 64e3, 128e3, 196e3, 256e3, 256e3, 256e3, 256e3, 256e3, 256e3} // m_div2 value.
+	, mem[] = {100,  100,  200,   300,   400,   600,   900,   1200,  1600,  2200 };// this number * 64Ko memory allocated.
 
 	size_t idx = 0; // compute the position of the subject (kN) in above arrays.
 	for (; idx + 2 < sizeof(lim) / sizeof(*lim) && bits > lim[idx + 1]; ++idx);
@@ -34,7 +34,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->base.length = linear_param_resolution(np, lim, idx, bits);
 	qs->info.m.value = linear_param_resolution(m2, lim, idx, bits);
 	qs->matrix.length.expected = linear_param_resolution(ex, lim, idx, bits);
-	qs->info.total_bytes_allocated = (1 << 19) * linear_param_resolution(mem, lim, idx, bits);
+	qs->info.total_bytes_allocated = (1 << 16) * linear_param_resolution(mem, lim, idx, bits);
 	// Other parameters
 	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
 	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
