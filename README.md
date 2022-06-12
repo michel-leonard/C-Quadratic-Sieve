@@ -101,6 +101,10 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
 
+# Memory
+
+This project only passes allocated memory to **assert**, no additional error handlers are used.
+
 # cint
 
 You have access to the source code of **cint**, the lite "big num" library **cint** is designed to :
@@ -164,7 +168,6 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 There is a struct inside the **qs_sheet** (or manager) called **mem** :
 - it holds the  **base** entry point of the malloced memory
 - it holds a **now** void* pointer which represent the current available memory
-- this project only passes the memory to **assert**, no additional error handlers are used
 
 **qs_sheet** holds 2 AVL tree manager :
 - one to store the relations
