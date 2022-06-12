@@ -256,7 +256,7 @@ typedef struct {
 } qs_sheet;
 
 // Quadratic sieve functions
-static inline qs_sm linear_param_resolution(const double *, const double *, size_t, qs_sm);
+static inline qs_sm linear_param_resolution(const double [][2], qs_sm);
 static inline void qs_parametrize(qs_sheet *);
 static int quadratic_sieve(fac_caller *);
 static inline void preparation_part_1(qs_sheet *, fac_caller *);

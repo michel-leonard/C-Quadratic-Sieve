@@ -221,8 +221,9 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const size_t n_rows, const size_t n_cols){
 	*target = mem_aligned(qs->mem.now);
 	qs->mem.now = mem_aligned(*target + n_rows) ;
-	for(size_t i = 0; i < n_rows; ++i)
+	for(size_t i = 0; i < n_rows; ++i) {
 		(*target)[i] = qs->mem.now, qs->mem.now = mem_aligned((*target)[i] + n_cols);
+	}
 }
 
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {

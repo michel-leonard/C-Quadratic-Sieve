@@ -579,7 +579,7 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 			cint *A = h_cint_tmp(sheet, 5, N),
 					*B = h_cint_tmp(sheet, 6, N),
 					*C = h_cint_tmp(sheet, 7, N);
-			size_t a = 0, b, bits = cint_count_bits(N), rand_mod = bits - 3;
+			size_t a, b, bits = cint_count_bits(N), rand_mod = bits - 3;
 			if (iterations < 0)
 				iterations = bits < 256 ? 32 : bits < 1024 ? 16 : bits < 2048 ? 6 : 3;
 			cint_dup(A, N);

@@ -10,44 +10,49 @@
 //  This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
 
 // Quadratic sieve parameters
-static inline qs_sm linear_param_resolution(const double *values, const double *bounds, const size_t i, const qs_sm bits) {
-	const double a = (values[i + 1] - values[i]) / (bounds[i + 1] - bounds[i]);
-	const double b = values[i] - a * bounds[i];
-	const qs_sm res = (qs_sm) (a * bits + b);
-	return res + 64 - (res % 64);
+static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm bits) {
+	qs_sm res, i, j = 1 ;
+	for(; v[j + 1][0] && bits > v[j][0]; ++j);
+	i = j - 1 ;
+	if (v[i][0] > bits) res = (qs_sm) v[i][1] ;
+	else if (v[j][0] < bits) res = (qs_sm) v[j][1] ;
+	else {
+		const double a = (v[j][1] - v[i][1]) / (v[j][0] - v[i][0]);
+		const double b = v[i][1] - a * v[i][0];
+		res = (qs_sm) (a * bits + b);
+	}
+	return res + (res > 512) * (16 - res % 16) ;
 }
+
 static inline void qs_parametrize(qs_sheet *qs) {
 	const int bits = (int) cint_count_bits(qs->constants.kN);
 	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
-	static const double
-	lim[] = {  110,  130,  150,   170,   190,   200,   210,   220,   230,   260  } // number of bits of kN.
-	, np[] = { 800,  1000, 1800,  1000,  4500,  5200,  6400,  7000,  8600,  13000} // number of primes in factor base_size.
-	, ex[] = { 800,  1000, 1800,  1000,  4500,  5000,  6200,  7000,  8600,  13000} // total relation needs, first guess.
-	, lp[] = { 3e5,  5e5,  1e6,   2e6,   4e6,   6e6,   1e7,   3e7,   8e7,   13e7 } // large prime.
-	, m2[] = { 64e3, 64e3, 128e3, 196e3, 256e3, 256e3, 256e3, 256e3, 256e3, 256e3} // m_div2 value.
-	, mem[] = {100,  100,  200,   300,   400,   600,   900,   1200,  1600,  2200 };// this number * 64Ko memory allocated.
+	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 60000}, {0} };
+	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
+	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
+	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
+	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
+	static const double param_errors      [][2]= { {110, 14}, {290, 32}, {0} };
+	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
 
-	size_t idx = 0; // compute the position of the subject (kN) in above arrays.
-	for (; idx + 2 < sizeof(lim) / sizeof(*lim) && bits > lim[idx + 1]; ++idx);
-
-	qs->base.length = linear_param_resolution(np, lim, idx, bits);
-	qs->info.m.value = linear_param_resolution(m2, lim, idx, bits);
-	qs->matrix.length.expected = linear_param_resolution(ex, lim, idx, bits);
-	qs->info.total_bytes_allocated = (1 << 16) * linear_param_resolution(mem, lim, idx, bits);
+	qs->base.length = linear_param_resolution(param_base_size, bits);
+	qs->info.m.value = linear_param_resolution(param_m_value, bits);
+	qs->matrix.length.expected = linear_param_resolution(param_base_size, bits);
+	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
 	// Other parameters
 	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
 	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
 	qs->info.poly_max = (1 << qs->s.values.subtract_one) - 1;
-	qs->info.error_bits = bits / 10 + 5;
-	qs->info.threshold = bits < 130 ? bits / 2 : bits < 150 ? 65 : bits / 3 + 22;
 	qs->info.cache_block_size = 32000;
 
-	qs->info.p_list[6] = linear_param_resolution(lp, lim, idx, bits); // large
+	qs->info.error_bits = linear_param_resolution(param_errors, bits);
+	qs->info.threshold = linear_param_resolution(param_threshold, bits);
+	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
 
 	// Computations
 	qs->info.p_list[0] = 1; // one
-	qs->info.p_list[1] = 8; // first
+	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
 	qs->info.p_list[2] = 768; // medium
 	qs->info.p_list[3] = qs->base.length < 2048 ? qs->base.length : 2048; // mid
 	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
@@ -658,6 +663,7 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	if (node->value)
 		return; // duplicates at this stage are ignored.
 	char *open = qs->mem.now = mem_aligned(qs->mem.now), *close;
+	assert(open + (1 << 21) < (char*)qs->mem.base + qs->info.total_bytes_allocated);
 	// between "open" and "close" data will be stored (commit) or be zeroed (rollback).
 	struct qs_relation *rel = &qs->matrix.data[qs->matrix.length.now];
 	// create a new relation.
