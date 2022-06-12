@@ -6,28 +6,29 @@
 #include "fac_lanczos.c"    // quadratic sieve Lanczos.
 #include "fac_testing.c"    // quadratic sieve tests.
 
-static inline void display_verbose_answer(fac_cint **);
-static inline void display_factor_help(char *name);
+static inline void fac_display_verbose(fac_cint **ans);
+static inline void fac_display_help(char *name);
 
 int main(int argc, char *argv[]){
 	cint N ;
 	fac_params config = {0};
 	char * n ; // the number string in base 10.
 	n = fac_fill_params(&config, argc, argv);
-	if (config.testing) factor_mini_test(&config);
-	else if (config.help) display_factor_help(argv[0]);
+	if (config.testing) fac_mini_tests(&config);
+	else if (config.help) fac_display_help(argv[0]);
 	else if (n) {
+		// delete "if" and fill n with a string if you validated the input.
 		const int bits = 64 + 4 * (int) strlen(n);
 		cint_init_by_string(&N, bits, n, 10); // init the number as a cint.
 		fac_cint ** answer = c_factor(&N, &config); // execute the routine.
-		display_verbose_answer(answer); // print answer.
+		fac_display_verbose(answer); // print answer.
 		free(answer); // release answer memory.
 		free(N.mem); // release number memory.
 	} else
 		fputs("usage : qs [-h] [-s] [number]", stderr);
 }
 
-void display_verbose_answer(fac_cint ** ans) {
+static inline void fac_display_verbose(fac_cint ** ans) {
 	for(int i = 0; i < 100; ++i)
 		putchar(' ');
 	putchar('\r');
@@ -35,7 +36,8 @@ void display_verbose_answer(fac_cint ** ans) {
 	puts(str);
 	free(str);
 }
-void display_factor_help(char *name) {
+
+static inline void fac_display_help(char *name) {
 	char * str = 1 + strrchr(name, '/');
 	if (str < name) str = 1 + strrchr(name, '\\');
 	if (str < name) str = name;

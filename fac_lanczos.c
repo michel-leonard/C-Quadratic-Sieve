@@ -1,7 +1,7 @@
 //  GNU General Public License
 
 //      As an undergraduate student, this project is part of my computer science + maths training.
-//          - This software proposition is from Michel Leonard
+//          - This software proposition is from Michel Leonard (student at Université de Franche-Comté, Mon, 11 Jul 2022)
 //          - There is of course no guarantee of any kind on the software
 //          - C code is shared under the terms of the GNU General Public License
 //          - The main mathematical and logical inspiration source is located at :

@@ -2,7 +2,7 @@
 #include <sys/time.h>
 // Basic ~ 100 lines factorization tester : use test=1 or test=160 options
 
-static inline void factor_mini_test(fac_params *m) {
+static inline void fac_mini_tests(fac_params *m) {
 	// init 5 numbers + a computation sheet.
 	cint nums[5];
 	for (int i = 0; i < 5; ++i)

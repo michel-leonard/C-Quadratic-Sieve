@@ -1,7 +1,7 @@
 //  GNU General Public License
 
 //      As an undergraduate student, this project is part of my computer science + maths training.
-//          - This software proposition is from Michel Leonard
+//          - This software proposition is from Michel Leonard (student at Université de Franche-Comté, Mon, 11 Jul 2022)
 //          - There is of course no guarantee of any kind on the software
 //          - C code is shared under the terms of the GNU General Public License
 //          - The main mathematical and logical inspiration source is located at :
@@ -844,6 +844,7 @@ static inline void finalization_part_2(qs_sheet *qs) {
 				for (j = 0; j < i; ++j)
 					if (cint_gcd(qs->calc, di[i], di[j], F), qs_register_factor(qs) == -1)
 						return; // gcd of new divisors with old divisors
+
 
 		for (i = qs->divisors.processing_index; i < k; ++i)
 			if (fac_any_root_check(qs->caller, di[i], qs->vars.FACTOR, R))
