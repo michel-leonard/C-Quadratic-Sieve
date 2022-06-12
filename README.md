@@ -103,7 +103,9 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 
 # Memory
 
-This project passes allocated memory to **assert**, no additional error handlers are used.
+Memory allocations are reasonably sized, so this project passes pointers to **assert**.
+- the program will stop if the memory is refused, showing you an error message
+- it would be recommended to restart your device if you see this kind of message
 
 # cint
 
