@@ -103,7 +103,7 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 
 # Memory
 
-Memory allocations are reasonably sized (like 50Mb for 200-bit RSA), so this project passes pointers to **assert**.
+Memory allocations are reasonably sized (like **50 MB** for 200-bit RSA), so this project passes pointers to **assert**.
 - the program will stop if the memory is refused, showing you an error message
 - it would be recommended to restart your device if you see this kind of message
 
