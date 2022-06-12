@@ -103,7 +103,7 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 
 # Memory
 
-This project only passes allocated memory to **assert**, no additional error handlers are used.
+This project passes allocated memory to **assert**, no additional error handlers are used.
 
 # cint
 
