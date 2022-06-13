@@ -124,11 +124,6 @@ typedef struct {
 	fac_caller * caller ;
 
 	struct {
-		struct avl_manager relations ;
-		struct avl_manager divisors ;
-	} trees ;
-
-	struct {
 		cint * temp ;
 		cint * N ;
 		cint * A ;
@@ -174,7 +169,6 @@ typedef struct {
 		qs_sm threshold;
 		qs_sm poly_max;
 		size_t the_span;
-		qs_sm modulo_step;
 		qs_sm s_rand;
 		qs_sm total_bytes_allocated;
 	} info;
@@ -184,7 +178,6 @@ typedef struct {
 		qs_sm retry_perms;
 		qs_sm blank;
 		qs_sm progress;
-		qs_sm turns;
 		qs_sm curves;
 	} analyzer;
 
@@ -228,30 +221,22 @@ typedef struct {
 
 	// data analysis by algorithm after sieving
 	struct {
+		struct avl_manager tree ;
+		struct qs_relation *data;
 		struct {
 			qs_sm now;
 			qs_sm expected;
 		} length;
-		qs_sm v_size;
-		struct qs_relation *data;
-	} matrix;
+	} relations;
 
 	struct {
-		// the pointers to the divisors are kept in a flat array.
-		cint ** data ;
+		// divisors pointers are kept in a flat array.
+		struct avl_manager tree ;
 		qs_sm processing_index ;
 		qs_sm total_primes ;
 		qs_sm length ;
+		cint ** data ;
 	} divisors;
-
-	// memory snapshot
-	struct {
-		struct {
-			qs_sm now;
-			qs_sm expected;
-		} m_length;
-		char *ptr;
-	} snapshot;
 
 } qs_sheet;
 

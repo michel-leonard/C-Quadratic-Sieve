@@ -30,19 +30,20 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	// params are { bits, value }
 	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 60000}, {0} };
-	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
-	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
-	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
-	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
-	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
-	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
+	qs->base.length = qs->relations.length.expected = linear_param_resolution(param_base_size, bits);
 
-	qs->base.length = linear_param_resolution(param_base_size, bits);
+	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
-	qs->matrix.length.expected = linear_param_resolution(param_base_size, bits);
+
+	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
 	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
+
+	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);
+
+	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
 	qs->info.threshold = linear_param_resolution(param_threshold, bits);
+
 
 	// Other parameters
 	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
@@ -52,12 +53,18 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	// Computations
 	qs->info.p_list[0] = 1; // one
+
+	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
 	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
+
 	qs->info.p_list[2] = 768; // medium
 	qs->info.p_list[3] = qs->base.length < 2048 ? qs->base.length : 2048; // mid
 	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
 	qs->info.p_list[5] = qs->base.length; // factor base size
+
+	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
 	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
+
 	qs->info.the_span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2;
 	assert(qs->info.cache_block_size <= qs->info.m.value);
 	{
@@ -119,9 +126,9 @@ static int quadratic_sieve(fac_caller *caller) {
 static inline int inner_continuation_condition(qs_sheet *qs) {
 	// Used to decide if the inner loop (sieving loop) should continue to search relations or break.
 	int res = 1;
-	res &= qs->matrix.length.now < qs->matrix.length.expected; // the condition.
+	res &= qs->relations.length.now < qs->relations.length.expected; // the condition.
 	if (qs->caller->params->silent == 0) {
-		const int rel_begin = (int) qs->matrix.length.now, rel_end = (int) qs->matrix.length.expected;
+		const int rel_begin = (int) qs->relations.length.now, rel_end = (int) qs->relations.length.expected;
 		fac_display_progress("Quadratic sieve", rel_begin * 100 / rel_end);
 	}
 	return res;
@@ -136,7 +143,7 @@ static inline int outer_continuation_condition(qs_sheet *qs) {
 	if (res) {
 		// puts("quadratic sieve need more relations");
 		// the new parameter is to collect a little more relations.
-		qs->matrix.length.expected = qs->matrix.length.now + (qs->matrix.length.now >> (1 + qs->analyzer.retry_perms));
+		qs->relations.length.expected = qs->relations.length.now + (qs->relations.length.now >> (1 + qs->analyzer.retry_perms));
 	}
 	return res;
 }
@@ -252,8 +259,8 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	}
 
 	// Other allocations
-	qs->matrix.data = mem_aligned(mem); // 4 * more relations than first guessed are available in array, hard limit.
-	qs->others.sm_buffer = mem_aligned(qs->matrix.data + (qs->matrix.length.expected << 2)); // Small buffer, sized for A-invariants
+	qs->relations.data = mem_aligned(mem); // 4 * more relations than first guessed are available in array, hard limit.
+	qs->others.sm_buffer = mem_aligned(qs->relations.data + (qs->relations.length.expected << 2)); // Small buffer, sized for A-invariants
 	const size_t medium_buffer_size = qs->base.length + (qs->info.p_list[1] << 1);
 	qs->others.md_uncleared_buffer = mem_aligned(qs->others.sm_buffer + qs->s.values.double_value); // Medium buffer, not cleared after usage
 	qs->others.md_cleared_buffer = mem_aligned(qs->others.md_uncleared_buffer + medium_buffer_size); // Medium buffer, cleared after usage
@@ -264,7 +271,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	qs->divisors.data = mem_aligned(qs->others.sieve + qs->info.m.double_value + 4);
 	qs->mem.now = mem_aligned(qs->divisors.data + 512);
 
-	struct avl_manager *trees[2] = {&qs->trees.relations, &qs->trees.divisors,};
+	struct avl_manager *trees[2] = {&qs->relations.tree, &qs->divisors.tree,};
 	for (int i = 0; i < 2; ++i) {
 		trees[i]->inserter_argument = &qs->mem.now;
 		trees[i]->inserter = &avl_cint_inserter;
@@ -312,14 +319,14 @@ static inline qs_sm preparation_part_6(qs_sheet *qs, cint *res) {
 }
 
 static inline void iteration_analyzer(qs_sheet *qs) {
-	qs->analyzer.blank += qs->matrix.length.now == qs->analyzer.progress;
+	qs->analyzer.blank += qs->relations.length.now == qs->analyzer.progress;
 	if (qs->analyzer.blank == qs->s.values.defined) {
 		qs->analyzer.blank = 0;
 		// multiple iterations was performed without new relations, so unblock sieving.
 		// a rare case I have encountered after 230-bit, it may be solved by 128-bit support...
 		cint_random_bits(qs->vars.D, cint_count_bits(qs->vars.D));
 	}
-	qs->analyzer.progress = qs->matrix.length.now;
+	qs->analyzer.progress = qs->relations.length.now;
 }
 
 static inline void iteration_part_1(qs_sheet *qs, cint *A) {
@@ -618,8 +625,8 @@ static int qs_register_factor(qs_sheet *qs) {
 	cint * F = qs->vars.FACTOR ;
 	int i, res = h_cint_compare(F, qs->constants.ONE) && h_cint_compare(F, qs->vars.N) ;
 	if (res) {
-		const struct avl_node *node = avl_at(&qs->trees.divisors, F);
-		if (qs->trees.divisors.affected) {
+		const struct avl_node *node = avl_at(&qs->divisors.tree, F);
+		if (qs->divisors.tree.affected) {
 			fac_cint *ans = &qs->caller->factor;
 			for (i = 0; i < 2; ++i) {
 				ans->prime = cint_is_prime(qs->calc, F, -1);
@@ -660,13 +667,13 @@ static inline void process_column_array(struct qs_relation *rel, const qs_sm *pt
 }
 
 static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm *p_1, const qs_sm *p_2, qs_sm *p_3, const qs_sm *p_4) {
-	struct avl_node *node = avl_at(&qs->trees.relations, KEY);
+	struct avl_node *node = avl_at(&qs->relations.tree, KEY);
 	if (node->value)
 		return; // duplicates at this stage are ignored.
 	char *open = qs->mem.now = mem_aligned(qs->mem.now), *close;
 	assert(open + (1 << 21) < (char*)qs->mem.base + qs->info.total_bytes_allocated);
 	// between "open" and "close" data will be stored (commit) or be zeroed (rollback).
-	struct qs_relation *rel = &qs->matrix.data[qs->matrix.length.now];
+	struct qs_relation *rel = &qs->relations.data[qs->relations.length.now];
 	// create a new relation.
 	rel->X = node->key; // constant X is const-stored by the node key.
 	rel->Y.data = qs->mem.now; // data Y has a known length.
@@ -690,7 +697,7 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	} else {
 		node->value = rel; // relation saved, commit, memory updated.
 		qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
-		rel->id = ++qs->matrix.length.now;
+		rel->id = ++qs->relations.length.now;
 	}
 }
 
@@ -700,7 +707,7 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 
 	// the function searches 2 different KEY sharing the same VALUE.
 	// keys and values are stored in the same tree, there is no collisions.
-	struct avl_node *node = avl_at(&qs->trees.relations, VALUE);
+	struct avl_node *node = avl_at(&qs->relations.tree, VALUE);
 	struct qs_relation *old, *new;
 	cint *BEZOUT = 0;
 	qs_sm a = 0, b, *data, *open, *close;
@@ -800,7 +807,7 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 		cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
 		qs_md a, b, c, mask;
 		qs_sm *primes;
-		for (a = mask = 0; a < qs->matrix.length.now; ++a) {
+		for (a = mask = 0; a < qs->relations.length.now; ++a) {
 			mask |= null_rows[a];
 		}
 		//for (a = b = 0; a < 64; ++a) b += (mask & 1LLU << a) != 0; assert(b);
@@ -809,9 +816,9 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 				for (; !(mask & 1LLU << c); ++c);
 				cint_reinit(A, 1), cint_reinit(B, 1), cint_reinit(C, 1);
 				primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*primes));
-				for (a = b = 0; a < qs->matrix.length.now; ++a) {
+				for (a = b = 0; a < qs->relations.length.now; ++a) {
 					if (null_rows[a] & 1LLU << c) {
-						const struct qs_relation *const rel = qs->matrix.data + a;
+						const struct qs_relation *const rel = qs->relations.data + a;
 						cint_mul_modi(qs->calc, A, rel->X, qs->vars.N);
 						for (b = 0; b < rel->axis.Z.length; ++b)
 							++primes[rel->axis.Z.data[b]];

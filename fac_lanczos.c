@@ -13,9 +13,9 @@
 
 static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, uint64_t *Y) {
 	assert(Y != X);
-	memset(Y, 0, qs->matrix.length.expected * sizeof(uint64_t));
-	for (qs_sm a = 0, b ; a < qs->matrix.length.now; ++a) {
-		struct qs_relation *const rel = qs->matrix.data + a;
+	memset(Y, 0, qs->relations.length.expected * sizeof(uint64_t));
+	for (qs_sm a = 0, b ; a < qs->relations.length.now; ++a) {
+		struct qs_relation *const rel = qs->relations.data + a;
 		for (b = 0; b < rel->Y.length; ++b)
 			Y[rel->Y.data[b]] ^= X[a];
 	}
@@ -23,8 +23,8 @@ static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, u
 
 static inline void lanczos_mul_trans_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, uint64_t *Y) {
 	assert(Y != X);
-	for (qs_sm a = 0, b; a < qs->matrix.length.now; ++a) {
-		struct qs_relation *const rel = qs->matrix.data + a;
+	for (qs_sm a = 0, b; a < qs->relations.length.now; ++a) {
+		struct qs_relation *const rel = qs->relations.data + a;
 		for (Y[a] = 0, b = 0; b < rel->Y.length; ++b)
 			Y[a] ^= X[rel->Y.data[b]];
 	}
@@ -35,7 +35,7 @@ static void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const u
 	qs_sm a, b, c, d;
 	memset(Z, 0, 256 * 8 * sizeof(*Z));
 	memset(T, 0, 64 * sizeof(*T));
-	for(a = 0; a < qs->matrix.length.now; ++a) {
+	for(a = 0; a < qs->relations.length.now; ++a) {
 		const uint64_t tmp = X[a]; // read while writing ?!
 		for (b = 0, c = 0; c < 64; c += 8, b += 256)
 			Z[b + (tmp >> c & 0xff)] ^= Y[a];
@@ -136,7 +136,7 @@ static void lanczos_mul_Nx64_64x64_acc(qs_sheet *qs, const uint64_t *X, const ui
 			for (c = Z[b] = 0, d = b; d; d >>= 1, ++c)
 				if (d & 1)
 					Z[b] ^= Y[c];
-	for (a = 0, Z -= 2048; a < qs->matrix.length.now; ++a)
+	for (a = 0, Z -= 2048; a < qs->relations.length.now; ++a)
 		for(b = c = 0; b < 64; b += 8, c += 256) {
 			const uint64_t w = X[a];
 			T[a] ^= Z[c + (w >> b & 0xff)];
@@ -155,8 +155,8 @@ static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64
 
 static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
 	uint64_t a, b, c, d, * Z ; // axis is zeroed during iteration, nobody above would notice.
-	Z = memcpy(qs->mem.now, X, qs->matrix.length.now * sizeof(*X));
-	for (a = 0; a < qs->matrix.length.now; ++a)
+	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
+	for (a = 0; a < qs->relations.length.now; ++a)
 		for (b = 0, c = a >> 6, d = 1LLU << (a % 64); Z[a]; Z[a] >>= 1, ++b)
 			if (Z[a] & 1)
 				Y[b][c] |= d;
@@ -167,7 +167,7 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 	uint64_t mask, *matrix[128], *amatrix[128], *tmp;
 	char * ptr_1 = qs->mem.now, *ptr_2 ;
 	num_deps = 64 << (v && av);
-	col_words = (qs->matrix.length.now + 63) / 64;
+	col_words = (qs->relations.length.now + 63) / 64;
 	for (i = 0; i < num_deps; ++i) {
 		matrix[i] = qs->mem.now;
 		amatrix[i] =  matrix[i] + col_words;
@@ -180,7 +180,7 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 		lanczos_transpose_vector(qs, v, matrix + 64);
 		lanczos_transpose_vector(qs, av, amatrix + 64);
 	}
-	for (i = bit_pos = 0; i < num_deps && bit_pos < qs->matrix.length.now; ++bit_pos) {
+	for (i = bit_pos = 0; i < num_deps && bit_pos < qs->relations.length.now; ++bit_pos) {
 		mask = 1LLU << (bit_pos % 64);
 		col = bit_pos / 64;
 		for (j = i; j < num_deps; ++j)
@@ -204,7 +204,7 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 		++i;
 	}
 
-	for (j = 0; j < qs->matrix.length.now; ++j) {
+	for (j = 0; j < qs->relations.length.now; ++j) {
 		uint64_t word = 0;
 		col = j / 64;
 		mask = 1LLU << (j % 64);
@@ -227,7 +227,7 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const 
 }
 
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
-	const uint64_t n_cols = qs->matrix.length.now, v_size = qs->matrix.length.expected;
+	const uint64_t n_cols = qs->relations.length.now, v_size = qs->relations.length.expected;
 	uint64_t **md, **xl, **sm, *tmp, i, iter, dim_0, dim_1, mask_0, mask_1 ;
 	char *ptr_1, *ptr_2;
 	lanczos_build_array(qs, &md, 6, v_size);
@@ -239,7 +239,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	dim_1 = 64;
 	mask_1 = (uint64_t) -1;
 	iter = 0;
-	for (i = 0; i < qs->matrix.length.now; ++i)
+	for (i = 0; i < qs->relations.length.now; ++i)
 		md[1][i] = (uint64_t) rand_64();
 	memcpy(md[0], md[1], v_size * sizeof(uint64_t));
 	lanczos_mul_MxN_Nx64(qs, md[1], xl[1]);
@@ -277,7 +277,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 		for (i = 0; i < 64; ++i)
 			sm[10][i] = ((sm[6][i] & mask_1) ^ sm[4][i]) & mask_0;
 		lanczos_mul_64x64_64x64(sm[9], sm[10], sm[9]);
-		for (i = 0; i < qs->matrix.length.now; ++i)
+		for (i = 0; i < qs->relations.length.now; ++i)
 			md[4][i] &= mask_0;
 		lanczos_mul_Nx64_64x64_acc(qs, md[1], sm[7], xl[1], md[4]);
 		lanczos_mul_Nx64_64x64_acc(qs, md[3], sm[8], xl[1], md[4]);
@@ -314,18 +314,18 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 
 static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	uint64_t *res;
-	// algorithm do not write to the matrix, it only reads, save original lengths.
-	const qs_sm initial_expected = qs->matrix.length.expected, initial_now = qs->matrix.length.now;
+	// algorithm do not write to the relations, it only reads, save original lengths.
+	const qs_sm initial_expected = qs->relations.length.expected, initial_now = qs->relations.length.now;
 	for (qs_sm i = 0; i < 3; ++i) {
 		// perform the setup.
-		qs->matrix.length.expected = qs->matrix.length.now > qs->base.length ? qs->matrix.length.now : qs->base.length;
+		qs->relations.length.expected = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 		res = lanczos_block_worker(qs);
 		if (res)
 			break;
 		// some relations are thrown if it fails, excepting the first time.
-		qs->matrix.length.expected -= i << 2, qs->matrix.length.now -= i << 2;
+		qs->relations.length.expected -= i << 2, qs->relations.length.now -= i << 2;
 	}
 	// restore original lengths.
-	qs->matrix.length.expected = initial_expected, qs->matrix.length.now = initial_now;
+	qs->relations.length.expected = initial_expected, qs->relations.length.now = initial_now;
 	return res;
 }

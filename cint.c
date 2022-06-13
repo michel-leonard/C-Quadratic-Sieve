@@ -580,8 +580,9 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 					*B = h_cint_tmp(sheet, 6, N),
 					*C = h_cint_tmp(sheet, 7, N);
 			size_t a, b, bits = cint_count_bits(N), rand_mod = bits - 3;
+			for(; (bits << iterations) < 2048; iterations += 8);
 			if (iterations < 0)
-				iterations = bits < 128 ? 16 : bits < 256 ? 8 : bits < 1024 ? 6 : bits < 2048 ? 4 : 2;
+				iterations = bits < 128 ? 16 : bits < 256 ? 8 : bits < 1024 ? 4 : bits < 2048 ? 2 : 1;
 			cint_dup(A, N);
 			cint_reinit(B, 1);
 			cint_subi(A, B);
