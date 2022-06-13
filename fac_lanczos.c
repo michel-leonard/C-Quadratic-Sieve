@@ -154,7 +154,7 @@ static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64
 }
 
 static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
-	uint64_t a, b, c, d, * Z ; // axis is zeroed during iteration, nobody above would notice.
+	uint64_t a, b, c, d, * Z ; // Z is zeroed during iteration, nobody above would notice.
 	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
 	for (a = 0; a < qs->relations.length.now; ++a)
 		for (b = 0, c = a >> 6, d = 1LLU << (a % 64); Z[a]; Z[a] >>= 1, ++b)

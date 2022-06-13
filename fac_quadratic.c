@@ -806,7 +806,7 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 	if (null_rows) {
 		cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
 		qs_md a, b, c, mask;
-		qs_sm *primes;
+		qs_sm *power_of_primes;
 		for (a = mask = 0; a < qs->relations.length.now; ++a) {
 			mask |= null_rows[a];
 		}
@@ -815,21 +815,26 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 			for (c = 0; c < 64; ++c) {
 				for (; !(mask & 1LLU << c); ++c);
 				cint_reinit(A, 1), cint_reinit(B, 1), cint_reinit(C, 1);
-				primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*primes));
+				power_of_primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*power_of_primes));
 				for (a = b = 0; a < qs->relations.length.now; ++a) {
 					if (null_rows[a] & 1LLU << c) {
 						const struct qs_relation *const rel = qs->relations.data + a;
 						cint_mul_modi(qs->calc, A, rel->X, qs->vars.N);
 						for (b = 0; b < rel->axis.Z.length; ++b)
-							++primes[rel->axis.Z.data[b]];
+							++power_of_primes[rel->axis.Z.data[b]];
 					}
 				}
-				for (b = 0; b < qs->base.length; ++b) {
-					simple_int_to_cint(B, qs->base.data[b].num);
-					simple_int_to_cint(D, primes[b] >> 1);
-					cint_pow_modi(qs->calc, B, D, qs->vars.N);
-					cint_mul_modi(qs->calc, C, B, qs->vars.N);
-				}
+
+				for (b = 0; b < qs->base.length; ++b)
+					if (power_of_primes[b]){
+						simple_int_to_cint(B, qs->base.data[b].num);
+						if (power_of_primes[b] > 1) {
+							simple_int_to_cint(D, power_of_primes[b] >> 1);
+							cint_pow_modi(qs->calc, B, D, qs->vars.N);
+						}
+						cint_mul_modi(qs->calc, C, B, qs->vars.N);
+					}
+
 				if (h_cint_compare(A, C)) {
 					cint_subi(C, A), C->nat = 1; // ABS(C)
 					cint_gcd(qs->calc, qs->vars.N, C, qs->vars.FACTOR);

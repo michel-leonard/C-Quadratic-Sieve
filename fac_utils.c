@@ -223,7 +223,7 @@ static int kronecker_symbol(qs_md a, qs_md b) {
 		if (res & 1) {
 			for (c = 0; !(b & 1); ++c, b >>= 1);
 			// When b is odd Jacobi and Kronecker symbols are identical, in factorization algorithms b is often the prime.
-			// When b is an odd cint, Jacobi symbol is equal to the Legendre symbol.
+			// When b is an odd prime, Jacobi symbol is equal to the Legendre symbol.
 			for (res = c & 1 ? s[a & 7] : 1; a; c & 1 ? res *= s[b & 7] : 0, a & b & 2 ? res = -res : 0, c = b % a, b = a, a = c) {
 				for (c = 0; !(a & 1); ++c, a >>= 1);
 			}
@@ -247,10 +247,14 @@ static double log_computation(const double n) {
 	return n < 1 ? -(a + b) : a + b;
 }
 static inline qs_md multiplication_modulo(qs_md a, qs_md b, const qs_md mod) {
+#ifdef __SIZEOF_INT128__
+	return (__uint128_t)a * (__uint128_t)b % (__uint128_t)mod ;
+#else
 	// Return (a * b) % mod, avoiding overflow errors while doing modular multiplication.
 	qs_md res = 0, tmp;
 	for (b %= mod; a; a & 1 ? b >= mod - res ? res -= mod : 0, res += b : 0, a >>= 1, (tmp = b) >= mod - b ? tmp -= mod : 0, b += tmp);
 	return res % mod;
+#endif
 }
 static inline qs_md power_modulo(qs_md n, qs_md exp, const qs_md mod) {
 	// Return (n ^ exp) % mod
