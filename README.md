@@ -96,7 +96,7 @@ I again thanks [William Hart](https://github.com/wbhart), a factor has always be
 # Testing
 
 Not needed at all for regular use, a basic ~ 100 lines testing feature is available :
-- the goal is simply to give users and developers some context
+- the goal is simply to give some background
 - test durations are between 30 seconds (130-bit) and 3 minutes (200-bit)
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
@@ -112,7 +112,7 @@ Technical : [valgrind](https://valgrind.org/) shows around **10MB** and **80MB**
 # cint
 
 You have access to the source code of **cint**, the lite "big num" library **cint** is designed to :
-- take input from an regular integer
+- take input from a regular integer
 - take input from an "arbitrary" long string in base 2 to 62
 - perform basic math operations, including nth_root, modular_inverse, is_prime
 - output its content as a string in base from 2 to 62
@@ -133,7 +133,7 @@ You have access to the source code of **AVL**, a fast self-balancing binary sear
 
 # The file main.c
 
-This file  has just some lines, so you can easily perform a refactoring.
+This file has just some lines, so you can easily perform a refactoring.
 
 # The file fac_utils.c
 
@@ -150,11 +150,11 @@ The file contains utilities that are not specifically intended for a quadratic s
 
 # The file fac_quadratic.c
 
-The file structure is as follows:
-- a ~40 lines funcition allowing to see the algorithm structure
-- 2 important conditions (functions)
-- algorithm parameters
-- the functions approximately in the order they are called
+The quadratic sieve file structure is as follows:
+- the ~40 lines funcition which allows to see the algorithm **structure**
+- the 2 important loop **conditions**
+- the algorithm **parameters**
+- the **functions** approximately in the order they are called
 
 ### preparation_part_2 .. 3
 
@@ -169,9 +169,9 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 
 ### qs_parametrize, preparation_part_4
 
-*Good parameters can improve the speed of quadratic sieve by at least 20%, this is verified by a development version*.
+*Good parameters can improve the speed*.
 
-- define the algorithm parameters, you may try to ameliore
+- define the algorithm parameters
 - allocates a block of memory for the quadratic sieve computations
 - prepare constants, variables, buffers, data arrays ...
 
@@ -209,7 +209,7 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 
 What is a for loop final expression ? `for ([initialization]; [condition]; [final-expression])`.
 
-Polynomial and related data are computed until `iteration_part_7` complete.
+Polynomial and related data are computed until `iteration_part_7` complete.\
 `iteration_part_8` and `iteration_part_9` are used for sieving.
 
 ### Search sieve for relations
