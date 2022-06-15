@@ -81,7 +81,7 @@ The software is intended as a generalist factorization solution.
 
 [msieve](https://github.com/radii/msieve)'s author claims that no software is faster than his between 40 and 50 digits :
 - msieve153.exe was downloaded from [sourceforge.net](https://sourceforge.net/u/jasonp_sf/profile/) during development
-- the software was ranked faster than the popular msieve for general input under 50 digits
+- under 50 digits the current software was ranked faster than the popular msieve
 
 ## Random
 
