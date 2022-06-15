@@ -403,6 +403,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 					fac_apply_custom_param("limit=", s, 1, &params->limit) // add your CLI parameters...
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
+					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)
 					|| fac_apply_custom_param("help=", s, 1, &params->help);
 			assert(a >= 0);
 		} else if (n == 0) {

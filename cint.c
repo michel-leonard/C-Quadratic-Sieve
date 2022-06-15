@@ -467,17 +467,21 @@ __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const ci
 	}
 }
 
-static size_t cint_remove(cint_sheet * sheet, cint *L, const cint *R) {
+static size_t cint_remove(cint_sheet * sheet, cint *N, const cint *F) {
 	// remove all occurrences of the factor from the input, and return the count.
 	size_t res = 0;
-	if (R->end == R->mem + 1 && *R->mem == 1)
-		res = 1, L->nat *= R->nat;
-	else if (L->end != L->mem && R->end != R->mem) {
-		cint *A = h_cint_tmp(sheet, 2, L), *B = h_cint_tmp(sheet, 3, L);
-		for (cint *tmp; cint_div(sheet, L, R, A, B), B->mem == B->end; tmp = L, L = A, A = tmp, ++res);
-		if (res & 1) cint_dup(A, L);
+	if (N->end != N->mem && F->end != F->mem)
+		switch ((*N->mem == 1 && N->end == N->mem + 1) | (*F->mem == 1 && F->end == F->mem + 1) << 1) {
+		case 1 : break; // it asks remove other than [-1, 1] but N is [-1, 1].
+		case 2 : // it asks remove [-1, 1], so remove one occurrence if N != 0.
+		case 3 : res = N->mem != N->end; if (res) N->nat *= F->nat; break;
+		default:;
+			cint *A = h_cint_tmp(sheet, 2, N), *B = h_cint_tmp(sheet, 3, N);
+				// divides N by the factor until there is a remainder
+			for (cint *tmp; cint_div(sheet, N, F, A, B), B->mem == B->end; tmp = N, N = A, A = tmp, ++res);
+			if (res & 1) cint_dup(A, N);
 	}
-	return res;
+	return res ;
 }
 
 static void cint_sqrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem) {

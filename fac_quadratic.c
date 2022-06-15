@@ -24,7 +24,7 @@ static int quadratic_sieve(fac_caller *caller) {
 	preparation_part_1(&qs, caller);
 	preparation_part_2(&qs, qs.vars.N, qs.constants.A, qs.constants.kN);
 	preparation_part_3(&qs, qs.constants.kN, qs.constants.M);
-	// adjustor and multiplier of number are defined, parametrize.
+	// adjustor and qs_multiplier of number are defined, parametrize.
 	qs_parametrize(&qs);
 	preparation_part_4(&qs);
 	preparation_part_5(&qs);
@@ -45,6 +45,7 @@ static int quadratic_sieve(fac_caller *caller) {
 				register_relations(&qs, qs.vars.A, qs.vars.B, qs.vars.C);
 			}
 		} while (inner_continuation_condition(&qs));
+		// Lanczos may read-only (small N) or write to the matrix (larger N).
 		finalization_part_1(&qs, lanczos_block(&qs));
 		finalization_part_2(&qs);
 	} while (outer_continuation_condition(&qs));
@@ -157,7 +158,7 @@ static inline void preparation_part_1(qs_sheet *qs, fac_caller *caller) {
 	qs->caller = caller;
 	qs->calc = caller->calc;
 	qs->constants.A = caller->vars; // adjustor
-	qs->constants.M = caller->vars + 1; // multiplier
+	qs->constants.M = caller->vars + 1; // qs_multiplier
 	qs->constants.kN = caller->vars + 2;
 	qs->vars.N = caller->vars + 3;
 	qs->vars.temp = caller->vars + 4;
@@ -186,32 +187,37 @@ static inline void preparation_part_2(qs_sheet *qs, const cint * N, cint * ADJUS
 static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER) {
 	cint *A = qs->vars.temp, *B = A + 1, *C = A + 2, *D = A + 3;
 	static const int mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,}, n_mul = sizeof(mul) / sizeof(*mul);
-	double factors[n_mul], logarithm;
-	int a, b, c, d;
-	b = (int) (*kN->mem % 8);
-	for (a = 0; a < n_mul; ++a) {
-		int numerator = b * mul[a] % 8;
-		numerator = 1 << (numerator == 1 ? 4 : numerator == 5 ? 2 : 1);
-		factors[a] = log_computation((double) numerator / (double) mul[a]) / 2;
-	}
-	b = 10 + (int) (cint_count_bits(kN) << 1); // Function of the bit count of number.
-	for (a = 3; b; a += 2)
-		if (is_prime_4669921(a)) {
-			logarithm = log_computation(a) / a;
-			simple_int_to_cint(B, a);
-			cint_div(qs->calc, kN, B, C, D);
-			d = kronecker_symbol(simple_cint_to_int(D), a);
-			for (c = 0; c < n_mul; ++c)
-				factors[c] += logarithm + logarithm * d * kronecker_symbol(mul[c], a);
-			--b;
+	int a, b, c, d, res;
+	if (qs->caller->params->qs_multiplier)
+		res = qs->caller->params->qs_multiplier ;
+	else {
+		double factors[n_mul], logarithm;
+		b = (int) (*kN->mem % 8);
+		for (a = 0; a < n_mul; ++a) {
+			int numerator = b * mul[a] % 8;
+			numerator = 1 << (numerator == 1 ? 4 : numerator == 5 ? 2 : 1);
+			factors[a] = log_computation((double) numerator / (double) mul[a]) / 2;
 		}
-	for (a = 1, c = 0; a < n_mul; ++a)
-		if (factors[a] > factors[0])
-			factors[0] = factors[c = a];
-	simple_int_to_cint(MULTIPLIER, mul[c]);
-	if (mul[c] > 1)
+		b = 10 + (int) (cint_count_bits(kN) << 1); // Function of the bit count of number.
+		for (a = 3; b; a += 2)
+			if (is_prime_4669921(a)) {
+				logarithm = log_computation(a) / a;
+				simple_int_to_cint(B, a);
+				cint_div(qs->calc, kN, B, C, D);
+				d = kronecker_symbol(simple_cint_to_int(D), a);
+				for (c = 0; c < n_mul; ++c)
+					factors[c] += logarithm + logarithm * d * kronecker_symbol(mul[c], a);
+				--b;
+			}
+		for (a = 1, c = 0; a < n_mul; ++a)
+			if (factors[a] > factors[0])
+				factors[0] = factors[c = a];
+		res = mul[c];
+	}
+	simple_int_to_cint(MULTIPLIER, res);
+	if (res > 1)
 		cint_dup(B, kN), cint_mul(B, MULTIPLIER, kN);
-	return mul[c];
+	return res;
 }
 
 static inline void preparation_part_4(qs_sheet *qs) {
@@ -261,8 +267,9 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	}
 
 	// Other allocations
+	const size_t relations_reserved = qs->relations.length.expected << 2 ;
 	qs->relations.data = mem_aligned(mem); // 4 * more relations than first guessed are available in array, hard limit.
-	qs->others.sm_buffer = mem_aligned(qs->relations.data + (qs->relations.length.expected << 2)); // Small buffer, sized for A-invariants
+	qs->others.sm_buffer = mem_aligned(qs->relations.data + relations_reserved); // Small buffer, sized for A-invariants
 	const size_t medium_buffer_size = qs->base.length + (qs->info.p_list[1] << 1);
 	qs->others.md_uncleared_buffer = mem_aligned(qs->others.sm_buffer + qs->s.values.double_value); // Medium buffer, not cleared after usage
 	qs->others.md_cleared_buffer = mem_aligned(qs->others.md_uncleared_buffer + medium_buffer_size); // Medium buffer, cleared after usage
@@ -663,7 +670,8 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	char *open = qs->mem.now = mem_aligned(qs->mem.now), *close;
 	assert(open + (1 << 21) < (char*)qs->mem.base + qs->info.total_bytes_allocated);
 	// between "open" and "close" data will be stored (commit) or be zeroed (rollback).
-	struct qs_relation *rel = &qs->relations.data[qs->relations.length.now];
+	struct qs_relation *rel = qs->mem.now;
+	qs->mem.now = rel + 1 ;
 	// create a new relation.
 	rel->X = node->key; // constant X is const-stored by the node key.
 	rel->Y.data = qs->mem.now; // data Y has a known length which only decrease.
@@ -682,9 +690,9 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	if (cint_compare(A, B) && (cint_addi(A, B), cint_compare(A, qs->constants.kN))) {
 		close = qs->mem.now;
 		qs->mem.now = memset(open, 0, close - open);
-		memset(rel, 0, sizeof(*rel)); // relation thrown, rollback.
 	} else {
-		node->value = rel; // relation saved, commit, memory updated.
+		// relation saved, commit, memory updated.
+		node->value = qs->relations.data[qs->relations.length.now] = rel;
 		qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 		rel->id = ++qs->relations.length.now;
 	}
@@ -784,24 +792,23 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 	}
 }
 
-static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) {
-	if (null_rows == 0)
+static inline void finalization_part_1(qs_sheet *qs, const uint64_t *lanczos_answer) {
+	const uint64_t mask = *lanczos_answer, *null_rows = lanczos_answer + 1;
+	// lanczos answer isn't a struct, it's "mask followed by null_rows".
+	if (mask == 0 || null_rows == 0)
 		return;
+
 	cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
-	qs_md a, b, c, mask;
+	qs_md a, b, c;
 	qs_sm *power_of_primes;
-	for (a = mask = 0; a < qs->relations.length.now; ++a)
-		mask |= null_rows[a];
-	//for (a = b = 0; a < 64; ++a) b += (mask & 1LLU << a) != 0; assert(b);
-	if (mask == 0)
-		return;
+	//for (a = b = 0; a < 64; ++a) b += (lanczos_mask & 1LLU << a) != 0; assert(b);
 	for (c = 0; c < 64; ++c) {
 		for (; !(mask & 1LLU << c); ++c);
 		cint_reinit(A, 1), cint_reinit(B, 1), cint_reinit(C, 1);
 		power_of_primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*power_of_primes));
 		for (a = b = 0; a < qs->relations.length.now; ++a) {
 			if (null_rows[a] & 1LLU << c) {
-				const struct qs_relation * restrict const rel = qs->relations.data + a;
+				const struct qs_relation * restrict const rel = qs->relations.data[a];
 				cint_mul_modi(qs->calc, A, rel->X, qs->vars.N);
 				for (b = 0; b < rel->axis.Z.length; ++b)
 					++power_of_primes[rel->axis.Z.data[b]];

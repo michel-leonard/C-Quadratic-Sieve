@@ -22,6 +22,7 @@ typedef struct{
 	int testing ;
 	int silent ;
 	int help ;
+	int qs_multiplier ;
 } fac_params;
 
 typedef struct {
@@ -135,7 +136,7 @@ typedef struct {
 
 	struct{
 		cint * A ; // constant A is the "adjustor"
-		cint * M ; // constant M is the "multiplier"
+		cint * M ; // constant M is the "qs_multiplier"
 		cint * kN ;
 		cint * ONE ;
 		cint * LOWER ;
@@ -222,10 +223,11 @@ typedef struct {
 	// data analysis by algorithm after sieving
 	struct {
 		struct avl_manager tree ;
-		struct qs_relation *data;
+		struct qs_relation **data;
 		struct {
-			qs_sm now;
-			qs_sm expected;
+			qs_sm now ;
+			qs_sm expected ;
+			qs_sm lanczos ;
 		} length;
 	} relations;
 
@@ -265,7 +267,7 @@ static inline int qs_register_factor(qs_sheet *);
 static inline void process_column_array(struct qs_relation *, const qs_sm *);
 static inline void register_relation_kind_1(qs_sheet *, const cint *, qs_sm *, const qs_sm *, qs_sm *, const qs_sm *);
 static inline void register_relation_kind_2(qs_sheet *, const qs_sm *, const cint *, const cint *);
-static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows);
+static inline void finalization_part_1(qs_sheet *qs, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *qs);
 static inline int inner_continuation_condition(qs_sheet *);
 static inline int outer_continuation_condition(qs_sheet *);
@@ -282,6 +284,6 @@ static void lanczos_transpose_vector(qs_sheet *, const uint64_t *, uint64_t **);
 static void lanczos_combine_cols(qs_sheet *, uint64_t *, uint64_t *, uint64_t *, uint64_t *);
 static inline void lanczos_build_array(qs_sheet *, uint64_t ***, size_t, size_t);
 static inline uint64_t *lanczos_block_worker(qs_sheet *);
-static inline uint64_t *lanczos_block(qs_sheet *);
+static inline uint64_t * lanczos_block(qs_sheet *qs);
 
 #endif //QS_HEADERS
