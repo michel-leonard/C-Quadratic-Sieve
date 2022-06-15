@@ -133,8 +133,7 @@ You have access to the source code of **AVL**, a fast self-balancing binary sear
 
 # The file main.c
 
-This file  has just 70 lines, so you can easily check the software structure.
-
+This file  has just some lines, so you can easily perform a refactoring.
 
 # The file fac_utils.c
 
@@ -151,13 +150,17 @@ The file contains utilities that are not specifically intended for a quadratic s
 
 # The file fac_quadratic.c
 
-The file contains the quadratic sieve algorithm, and the C99 code it needs.
+The file structure is as follows:
+- a ~40 lines funcition allowing to see the algorithm structure
+- 2 important conditions (functions)
+- algorithm parameters
+- the functions approximately in the order they are called
 
 ### preparation_part_2 .. 3
 
 The input **N is** duplicated and called "**kN**" after this function complete :
 - multiply **N** by a prime to reach 120 bits
-- apply a [KS](https://books.google.fr/books?id=qRt6CwAAQBAJ&lpg=PA328&ots=ryHIirZZQ2&dq=Knuth%20Schroeppel%20analysis&hl=fr&pg=PA328#v=onepage&q=Knuth%20Schroeppel%20analysis&f=false) multiplier to **N**, intended to optimize runtime
+- apply a [Knuth-Schroeppel](https://books.google.fr/books?id=qRt6CwAAQBAJ&lpg=PA328&ots=ryHIirZZQ2&dq=Knuth%20Schroeppel%20analysis&hl=fr&pg=PA328#v=onepage&q=Knuth%20Schroeppel%20analysis&f=false) multiplier to **N**, intended to optimize runtime
 
 |Variable| Information|
 |--|--|
