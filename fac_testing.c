@@ -1,9 +1,9 @@
 #include <time.h>
 #include <sys/time.h>
-// Basic ~ 100 lines factorization tester : use test=1 or test=160 options
+// Basic ~ 100 lines factorization tester : use test=1 or test=160
 
 static inline void fac_mini_tests(fac_params *m) {
-	// init 5 numbers + a computation sheet.
+	// Welcome to the testing feature, init 5 numbers + a computation sheet.
 	cint nums[5];
 	for (int i = 0; i < 5; ++i)
 		cint_init(&nums[i], 2048, 0);
@@ -40,7 +40,7 @@ static inline void fac_mini_tests(fac_params *m) {
 			for (int n = 3; n < trial_max; n += 2)
 				if (is_prime_4669921(n))
 					if (cint_reinit(Q, n), cint_remove(sheet, N, Q))
-						goto retry; // it's not an 'easily' divisible
+						goto retry; // it's not a 'trial' divisible
 		}
 
 		char *str = cint_to_string(N, 10);
@@ -53,6 +53,7 @@ static inline void fac_mini_tests(fac_params *m) {
 		struct timeval tv;
 		gettimeofday(&tv, 0), chronometer -= tv.tv_sec * 1e6 + tv.tv_usec;
 		fac_cint **factors = c_factor(N, &params);
+		assert(factors); // answer is not null
 		gettimeofday(&tv, 0), chronometer += tv.tv_sec * 1e6 + tv.tv_usec;
 
 		sr += (unsigned) timeout;

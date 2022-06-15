@@ -5,15 +5,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
-// cint is not using global or static vars, just constants.
+// cint is not using global or static variables.
 // memory is supposed provided by the system, allocations are passed to "assert".
 
-typedef int_fast64_t h_cint_t;
+// the functions name that terminates by "i" means immediate, in place.
+// the functions name that begin by "h_" means intended for internal usage.
+
+typedef int64_t h_cint_t;
 
 static const h_cint_t cint_exponent = 4 * sizeof(h_cint_t) - 1;
-static const h_cint_t cint_base = (h_cint_t) (1ULL << cint_exponent);
-static const h_cint_t cint_mask = (h_cint_t) (cint_base - 1);
+static const h_cint_t cint_base = (h_cint_t)1 << cint_exponent;
+static const h_cint_t cint_mask = cint_base - 1;
 static const char *cint_alpha = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 typedef struct {
@@ -29,6 +33,7 @@ typedef struct {
 } cint_sheet;
 
 static cint_sheet * cint_new_sheet(const size_t bits) {
+	// a computation sheet is required by some function needing temporary variables.
 	cint_sheet * sheet = calloc(1, sizeof(cint_sheet));
 	assert(sheet);
 	const size_t num_size = 2 + bits / cint_exponent;
@@ -41,7 +46,7 @@ static cint_sheet * cint_new_sheet(const size_t bits) {
 	return sheet ;
 }
 
-static inline void cint_negate(cint * N){
+__attribute__((unused)) static inline void cint_negate(cint * N){
 	N->nat *= 1 - ((N->mem != N->end) << 1) ;
 }
 
@@ -61,6 +66,7 @@ static size_t cint_count_bits(const cint *num) {
 }
 
 static size_t cint_count_zeros(const cint * num){
+	// it returns the number of "right shifts" it takes to get an odd number.
 	size_t res = 0, i;
 	h_cint_t * ptr ;
 	for (ptr = num->mem; ptr < num->end && !*ptr; ++ptr, res += cint_exponent);
@@ -68,7 +74,6 @@ static size_t cint_count_zeros(const cint * num){
 	return res + i ;
 }
 
-// h_ prefixed functions are intended for internal usage only.
 static inline int h_cint_compare(const cint *lhs, const cint *rhs) {
 	h_cint_t res = (h_cint_t) ((lhs->end - lhs->mem) - (rhs->end - rhs->mem));
 	if (res == 0 && rhs->end != rhs->mem)
@@ -77,6 +82,7 @@ static inline int h_cint_compare(const cint *lhs, const cint *rhs) {
 }
 
 static inline int cint_compare(const cint *lhs, const cint *rhs) {
+	// compare the sign first, then the data
 	int res = (int)(lhs->nat - rhs->nat);
 	if (res == 0) res = (int) lhs->nat * h_cint_compare(lhs, rhs);
 	return res;
@@ -92,6 +98,7 @@ static void cint_init(cint *num, size_t bits, long long int value) {
 }
 
 static void cint_reinit(cint *num, long long int value) {
+	// it's like an init, but without memory allocation
 	num->end = memset(num->mem, 0, (num->end - num->mem) * sizeof(h_cint_t));
 	if ((num->nat = 1 - ((value < 0) << 1)) < 0) value = -value;
 	for (; value; *num->end = (h_cint_t)(value % cint_base), value /= cint_base, ++num->end);
@@ -103,7 +110,6 @@ static inline cint * cint_immediate(cint_sheet *sheet, const long long int value
 	return res ;
 }
 
-#include <stdio.h>
 static void cint_reinit_by_string(cint *num, const char *str, const int base) {
 	cint_reinit(num, 0);
 	for (; *str && memchr(cint_alpha, *str, base) == 0; num->nat *= 1 - ((*str++ == '-') << 1));
@@ -114,6 +120,7 @@ static void cint_reinit_by_string(cint *num, const char *str, const int base) {
 }
 
 static char *cint_to_string(const cint *num, const int base_out) {
+	// Very interesting function, only problem is that it can be slow.
 	h_cint_t a, b, *c = num->end;
 	size_t d, e = 1;
 	char *s = malloc(2);
@@ -137,6 +144,7 @@ __attribute__((unused)) static inline void cint_init_by_string(cint *num, const 
 }
 
 static void cint_reinit_by_double(cint *num, const double value) {
+	// sometimes tested, it worked.
 	cint_reinit(num, 0);
 	uint64_t memory;
 	memcpy(&memory, &value, sizeof(value));
@@ -155,6 +163,7 @@ static void cint_reinit_by_double(cint *num, const double value) {
 }
 
 __attribute__((unused)) static double cint_to_double(const cint *num) {
+	// sometimes tested, it worked.
 	uint64_t memory = cint_count_bits(num) + 1022, m_write = 1ULL << 52, m_read = 1 << memory % cint_exponent;
 	double res = 0;
 	memory <<= 52;
@@ -171,6 +180,7 @@ __attribute__((unused)) static double cint_to_double(const cint *num) {
 __attribute__((unused)) static inline void cint_init_by_double(cint *num, const size_t size, const double value) { cint_init(num, size, 0), cint_reinit_by_double(num, value); }
 
 static void cint_dup(cint *to, const cint *from) {
+	// duplicate (no verification about the target available space)
 	const size_t b = from->end - from->mem, a = to->end - to->mem;
 	memcpy(to->mem, from->mem, b * sizeof(*from->mem));
 	to->end = to->mem + b;
@@ -179,6 +189,7 @@ static void cint_dup(cint *to, const cint *from) {
 }
 
 static void cint_rescale(cint *num, const size_t bits) {
+	// rarely tested, it should allow getting more memory without changing the number.
 	size_t curr_size = num->end - num->mem ;
 	size_t new_size = 1 + bits / cint_exponent ;
 	new_size = new_size + 8 - new_size % 8 ;
@@ -193,7 +204,7 @@ static void cint_rescale(cint *num, const size_t bits) {
 }
 
 static inline cint * h_cint_tmp(cint_sheet * sheet, const int id, const cint * least){
-	// at least the double of "least" to perform multiplication then modulo...
+	// request at least the double of "least" to perform multiplication then modulo...
 	size_t required = (1 + least->end - least->mem) << 1 ;
 	if (sheet->temp[id].size <= required) {
 		required = (1 + ((required * cint_exponent) >> 10)) << 10 ;
@@ -203,6 +214,7 @@ static inline cint * h_cint_tmp(cint_sheet * sheet, const int id, const cint * l
 }
 
 static void h_cint_addi(cint *lhs, const cint *rhs) {
+	// perform an addition (without caring of the sign)
 	h_cint_t *l = lhs->mem;
 	for (const h_cint_t *r = rhs->mem; r < rhs->end;)
 		*l += *r++, *(l + 1) += *l >> cint_exponent, *l++ &= cint_mask;
@@ -213,6 +225,7 @@ static void h_cint_addi(cint *lhs, const cint *rhs) {
 }
 
 static void h_cint_subi(cint *lhs, const cint *rhs) {
+	// perform a subtraction (without caring about the sign, it performs high subtract low)
 	h_cint_t a = 0, cmp, *l, *r, *e, *o;
 	if (lhs->mem == lhs->end)
 		cint_dup(lhs, rhs);
@@ -228,11 +241,13 @@ static void h_cint_subi(cint *lhs, const cint *rhs) {
 	}
 }
 
+// regular functions, they care of the input sign
 static inline void cint_addi(cint *lhs, const cint *rhs) { lhs->nat == rhs->nat ? h_cint_addi(lhs, rhs) : h_cint_subi(lhs, rhs); }
 
 static inline void cint_subi(cint *lhs, const cint *rhs) { lhs->nat == rhs->nat ? lhs->nat = -lhs->nat, h_cint_subi(lhs, rhs), lhs->mem == lhs->end || (lhs->nat = -lhs->nat), (void) 0 : h_cint_addi(lhs, rhs); }
 
 static void cint_left_shifti(cint *num, const size_t bits) {
+// execute a left shift immediately over the input, for any amount of bits (no verification about available memory)
 	if (num->end != num->mem) {
 		const size_t a = bits / cint_exponent, b = bits % cint_exponent, c = cint_exponent - b;
 		if (a) {
@@ -259,6 +274,7 @@ static void cint_right_shifti(cint *num, const size_t bits) {
 }
 
 static void cint_mul(const cint *lhs, const cint *rhs, cint *res) {
+	// the multiplication (no Karatsuba Algorithm, it's the "slow" multiplication)
 	h_cint_t *l, *r, *o, *p;
 	cint_reinit(res, 0);
 	if (lhs->mem != lhs->end && rhs->mem != rhs->end) {
@@ -270,6 +286,7 @@ static void cint_mul(const cint *lhs, const cint *rhs, cint *res) {
 }
 
 static void cint_powi(cint_sheet *sheet, cint *n, const cint *exp) {
+	// read the exponent bit by bit to perform the "fast" exponentiation in place.
 	if (n->mem != n->end) {
 		size_t bits = cint_count_bits(exp);
 		switch (bits) {
@@ -300,6 +317,7 @@ static inline void cint_pow(cint_sheet *sheet, const cint *n, const cint *exp, c
 }
 
 static void cint_binary_div(const cint *lhs, const cint *rhs, cint *q, cint *r) {
+	// the original division algorithm, it doesn't take any temporary variable.
 	cint_reinit(r, 0);
 	if (rhs->end == rhs->mem)
 		for (q->nat = lhs->nat * rhs->nat, q->end = q->mem; q->end < q->mem + q->size; *q->end++ = cint_mask); // DBZ
@@ -323,6 +341,7 @@ static void cint_binary_div(const cint *lhs, const cint *rhs, cint *q, cint *r) 
 }
 
 static void h_cint_div_approx(const cint *lhs, const cint *rhs, cint *res) {
+	// the division approximation algorithm (answer isn't always exact)
 	h_cint_t x, bits = h_cint_compare(lhs, rhs), *o = rhs->end, *p;
 	if (bits == 0)
 		cint_reinit(res, 1), res->nat = lhs->nat * rhs->nat;
@@ -342,7 +361,7 @@ static void h_cint_div_approx(const cint *lhs, const cint *rhs, cint *res) {
 }
 
 static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint *q, cint *r) {
-	// This function take advantage of the native division efficiency.
+	// The fastest division algorithm for small inputs, it uses the approximation algorithm.
 	if (rhs->mem == rhs->end)
 		assert(0), cint_binary_div(lhs, rhs, q, r);
 	else {
@@ -372,6 +391,7 @@ static inline void cint_mul_modi(cint_sheet * sheet, cint * lhs, const cint * rh
 }
 
 static inline void cint_pow_modi(cint_sheet *sheet, cint *n, const cint *exp, const cint *mod) {
+	// same as "power" algorithm, difference is that it take the modulo as soon as possible.
 	if (n->mem != n->end) {
 		size_t bits = cint_count_bits(exp);
 		switch (bits) {
@@ -403,6 +423,7 @@ __attribute__((unused)) static void cint_pow_mod(cint_sheet *sheet, const cint *
 }
 
 static void cint_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cint * gcd){
+	// the basic GCD algorithm, by frontal divisions.
 	if (rhs->mem == rhs->end)
 		cint_dup(gcd, lhs), gcd->nat = 1;
 	else {
@@ -423,6 +444,7 @@ static void cint_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cin
 }
 
 __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cint * gcd){
+	// the binary GCD algorithm, rarely tested.
 	if (lhs->mem == lhs->end) cint_dup(gcd, rhs);
 	else if(rhs->mem == rhs->end) cint_dup(gcd, lhs);
 	else {
@@ -446,6 +468,7 @@ __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const ci
 }
 
 static size_t cint_remove(cint_sheet * sheet, cint *L, const cint *R) {
+	// remove all occurrences of the factor from the input, and return the count.
 	size_t res = 0;
 	if (R->end == R->mem + 1 && *R->mem == 1)
 		res = 1, L->nat *= R->nat;
@@ -458,6 +481,7 @@ static size_t cint_remove(cint_sheet * sheet, cint *L, const cint *R) {
 }
 
 static void cint_sqrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem) {
+	// original square root algorithm.
 	cint_reinit(res, 0), cint_dup(rem, num); // answer ** 2 + rem = cint
 	if (num->nat > 0 && num->end != num->mem) {
 		cint *a = h_cint_tmp(sheet, 0, num), *b = h_cint_tmp(sheet, 1, num);
@@ -475,6 +499,7 @@ static void cint_sqrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem)
 }
 
 static void cint_cbrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem) {
+	// original cube root algorithm.
 	cint_reinit(res, 0), cint_dup(rem, num); // answer ** 3 + rem = cint
 	if (num->mem != num->end) {
 		cint *a = h_cint_tmp(sheet, 0, num), *b = h_cint_tmp(sheet, 1, num);
@@ -496,6 +521,7 @@ static void cint_cbrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem)
 }
 
 static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nth, cint *res) {
+	// original nth-root algorithm.
 	switch(nth){
 		case 0 : cint_reinit(res, num->end == num->mem + 1 && *num->mem == 1) ; break;
 		case 1 : cint_dup(res, num); break;
@@ -524,6 +550,7 @@ static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nt
 }
 
 static void cint_nth_root_remainder(cint_sheet * sheet, const cint *num, const unsigned nth, cint *res, cint * rem){
+	// nth-root algorithm don't provide the remainder for nth > 3, so it computes the remainder in these cases.
 	if (nth == 2) cint_sqrt(sheet, num, res, rem);
 	else if(nth == 3) cint_cbrt(sheet, num, res, rem);
 	else {
@@ -536,6 +563,7 @@ static void cint_nth_root_remainder(cint_sheet * sheet, const cint *num, const u
 }
 
 static void cint_random_bits(cint *num, size_t bits) {
+	// provide a random number with exactly the number of bits asked. Normally no one more, no one less.
 	int i = 0;
 	cint_reinit(num, 0);
 	for (; bits; ++num->end)
@@ -545,6 +573,7 @@ static void cint_random_bits(cint *num, size_t bits) {
 }
 
 static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cint * rhs, cint * res){
+	// original modular inverse algorithm, answer is also called u1 in extended Euclidean algorithm context.
 	if (*rhs->mem > 1 || rhs->end > rhs->mem + 1){
 		cint *a = h_cint_tmp(sheet, 2, rhs),
 		*b = h_cint_tmp(sheet, 3, rhs),
@@ -566,7 +595,7 @@ static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cin
 			if (i & 1) cint_addi(res, e);
 		} else cint_reinit(res, 0);
 		if (out != res) cint_dup(out, res);
-	} else cint_reinit(res, 0); // answer is also called u1 in extended Euclidean algorithm context.
+	} else cint_reinit(res, 0);
 }
 
 int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {

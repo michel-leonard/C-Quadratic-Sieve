@@ -2,81 +2,12 @@
 
 //      As an undergraduate student, this project is part of my computer science + maths training.
 //          - This software proposition is from Michel Leonard (student at Université de Franche-Comté, Mon, 11 Jul 2022)
-//          - There is of course no guarantee of any kind on the software
+//          - There is no guarantee of any kind on the software
 //          - C code is shared under the terms of the GNU General Public License
 //          - The main mathematical and logical inspiration source is located at :
 //              http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp - GNU General Public License
 
 //  This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
-
-// Quadratic sieve parameters
-static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm bits) {
-	qs_sm res, i, j = 1 ;
-	for(; v[j + 1][0] && bits > v[j][0]; ++j);
-	i = j - 1 ;
-	if (v[i][0] > bits) res = (qs_sm) v[i][1] ;
-	else if (v[j][0] < bits) res = (qs_sm) v[j][1] ;
-	else {
-		const double a = (v[j][1] - v[i][1]) / (v[j][0] - v[i][0]);
-		const double b = v[i][1] - a * v[i][0];
-		res = (qs_sm) (a * bits + b);
-	}
-	return res + (res > 512) * (16 - res % 16) ;
-}
-
-static inline void qs_parametrize(qs_sheet *qs) {
-	const qs_sm bits = (qs_sm) cint_count_bits(qs->constants.kN);
-	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
-
-	// params are { bits, value }
-	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 60000}, {0} };
-	qs->base.length = qs->relations.length.expected = linear_param_resolution(param_base_size, bits);
-
-	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
-	qs->info.m.value = linear_param_resolution(param_m_value, bits);
-
-	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
-	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
-
-	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
-	qs->info.error_bits = linear_param_resolution(param_error, bits);
-
-	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
-	qs->info.threshold = linear_param_resolution(param_threshold, bits);
-
-
-	// Other parameters
-	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
-	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
-	qs->info.poly_max = (1 << qs->s.values.subtract_one) - 1;
-	qs->info.cache_block_size = 32000;
-
-	// Computations
-	qs->info.p_list[0] = 1; // one
-
-	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
-	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
-
-	qs->info.p_list[2] = 768; // medium
-	qs->info.p_list[3] = qs->base.length < 2048 ? qs->base.length : 2048; // mid
-	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
-	qs->info.p_list[5] = qs->base.length; // factor base size
-
-	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
-	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
-
-	qs->info.the_span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2;
-	assert(qs->info.cache_block_size <= qs->info.m.value);
-	{
-		qs->info.m.double_value = qs->info.m.value << 1;
-		const qs_sm q = qs->info.m.double_value / qs->info.cache_block_size;
-		const qs_sm r = qs->info.m.double_value % qs->info.cache_block_size;
-		qs->info.m.q = q;
-		qs->info.m.r = r;
-		qs->info.m.n_reps = 1 + (q > 0) * ((q > 1) * (q - 2) + 1 + (r != 0));
-		qs->info.m.divided = qs->info.m.double_value / sizeof(uint64_t);
-	}
-}
 
 // Quadratic sieve manager
 static int quadratic_sieve(fac_caller *caller) {
@@ -146,6 +77,78 @@ static inline int outer_continuation_condition(qs_sheet *qs) {
 		qs->relations.length.expected = qs->relations.length.now + (qs->relations.length.now >> (1 + qs->analyzer.retry_perms));
 	}
 	return res;
+}
+
+// Quadratic sieve parameters
+static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm bits) {
+	qs_sm res, i, j = 1 ;
+	for(; v[j + 1][0] && bits > v[j][0]; ++j);
+	i = j - 1 ;
+	if (v[i][0] > bits) res = (qs_sm) v[i][1] ;
+	else if (v[j][0] < bits) res = (qs_sm) v[j][1] ;
+	else {
+		const double a = (v[j][1] - v[i][1]) / (v[j][0] - v[i][0]);
+		const double b = v[i][1] - a * v[i][0];
+		res = (qs_sm) (a * bits + b);
+	}
+	return res + (res > 512) * (16 - res % 16) ;
+}
+
+static inline void qs_parametrize(qs_sheet *qs) {
+	const qs_sm bits = (qs_sm) cint_count_bits(qs->constants.kN);
+	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
+
+	// params are { bits, value }
+	// static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 30000}, {0} };
+	static const double param_base_size   [][2]= { {130, 847}, {150, 1131}, {170, 1970}, {190, 3336}, {210, 5520}, {230, 8947}, {250, 14244}, {270, 22320}, {290, 34479}, {0} };
+	// static const double param_base_size   [][2]= { {120, 800}, {140, 1200}, {160, 1800}, {180, 2500}, {200, 4000}, {220, 6000}, {240, 10000}, {260, 25000}, {290, 35000}, {0} };
+	qs->base.length = qs->relations.length.expected = linear_param_resolution(param_base_size, bits); // given by (int) exp(.32 * sqrt(log($n) * log(log($n))))
+
+	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
+	qs->info.m.value = linear_param_resolution(param_m_value, bits);
+
+	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
+	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
+
+	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
+	qs->info.error_bits = linear_param_resolution(param_error, bits);
+
+	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
+	//static const double param_threshold   [][2]= { {120, 64}, {140, 66}, {160, 70}, {180, 73}, {200, 80}, {220, 87}, {240, 93}, {260, 100}, {290, 114}, {0} };
+	qs->info.threshold = linear_param_resolution(param_threshold, bits);
+
+
+	// Other parameters
+	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
+	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
+	qs->info.poly_max = (1 << qs->s.values.subtract_one) - 1;
+	qs->info.cache_block_size = 32000;
+
+	// Computations
+	qs->info.p_list[0] = 1; // one
+
+	static const double param_first_prime [][2]= { {110, 8}, {210, 11}, {260, 25}, {290, 28}, {0} };
+	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
+
+	qs->info.p_list[2] = 768; // medium
+	qs->info.p_list[3] = qs->base.length < 2048 ? qs->base.length : 2048; // mid
+	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
+	qs->info.p_list[5] = qs->base.length; // factor base size
+
+	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
+	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
+
+	qs->info.the_span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2;
+	assert(qs->info.cache_block_size <= qs->info.m.value);
+	{
+		qs->info.m.double_value = qs->info.m.value << 1;
+		const qs_sm q = qs->info.m.double_value / qs->info.cache_block_size;
+		const qs_sm r = qs->info.m.double_value % qs->info.cache_block_size;
+		qs->info.m.q = q;
+		qs->info.m.r = r;
+		qs->info.m.n_reps = 1 + (q > 0) * ((q > 1) * (q - 2) + 1 + (r != 0));
+		qs->info.m.divided = qs->info.m.double_value / sizeof(uint64_t);
+	}
 }
 
 // Quadratic sieve source
@@ -218,7 +221,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	assert(mem);
 	qs->info.s_rand = mix_rand_seed(&mem);
 
-	// cint are 16 ... contiguously allocated, not larger than kN, not resized during execution
+	// cint are 16 integers ... contiguously allocated, not larger than kN, not resized during execution
 	cint *num = qs->vars.temp = mem_aligned(mem);
 	mem = num + 16;
 	for (int i = 0; i < 16; ++i)
@@ -530,20 +533,11 @@ static inline void iteration_part_9(qs_sheet *qs, const qs_sm add, const qs_sm *
 }
 
 static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B, const cint *C) {
-	static const uint64_t sieve_mask = 0xC0C0C0C0C0C0C0C0U;
 	cint *D = &qs->vars.temp[0], *E = D + 1, *KEY = D + 2, *VALUE = D + 3;
-	uint8_t *s_1 = qs->others.sieve, mask;
-	uint64_t *s_2 = (uint64_t *) qs->others.sieve;
-	qs_sm a, b, c, bits, extra, mod, v_1, v_2, verification, *data;
-	// at every iteration writes data into buffer, it may be used by next function.
-	for (a = 0; a < qs->info.m.divided;) {
-		do {
-			for (; !(s_2[a] & sieve_mask); ++a);
-			b = a * sizeof(uint64_t);
-			for (++a; b < a * sizeof(uint64_t) && s_1[b] < qs->info.threshold; ++b);
-		} while (s_1[b] < qs->info.threshold);
-		if (b < qs->info.m.double_value) {
-			simple_int_to_cint(D, b);
+	qs_sm a, b, bits, extra, mod, v_1, v_2, verification, *data;
+	for (a = 0; a < qs->info.m.double_value; ++a)
+		if(qs->others.sieve[a] >= qs->info.threshold){
+			simple_int_to_cint(D, a);
 			cint_subi(D, qs->constants.M_2); // X
 			cint_mul(A, D, E); // AX
 			cint_addi(E, B); // AX + B
@@ -551,77 +545,73 @@ static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B
 			cint_addi(E, B); // AX + 2B
 			cint_mul(E, D, VALUE); // AX^2 + 2BX
 			cint_addi(VALUE, C); // AX^2 + 2BX + C
+			KEY->nat = VALUE->nat = 1 ; // abs values
 			bits = (qs_sm) cint_count_bits(VALUE) - qs->info.error_bits;
 			extra = 0, verification = 1;
-			data = qs->others.md_uncleared_buffer; // start overwriting buffer again.
-			for (c = 0; c < 2; ++c) {
-				if (qs->base.data[c].num != 1) {
-					simple_int_to_cint(D, qs->base.data[c].num);
+			data = qs->others.md_uncleared_buffer; // buffered data may be used by next function.
+			for (b = 0; b < 2; ++b) {
+				if (qs->base.data[b].num != 1) {
+					simple_int_to_cint(D, qs->base.data[b].num);
 					*data = cint_remove(qs->calc, VALUE, D);
 					if (*data) {
-						extra += c ? *data : qs->base.data[c].size;
-						*++data = c;
+						extra += b ? *data : qs->base.data[b].size;
+						*++data = b;
 						++data;
 					}
 				}
 			}
-			for (c = 2; c < qs->info.p_list[1] && verification; ++c) {
-				v_1 = (v_2 = 0, qs->base.data[c].sol[1] == -1U) || (v_2 = 1, mod = b % qs->base.data[c].num, mod == qs->base.data[c].sol[0] || mod == qs->base.data[c].sol[1]);
+			for (b = 2; b < qs->info.p_list[1] && verification; ++b) {
+				v_1 = (v_2 = 0, qs->base.data[b].sol[1] == -1U) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
 				if (v_1) {
-					simple_int_to_cint(D, qs->base.data[c].num);
+					simple_int_to_cint(D, qs->base.data[b].num);
 					*data = cint_remove(qs->calc, VALUE, D);
 					verification &= v_2 <= *data;
 					if (*data) {
-						*++data = c, ++data;
-						extra += qs->base.data[c].size;
+						*++data = b, ++data;
+						extra += qs->base.data[b].size;
 					}
 				}
 			}
-			if (s_1[b] += extra, s_1[b] >= bits) {
-				for (; c < qs->info.p_list[4] && extra < s_1[b] && verification; ++c) {
-					v_1 = (v_2 = 0, qs->base.data[c].sol[1] == -1U) || (v_2 = 1, mod = b % qs->base.data[c].num, mod == qs->base.data[c].sol[0] || mod == qs->base.data[c].sol[1]);
+			if (qs->others.sieve[a] += extra, qs->others.sieve[a] >= bits) {
+				for (; b < qs->info.p_list[4] && extra < qs->others.sieve[a] && verification; ++b) {
+					v_1 = (v_2 = 0, qs->base.data[b].sol[1] == -1U) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
 					if (v_1) {
-						simple_int_to_cint(D, qs->base.data[c].num);
+						simple_int_to_cint(D, qs->base.data[b].num);
 						*data = cint_remove(qs->calc, VALUE, D);
 						verification &= v_2 <= *data;
 						if (*data || v_2) {
-							*++data = c, ++data;
-							extra += qs->base.data[c].size;
+							*++data = b, ++data;
+							extra += qs->base.data[b].size;
 						}
 					}
 				}
-				mask = 1 << (b & 7);
-				for (c = qs->info.p_list[4]; c < qs->base.length && extra < s_1[b] && verification; ++c)
-					if (qs->others.flags[c] & mask) {
-						if (mod = b % qs->base.data[c].num, mod == qs->base.data[c].sol[0] || mod == qs->base.data[c].sol[1]) {
-							simple_int_to_cint(D, qs->base.data[c].num);
+				const uint8_t mask = 1 << (a & 7);
+				for (b = qs->info.p_list[4]; b < qs->base.length && extra < qs->others.sieve[a] && verification; ++b)
+					if (qs->others.flags[b] & mask) {
+						if (mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]) {
+							simple_int_to_cint(D, qs->base.data[b].num);
 							*data = cint_remove(qs->calc, VALUE, D);
 							verification &= *data != 0;
-							++data, *data++ = c;
-							extra += qs->base.data[c].size;
+							++data, *data++ = b;
+							extra += qs->base.data[b].size;
 						}
 					}
 				if (verification) {
-					if (h_cint_compare(VALUE, qs->constants.LOWER) <= 0) {
-						assert(VALUE->mem != VALUE->end);
-						VALUE->nat = -VALUE->nat;
+					if (h_cint_compare(VALUE, qs->constants.ONE) == 0) {
 						qs_sm *open_1 = qs->others.sm_buffer;
 						qs_sm *close_1 = open_1 + qs->s.values.double_value;
 						qs_sm *open_2 = qs->others.md_uncleared_buffer;
 						register_relation_kind_1(qs, KEY, open_1, close_1, open_2, data);
-					} else if (h_cint_compare(VALUE, qs->constants.UPPER) < 0) {
-						VALUE->nat *= VALUE->nat;
+					} else if (h_cint_compare(VALUE, qs->constants.UPPER) < 0)
 						register_relation_kind_2(qs, data, KEY, VALUE);
-					}
+
 				} // An abnormally unusable data row has been ignored during relation registering...
 			}
-			++b;
 		}
-	}
 }
 
 static int qs_register_factor(qs_sheet *qs) {
-	// returns -1 if the algorithm should stop
+	// returns -1 if the algorithm should stop, also accept non-prime divisors.
 	cint * F = qs->vars.FACTOR ;
 	int i, res = h_cint_compare(F, qs->constants.ONE) && h_cint_compare(F, qs->vars.N) ;
 	if (res) {
@@ -632,6 +622,7 @@ static int qs_register_factor(qs_sheet *qs) {
 				ans->prime = cint_is_prime(qs->calc, F, -1);
 				if (ans->prime) {
 					cint_dup(&ans->cint, F);
+					// 200-bit RSA take about 10,000,000+ "duplications", so perform the last.
 					ans->power = qs->caller->number->power * (int) cint_remove(qs->calc, qs->vars.N, F);
 					assert(ans->power);
 					fac_push(qs->caller, ans, 1);
@@ -687,10 +678,9 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 		simple_int_to_cint(B, qs->base.data[rel->axis.Z.data[a]].num);
 		cint_mul_modi(qs->calc, A, B, qs->constants.kN);
 	}
-	cint_div(qs->calc, A, qs->constants.kN, B, C);
-	cint_mul(rel->X, rel->X, A);
-	cint_div(qs->calc, A, qs->constants.kN, B, D);
-	if (cint_compare(C, D) && (cint_addi(C, D), cint_compare(C, qs->constants.kN))) {
+	cint_mul(rel->X, rel->X, C);
+	cint_div(qs->calc, C, qs->constants.kN, D, B);
+	if (cint_compare(A, B) && (cint_addi(A, B), cint_compare(A, qs->constants.kN))) {
 		close = qs->mem.now;
 		qs->mem.now = memset(open, 0, close - open);
 		memset(rel, 0, sizeof(*rel)); // relation thrown, rollback.
@@ -771,21 +761,14 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 	qs->mem.now = new->Y.data + new->Y.length;
 
 	if (old) {
-		cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
+		cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *NEW_KEY = A + 3;
 		BEZOUT = old->X + 1; // BEZOUT was stored here.
 		cint_mul(BEZOUT, new->X, B);
 		for (; old->axis.next; old = old->axis.next)
 			if (old != new) {
 				// combines.
 				cint_mul(B, old->X, A);
-				cint_div(qs->calc, A, qs->constants.kN, C, D);
-				if (D->nat < 0)
-					cint_addi(D, qs->constants.kN);
-				if (cint_count_bits(D) + 1 >= qs->info.kn_bits) {
-					cint_dup(C, qs->constants.kN);
-					cint_subi(C, D);
-					KEY = h_cint_compare(C, D) < 0 ? C : D;
-				} else KEY = D;
+				cint_div(qs->calc, A, qs->constants.kN, C, NEW_KEY);
 				// it's using 2 buffers.
 				open = close = qs->others.md_cleared_buffer;
 				data = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*data));
@@ -796,7 +779,7 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 				for (a = 0; a < qs->base.length; ++a)
 					if (data[a])
 						*close++ = data[a], *close++ = a;
-				register_relation_kind_1(qs, KEY, open, close, 0, 0);
+				register_relation_kind_1(qs, NEW_KEY, open, close, 0, 0);
 				memset(open, 0, (char *) close - (char *) open); // zeroed.
 			}
 	}
@@ -824,7 +807,6 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 							++power_of_primes[rel->axis.Z.data[b]];
 					}
 				}
-
 				for (b = 0; b < qs->base.length; ++b)
 					if (power_of_primes[b]){
 						simple_int_to_cint(B, qs->base.data[b].num);
@@ -834,7 +816,6 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 						}
 						cint_mul_modi(qs->calc, C, B, qs->vars.N);
 					}
-
 				if (h_cint_compare(A, C)) {
 					cint_subi(C, A), C->nat = 1; // ABS(C)
 					cint_gcd(qs->calc, qs->vars.N, C, qs->vars.FACTOR);
@@ -851,7 +832,7 @@ static inline void finalization_part_2(qs_sheet *qs) {
 		return;
 
 	cint * F = qs->vars.FACTOR, **di = qs->divisors.data, *Q = qs->vars.temp, *R = Q + 1 ;
-	qs_sm i, j, k, removed = 0 ;
+	qs_sm i, j, k, count = 0 ;
 
 	for(i = qs->divisors.processing_index, k = qs->divisors.length; i < k; ++i)
 		for (j = 1 + i; j < k; ++j)
@@ -864,18 +845,17 @@ static inline void finalization_part_2(qs_sheet *qs) {
 					if (cint_gcd(qs->calc, di[i], di[j], F), qs_register_factor(qs) == -1)
 						return; // gcd of new divisors with old divisors
 
-
 		for (i = qs->divisors.processing_index; i < k; ++i)
 			if (fac_any_root_check(qs->caller, di[i], qs->vars.FACTOR, R))
 				if (qs_register_factor(qs) == -1)
 					return; // perfect power of new divisors
 
-		if (removed != qs->divisors.total_primes)
+		if (count != qs->divisors.total_primes)
 			if (fac_any_root_check(qs->caller, qs->vars.N, qs->vars.FACTOR, R))
 				if (qs_register_factor(qs) == -1)
 					return; // if N changed, check prefect power of N
 
-		removed = qs->divisors.total_primes ;
+		count = qs->divisors.total_primes ;
 		qs->divisors.processing_index = k ;
 	} while(k != qs->divisors.length); // until no new divisor
 
@@ -905,7 +885,7 @@ static inline int finalization_part_3(qs_sheet *qs) {
 			}
 		}
 		res = h_cint_compare(qs->vars.N, &qs->caller->number->cint) ;
-		if (res) // res is true if the QS was able to perform a remove
+		if (res) // res is true if the QS was able to decompose N.
 			if (h_cint_compare(qs->vars.N, qs->constants.ONE)){
 				cint_dup(&ans->cint, qs->vars.N);
 				fac_push(qs->caller, ans, 0);

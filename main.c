@@ -6,18 +6,22 @@
 #include "fac_lanczos.c"    // quadratic sieve Lanczos.
 #include "fac_testing.c"    // quadratic sieve tests.
 
+// Why this project use "cint" instead of GMP ?
+// - Author search to understand the problematics of 64+ bit integers.
+// - Original software goal was to factor 200-bit RSA in 30 seconds.
+// - "cint" allow us to see what is sufficient to reach the goal.
+
 static inline void fac_display_verbose(fac_cint **ans);
 static inline void fac_display_help(char *name);
 
 int main(int argc, char *argv[]){
 	cint N ;
 	fac_params config = {0};
-	char * n ; // the number string in base 10.
+	char * n ; // the string to factor in base 10.
 	n = fac_fill_params(&config, argc, argv);
 	if (config.testing) fac_mini_tests(&config);
 	else if (config.help) fac_display_help(argv[0]);
 	else if (n) {
-		// delete "if" and fill n with a string if you validated the input.
 		const int bits = 64 + 4 * (int) strlen(n);
 		cint_init_by_string(&N, bits, n, 10); // init the number as a cint.
 		fac_cint ** answer = c_factor(&N, &config); // execute the routine.
@@ -53,3 +57,5 @@ static inline void fac_display_help(char *name) {
 	printf("Bests in math with your factorizer...\n");
 	putchar('\n');
 }
+
+// in 2022 the common speed was 1s for 170-bit RSA, 1 min for 220-bit...

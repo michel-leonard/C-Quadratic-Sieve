@@ -6,8 +6,8 @@
 
 // Quadratic sieve integers, used by all factor functions needing large enough unsigned integers.
 
-typedef uint_fast32_t qs_sm; // small size (32+),   the normal native integer used in this implementation.
-typedef uint_fast64_t qs_md; // medium size (64+),  the large native integer used in this implementation.
+typedef uint32_t qs_sm; // small size (32-bit),   the normal native integer used in this implementation.
+typedef uint64_t qs_md; // medium size (64-bit),  the large native integer used in this implementation.
 typedef int_fast64_t qs_md_tmp_si; // medium size,  signed for intermediates computations.
 
 typedef struct {
@@ -48,12 +48,12 @@ typedef struct {
 	struct {
 		fac_cint * data ;
 		int index ;
-	} nexts;
+	} questions;
 
 	struct {
 		fac_cint * data ;
 		int index ;
-	} lasts;
+	} answers;
 
 } fac_caller;
 

@@ -26,19 +26,20 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 
 	// prepare a working array.
 	const int max_factors = input_bits / 10 + 32;
-	m.lasts.data = mem, mem = m.lasts.data + max_factors ;
-	m.nexts.data = mem, mem = m.nexts.data + max_factors ;
+	m.answers.data = mem, mem = m.answers.data + max_factors ;
+	m.questions.data = mem, mem = m.questions.data + max_factors ;
 
-	m.number = &m.nexts.data[m.nexts.index++] ;
+	m.number = &m.questions.data[m.questions.index++] ;
 	simple_dup_cint(&m.number->cint, N, &mem);
 	m.number->bits = input_bits ;
 	m.number->power = 1, m.number->prime = -1 ;
 
 	m.mem.now = mem ;
 
-	// iterates the array until it's empty, begin with number.
+	// iterates the array until it's empty, begin with the input.
+	// functions know they must not push their input to the stack, they return 0 instead.
 	do {
-		m.number = &m.nexts.data[--m.nexts.index];
+		m.number = &m.questions.data[--m.questions.index];
 		int res =   fac_special_cases(&m)
 		            || fac_trial_division(&m, 1)
 		            || fac_perfect_checker(&m)
@@ -48,22 +49,22 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 		            || fac_trial_division(&m, 2) ;
 		if (res == 0)
 			m.number->prime = -1, fac_push(&m, m.number, 1);
-	} while (m.nexts.index);
+	} while (m.questions.index);
 
 	// answer goes into an appropriately sized memory allocation.
 	size_t bytes = 0 ;
-	for(int i = 0; i < m.lasts.index; ++i)
-		bytes += m.lasts.data[i].cint.end - m.lasts.data[i].cint.mem + 1 ;
+	for(int i = 0; i < m.answers.index; ++i)
+		bytes += m.answers.data[i].cint.end - m.answers.data[i].cint.mem + 1 ;
 	bytes *= sizeof(h_cint_t);
-	bytes += (sizeof(fac_cint) + sizeof(fac_cint*)) * (m.lasts.index + 1) ;
+	bytes += (sizeof(fac_cint) + sizeof(fac_cint*)) * (m.answers.index + 1) ;
 	fac_cint  ** res = mem = calloc(1, bytes);
 	assert(mem);
 
-	qsort(m.lasts.data, m.lasts.index, sizeof(fac_cint), &fac_sort_result);
+	qsort(m.answers.data, m.answers.index, sizeof(fac_cint), &fac_sort_result);
 
-	mem = res + m.lasts.index + 1 ;
-	for(int i = 0; i < m.lasts.index; ++i) {
-		fac_cint * factor = &m.lasts.data[i] ;
+	mem = res + m.answers.index + 1 ;
+	for(int i = 0; i < m.answers.index; ++i) {
+		fac_cint * factor = &m.answers.data[i] ;
 		res[i] = mem, mem = res[i] + 1 ;
 		res[i]->power = factor->power ;
 		res[i]->prime = factor->prime ;
@@ -78,7 +79,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 
 static inline int fac_special_cases(fac_caller *m) {
 	int res = m->number->bits < 3 ;
-	if (res && m->lasts.index == 0) {
+	if (res && m->answers.index == 0) {
 		m->number->prime = m->number->bits > 1;
 		fac_push(m, m->number, 1);
 	}
@@ -125,6 +126,8 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 }
 
 static inline int fac_any_root_check(fac_caller * m, const cint *N, cint *Q, cint *R){
+	// Can normally say if a number is a perfect power.
+	// It takes in account the trial divisions initially done.
 	int res = 0 ;
 	const int max_root = 30 ;
 	for(int i = 2; i < max_root ; ++i)
@@ -191,14 +194,15 @@ static inline int fac_pollard_rho_64_bits(fac_caller *m) {
 
 static void fac_push(fac_caller *m, const fac_cint *data, const int last) {
 	// the product of "last" (primes) and "next" must remain N.
+	// functions don't push their input to next, return 0 instead.
 	const cint * num = &data->cint;
 	fac_cint * row ;
 	if (last) {
-		row = &m->lasts.data[m->lasts.index++] ;
+		row = &m->answers.data[m->answers.index++] ;
 		simple_inline_cint(&row->cint, num->end - num->mem + 1, &m->mem.now);
 	}
 	else {
-		row = &m->nexts.data[m->nexts.index++];
+		row = &m->questions.data[m->questions.index++];
 		const size_t needed_size = num->end - num->mem + 1;
 		if (row->cint.size < needed_size)
 			simple_inline_cint(&row->cint, needed_size, &m->mem.now);
@@ -232,6 +236,7 @@ static int kronecker_symbol(qs_md a, qs_md b) {
 	} else { res = res == 1; }
 	return res;
 }
+
 static double log_computation(const double n) {
 	// Basic logarithm computation, believing you can't include <math.h>.
 	static const double euler = 2.7182818284590452354;
@@ -246,9 +251,10 @@ static double log_computation(const double n) {
 	} else { b = (n == 0) / 0.; }
 	return n < 1 ? -(a + b) : a + b;
 }
+
 static inline qs_md multiplication_modulo(qs_md a, qs_md b, const qs_md mod) {
 #ifdef __SIZEOF_INT128__
-	return (__uint128_t)a * (__uint128_t)b % (__uint128_t)mod ;
+	return (__uint128_t) a * (__uint128_t) b % (__uint128_t) mod ;
 #else
 	// Return (a * b) % mod, avoiding overflow errors while doing modular multiplication.
 	qs_md res = 0, tmp;
@@ -256,15 +262,17 @@ static inline qs_md multiplication_modulo(qs_md a, qs_md b, const qs_md mod) {
 	return res % mod;
 #endif
 }
+
 static inline qs_md power_modulo(qs_md n, qs_md exp, const qs_md mod) {
 	// Return (n ^ exp) % mod
 	qs_md res = 1;
 	for (n %= mod; exp; exp & 1 ? res = multiplication_modulo(res, n, mod) : 0, n = multiplication_modulo(n, n, mod), exp >>= 1);
 	return res;
 }
+
 static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	// return root such that (root * root) % mod congruent to n % mod.
-	// return 0 (the default value of answer) if no solution to the congruence exists.
+	// return 0 if no solution to the congruence exists.
 	// mod is assumed odd prime.
 	qs_md a, b = mod - 1, c, d, e, f, g, res = 0;
 	if (power_modulo(n, b >> 1, mod) == 1) {
@@ -287,6 +295,7 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	}
 	return res;
 }
+
 static qs_md modular_inverse(qs_md ra, qs_md rb) {
 	// Return a modular multiplicative inverse of n with respect to the modulus.
 	// Return 0 if the linear congruence has no solutions.
@@ -304,15 +313,18 @@ static qs_md modular_inverse(qs_md ra, qs_md rb) {
 	sa += (i & 1) * sb;
 	return sa;
 }
+
 static inline qs_md rand_64() {
 	// Last bit of rand is very random.
 	qs_md res = 0;
 	for (qs_sm i = 65; --i; res <<= 1, res |= rand() & 1);
 	return res;
 }
+
 static inline qs_md rand_upto(const qs_md limit) {
 	return rand_64() % limit;
 }
+
 static inline unsigned mix_rand_seed(void *addr) {
 	// Take addresses of memory addresses as argument.
 	// Addresses are used together to seed the rand, not too often.
@@ -325,19 +337,23 @@ static inline unsigned mix_rand_seed(void *addr) {
 
 // Cint shortcuts
 static inline void simple_inline_cint(cint *N, const size_t size, void **mem) {
-	N->mem = N->end = *mem;
+	// Fixed size cint is allocated directly in mem, and mem is updated accordingly.
+	N->mem = N->end = (h_cint_t *) *mem;
 	*mem = N->mem + (N->size = size);
 }
+
 static inline void simple_dup_cint(cint *A, const cint *B, void **mem) {
 	A->mem = A->end = (h_cint_t *) *mem;
 	cint_dup(A, B);
 	A->size = A->end - A->mem + 1;
 	*mem = A->mem + A->size;
 }
+
 static inline void simple_int_to_cint(cint *num, qs_md value) {
 	// Pass the given 64-bit number into the given cint.
 	for (cint_reinit(num, 0); value; *num->end++ = (h_cint_t) (value & cint_mask), value >>= cint_exponent);
 }
+
 static inline qs_md simple_cint_to_int(const cint *num) {
 	// Return the value of a cint as a 64-bit integer.
 	qs_md res = 0;
@@ -362,8 +378,8 @@ static inline struct avl_node *avl_cint_inserter(void *args, const void *key_to_
 // System
 static inline void *mem_aligned(void *ptr) {
 	// Best function, default alignment of the return value is 64.
-	char *res __attribute__((aligned(64)));
-	res = (char *) ptr + (64 - (uintptr_t) ptr) % 64;
+	char *res __attribute__((aligned(128)));
+	res = (char *) ptr + (128 - (uintptr_t) ptr) % 128;
 	return res;
 }
 
@@ -379,6 +395,7 @@ static inline int fac_apply_custom_param(const char *a, const char *b, int lengt
 	}
 	return res;
 }
+
 static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 	char *n = 0;
 	for (int i = 1; i < argc; ++i) {
@@ -398,6 +415,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 	}
 	return n;
 }
+
 static char *fac_answer_to_string(fac_cint **ans) {
 	size_t bytes  = 0;
 	int i, j ;
@@ -427,13 +445,14 @@ static char *fac_answer_to_string(fac_cint **ans) {
 	assert(str <= res + bytes);
 	return res;
 }
+
 static inline void fac_display_progress(const char *name, int percentage) {
-	// Functions are allowed to print their silent in silent-mode.
-	// So a silent caller must print a new line or clear 50 chars.
+	// Functions are allowed to print their progress.
 	printf("%s at %d%%...", name, percentage);
 	putchar('\r');
 	fflush(stdout);
 }
+
 static inline int fac_sort_result(const void * lhs, const void * rhs) {
 	const fac_cint * L = lhs, *R = rhs;
 	return h_cint_compare(&L->cint, &R->cint);

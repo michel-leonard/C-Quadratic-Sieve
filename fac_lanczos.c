@@ -2,12 +2,13 @@
 
 //      As an undergraduate student, this project is part of my computer science + maths training.
 //          - This software proposition is from Michel Leonard (student at Université de Franche-Comté, Mon, 11 Jul 2022)
-//          - There is of course no guarantee of any kind on the software
+//          - There is no guarantee of any kind on the software
 //          - C code is shared under the terms of the GNU General Public License
 //          - The main mathematical and logical inspiration source is located at :
 //              http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp - GNU General Public License
 
-//  This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
+// This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
+// Also thanks to Jason S Papadopoulos for a certain help.
 
 // results of operations are last AND non-const arguments.
 
@@ -55,9 +56,8 @@ static void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const u
 static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_s, uint64_t *s, uint64_t last_dim, uint64_t *w) {
 	uint64_t i, j, dim, cols[64];
 	uint64_t M[64][2], mask, *row_i, *row_j, m_0, m_1;
-	for (i = 0; i < 64; ++i) {
+	for (i = 0; i < 64; ++i)
 		M[i][0] = t[i], M[i][1] = 1LLU << i;
-	}
 	mask = 0;
 	for (i = 0; i < last_dim; ++i)
 		mask |= 1LLU << (cols[63 - i] = last_s[i]);
@@ -82,9 +82,8 @@ static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t 
 		if (j < 64) {
 			for (j = 0; j < 64; ++j) {
 				row_j = M[cols[j]];
-				if (row_i != row_j && (row_j[0] & mask)) {
+				if (row_i != row_j && (row_j[0] & mask))
 					row_j[0] ^= row_i[0], row_j[1] ^= row_i[1];
-				}
 			}
 			s[dim++] = cols[i];
 			continue;
@@ -101,16 +100,14 @@ static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t 
 				break; // i = j = 64 ;
 			}
 		}
-		if (j == 64) {
+		if (j == 64)
 			// submatrix is not invertible
 			return 0;
-		}
 
 		for (j = 0; j < 64; ++j) {
 			row_j = M[cols[j]];
-			if (row_i != row_j && (row_j[1] & mask)) {
+			if (row_i != row_j && (row_j[1] & mask))
 				row_j[0] ^= row_i[0], row_j[1] ^= row_i[1];
-			}
 		}
 
 		row_i[0] = row_i[1] = 0;
@@ -122,10 +119,7 @@ static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t 
 		mask |= 1LLU << s[i];
 	for (i = 0; i < last_dim; ++i)
 		mask |= 1LLU << last_s[i];
-	if (mask != -1LLU) {
-		// not all columns used
-		return 0;
-	}
+	dim *= mask == -1LLU;
 	return dim;
 }
 
@@ -164,42 +158,42 @@ static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t *
 
 static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
 	int64_t i, j, k, bit_pos, col, col_words, num_deps ;
-	uint64_t mask, *matrix[128], *amatrix[128], *tmp;
+	uint64_t mask, *mat_1[128], *mat_2[128], *tmp;
 	char * ptr_1 = qs->mem.now, *ptr_2 ;
 	num_deps = 64 << (v && av);
 	col_words = (qs->relations.length.now + 63) / 64;
 	for (i = 0; i < num_deps; ++i) {
-		matrix[i] = qs->mem.now;
-		amatrix[i] =  matrix[i] + col_words;
-		qs->mem.now = amatrix[i] + col_words;
+		mat_1[i] = qs->mem.now;
+		mat_2[i] = mat_1[i] + col_words;
+		qs->mem.now = mat_2[i] + col_words;
 	}
 	ptr_2 = qs->mem.now ;
-	lanczos_transpose_vector(qs, x, matrix);
-	lanczos_transpose_vector(qs, ax, amatrix);
+	lanczos_transpose_vector(qs, x, mat_1);
+	lanczos_transpose_vector(qs, ax, mat_2);
 	if (num_deps == 128) {
-		lanczos_transpose_vector(qs, v, matrix + 64);
-		lanczos_transpose_vector(qs, av, amatrix + 64);
+		lanczos_transpose_vector(qs, v, mat_1 + 64);
+		lanczos_transpose_vector(qs, av, mat_2 + 64);
 	}
 	for (i = bit_pos = 0; i < num_deps && bit_pos < qs->relations.length.now; ++bit_pos) {
 		mask = 1LLU << (bit_pos % 64);
 		col = bit_pos / 64;
 		for (j = i; j < num_deps; ++j)
-			if (amatrix[j][col] & mask) {
-				tmp = matrix[i];
-				matrix[i] = matrix[j];
-				matrix[j] = tmp;
-				tmp = amatrix[i];
-				amatrix[i] = amatrix[j];
-				amatrix[j] = tmp;
+			if (mat_2[j][col] & mask) {
+				tmp = mat_1[i];
+				mat_1[i] = mat_1[j];
+				mat_1[j] = tmp;
+				tmp = mat_2[i];
+				mat_2[i] = mat_2[j];
+				mat_2[j] = tmp;
 				break;
 			}
 		if (j == num_deps)
 			continue;
 		for (++j; j < num_deps; ++j)
-			if (amatrix[j][col] & mask)
+			if (mat_2[j][col] & mask)
 				for (k = 0; k < col_words; ++k) {
-					amatrix[j][k] ^= amatrix[i][k];
-					matrix[j][k] ^= matrix[i][k];
+					mat_2[j][k] ^= mat_2[i][k];
+					mat_1[j][k] ^= mat_1[i][k];
 				}
 		++i;
 	}
@@ -208,11 +202,9 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 		uint64_t word = 0;
 		col = j / 64;
 		mask = 1LLU << (j % 64);
-		for (k = i; k < 64; ++k) {
-			if (matrix[k][col] & mask) {
+		for (k = i; k < 64; ++k)
+			if (mat_1[k][col] & mask)
 				word |= 1LLU << k;
-			}
-		}
 		x[j] = word;
 	}
 	qs->mem.now = memset(ptr_1, 0, ptr_2 - ptr_1);
@@ -221,9 +213,8 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const size_t n_rows, const size_t n_cols){
 	*target = mem_aligned(qs->mem.now);
 	qs->mem.now = mem_aligned(*target + n_rows) ;
-	for(size_t i = 0; i < n_rows; ++i) {
+	for(size_t i = 0; i < n_rows; ++i)
 		(*target)[i] = qs->mem.now, qs->mem.now = mem_aligned((*target)[i] + n_cols);
-	}
 }
 
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
@@ -232,7 +223,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	char *ptr_1, *ptr_2;
 	lanczos_build_array(qs, &md, 6, v_size);
 	lanczos_build_array(qs, &sm, 13, 64);
-	lanczos_build_array(qs, &xl, 2, 1 << 17);
+	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe oversized, I did not find the right size.
 	for (i = 0; i < 64; ++i)
 		sm[12][i] = i;
 	dim_0 = 0;
@@ -251,14 +242,12 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 		lanczos_mul_64xN_Nx64(qs, md[1], md[4], xl[1], sm[3]);
 		lanczos_mul_64xN_Nx64(qs, md[4], md[4], xl[1], sm[5]);
 		for (i = 0; i < 64 && !(sm[3][i]); ++i);
-		if (i == 64) {
+		if (i == 64)
 			break;
-		}
 		dim_0 = lanczos_find_non_singular_sub(sm[3], sm[12], sm[11], dim_1, sm[0]);
 
-		if (dim_0 == 0) {
+		if (dim_0 == 0)
 			break;
-		}
 		mask_0 = 0;
 		for (i = 0; i < dim_0; ++i)
 			mask_0 |= 1LLU << sm[11][i];
