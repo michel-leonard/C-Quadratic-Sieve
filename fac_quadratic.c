@@ -113,8 +113,8 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);
 
-	static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
-	//static const double param_threshold   [][2]= { {120, 64}, {140, 66}, {160, 70}, {180, 73}, {200, 80}, {220, 87}, {240, 93}, {260, 100}, {290, 114}, {0} };
+	//static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
+	static const double param_threshold   [][2]= { {120, 64}, {140, 66}, {160, 70}, {180, 73}, {200, 80}, {220, 87}, {240, 93}, {260, 100}, {290, 114}, {0} };
 	qs->info.threshold = linear_param_resolution(param_threshold, bits);
 
 
@@ -604,14 +604,14 @@ static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B
 						register_relation_kind_1(qs, KEY, open_1, close_1, open_2, data);
 					} else if (h_cint_compare(VALUE, qs->constants.UPPER) < 0)
 						register_relation_kind_2(qs, data, KEY, VALUE);
-
-				} // An abnormally unusable data row has been ignored during relation registering...
+				}
+				// If verification is false : "An abnormally unusable data row has been ignored during relation registering".
 			}
 		}
 }
 
 static int qs_register_factor(qs_sheet *qs) {
-	// returns -1 if the algorithm should stop, also accept non-prime divisors.
+	// returns -1 if the algorithm should stop, accept any divisor of N.
 	cint * F = qs->vars.FACTOR ;
 	int i, res = h_cint_compare(F, qs->constants.ONE) && h_cint_compare(F, qs->vars.N) ;
 	if (res) {
@@ -640,7 +640,7 @@ static int qs_register_factor(qs_sheet *qs) {
 	return res ;
 }
 
-static inline void process_column_array(struct qs_relation *rel, const qs_sm *ptr) {
+static inline void process_column_array(struct qs_relation * restrict rel, const qs_sm * restrict ptr){
 	qs_sm a, b;
 	if (*ptr & 1) {
 		for (a = 0; a < rel->Y.length; ++a)
@@ -667,8 +667,8 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	struct qs_relation *rel = &qs->relations.data[qs->relations.length.now];
 	// create a new relation.
 	rel->X = node->key; // constant X is const-stored by the node key.
-	rel->Y.data = qs->mem.now; // data Y has a known length.
-	rel->axis.Z.data = rel->Y.data + (p_2 - p_1) + (p_4 - p_3); // writes Z ahead...
+	rel->Y.data = qs->mem.now; // data Y has a known length which only decrease.
+	rel->axis.Z.data = rel->Y.data + (p_2 - p_1) + (p_4 - p_3); // writes Z ahead.
 	for (; p_1 < p_2; p_1 += 2) process_column_array(rel, p_1);
 	for (; p_3 < p_4; p_3 += 2) process_column_array(rel, p_3);
 	qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
@@ -786,43 +786,43 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 }
 
 static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) {
-	if (null_rows) {
-		cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
-		qs_md a, b, c, mask;
-		qs_sm *power_of_primes;
-		for (a = mask = 0; a < qs->relations.length.now; ++a) {
-			mask |= null_rows[a];
-		}
-		//for (a = b = 0; a < 64; ++a) b += (mask & 1LLU << a) != 0; assert(b);
-		if (mask) {
-			for (c = 0; c < 64; ++c) {
-				for (; !(mask & 1LLU << c); ++c);
-				cint_reinit(A, 1), cint_reinit(B, 1), cint_reinit(C, 1);
-				power_of_primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*power_of_primes));
-				for (a = b = 0; a < qs->relations.length.now; ++a) {
-					if (null_rows[a] & 1LLU << c) {
-						const struct qs_relation *const rel = qs->relations.data + a;
-						cint_mul_modi(qs->calc, A, rel->X, qs->vars.N);
-						for (b = 0; b < rel->axis.Z.length; ++b)
-							++power_of_primes[rel->axis.Z.data[b]];
-					}
-				}
-				for (b = 0; b < qs->base.length; ++b)
-					if (power_of_primes[b]){
-						simple_int_to_cint(B, qs->base.data[b].num);
-						if (power_of_primes[b] > 1) {
-							simple_int_to_cint(D, power_of_primes[b] >> 1);
-							cint_pow_modi(qs->calc, B, D, qs->vars.N);
-						}
-						cint_mul_modi(qs->calc, C, B, qs->vars.N);
-					}
-				if (h_cint_compare(A, C)) {
-					cint_subi(C, A), C->nat = 1; // ABS(C)
-					cint_gcd(qs->calc, qs->vars.N, C, qs->vars.FACTOR);
-					if (qs_register_factor(qs) == -1)
-						break;
-				}
+	if (null_rows == 0)
+		return;
+	cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
+	qs_md a, b, c, mask;
+	qs_sm *power_of_primes;
+	for (a = mask = 0; a < qs->relations.length.now; ++a) {
+		mask |= null_rows[a];
+	}
+	//for (a = b = 0; a < 64; ++a) b += (mask & 1LLU << a) != 0; assert(b);
+	if (mask == 0)
+		return;
+	for (c = 0; c < 64; ++c) {
+		for (; !(mask & 1LLU << c); ++c);
+		cint_reinit(A, 1), cint_reinit(B, 1), cint_reinit(C, 1);
+		power_of_primes = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*power_of_primes));
+		for (a = b = 0; a < qs->relations.length.now; ++a) {
+			if (null_rows[a] & 1LLU << c) {
+				const struct qs_relation * restrict const rel = qs->relations.data + a;
+				cint_mul_modi(qs->calc, A, rel->X, qs->vars.N);
+				for (b = 0; b < rel->axis.Z.length; ++b)
+					++power_of_primes[rel->axis.Z.data[b]];
 			}
+		}
+		for (b = 0; b < qs->base.length; ++b)
+			if (power_of_primes[b]){
+				simple_int_to_cint(B, qs->base.data[b].num);
+				if (power_of_primes[b] > 1) {
+					simple_int_to_cint(D, power_of_primes[b] >> 1);
+					cint_pow_modi(qs->calc, B, D, qs->vars.N);
+				}
+				cint_mul_modi(qs->calc, C, B, qs->vars.N);
+			}
+		if (h_cint_compare(A, C)) {
+			h_cint_subi(C, A), C->nat = 1; // ABS(C)
+			cint_gcd(qs->calc, qs->vars.N, C, qs->vars.FACTOR);
+			if (qs_register_factor(qs) == -1)
+				break;
 		}
 	}
 }
@@ -885,7 +885,7 @@ static inline int finalization_part_3(qs_sheet *qs) {
 			}
 		}
 		res = h_cint_compare(qs->vars.N, &qs->caller->number->cint) ;
-		if (res) // res is true if the QS was able to decompose N.
+		if (res) // res is true if QS was able to decompose N.
 			if (h_cint_compare(qs->vars.N, qs->constants.ONE)){
 				cint_dup(&ans->cint, qs->vars.N);
 				fac_push(qs->caller, ans, 0);

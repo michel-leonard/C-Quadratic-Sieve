@@ -8,7 +8,7 @@
 //              http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp - GNU General Public License
 
 // This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
-// Also thanks to Jason S Papadopoulos for a certain help.
+// Also thanks to Jason S Papadopoulos for its help (sharing many great source code).
 
 // results of operations are last AND non-const arguments.
 
@@ -223,7 +223,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	char *ptr_1, *ptr_2;
 	lanczos_build_array(qs, &md, 6, v_size);
 	lanczos_build_array(qs, &sm, 13, 64);
-	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe oversized, I did not find the right size.
+	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized, I did not find the right size.
 	for (i = 0; i < 64; ++i)
 		sm[12][i] = i;
 	dim_0 = 0;

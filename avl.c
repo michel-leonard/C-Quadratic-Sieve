@@ -187,7 +187,7 @@ struct avl_node *avl_at(struct avl_manager *const manager, const void * key) {
 	return new_node;
 }
 
-void avl_walk(const struct avl_manager *manager, void(*fn)(const struct avl_node *, void *), void *args, const enum avl_direction direction) {
+__attribute__((unused)) void avl_walk(const struct avl_manager *manager, void(*fn)(const struct avl_node *, void *), void *args, const enum avl_direction direction) {
 	struct avl_node *stack[64], *curr;
 	int index = 0;
 	const int opposite = !direction;

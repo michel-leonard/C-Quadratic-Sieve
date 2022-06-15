@@ -273,7 +273,7 @@ static inline qs_md power_modulo(qs_md n, qs_md exp, const qs_md mod) {
 static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	// return root such that (root * root) % mod congruent to n % mod.
 	// return 0 if no solution to the congruence exists.
-	// mod is assumed odd prime.
+	// mod is assumed odd prime (infinite loop otherwise).
 	qs_md a, b = mod - 1, c, d, e, f, g, res = 0;
 	if (power_modulo(n, b >> 1, mod) == 1) {
 		for (a = 0; !(b & 1); ++a, b >>= 1);
@@ -282,12 +282,10 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 		e = power_modulo(d, b, mod);
 		res = power_modulo(n, (b + 1) >> 1, mod);
 		for (; c != 1; a = d) {
-			for (b = c, d = 1; d + 1 <= a && (b != 1); ++d) {
+			for (b = c, d = 1; d + 1 <= a && (b != 1); ++d)
 				b = multiplication_modulo(b, b, mod);
-			}
-			for (f = e, g = 2 + d; g <= a; ++g) {
+			for (f = e, g = 2 + d; g <= a; ++g)
 				f = multiplication_modulo(f, f, mod);
-			}
 			res = multiplication_modulo(res, f, mod);
 			f = multiplication_modulo(f, f, mod);
 			c = multiplication_modulo(c, f, mod);
@@ -378,8 +376,8 @@ static inline struct avl_node *avl_cint_inserter(void *args, const void *key_to_
 // System
 static inline void *mem_aligned(void *ptr) {
 	// Best function, default alignment of the return value is 64.
-	char *res __attribute__((aligned(128)));
-	res = (char *) ptr + (128 - (uintptr_t) ptr) % 128;
+	char *res __attribute__((aligned(64)));
+	res = (char *) ptr + (64 - (uintptr_t) ptr) % 64;
 	return res;
 }
 
@@ -388,9 +386,8 @@ static inline int fac_apply_custom_param(const char *a, const char *b, int lengt
 	int res = memcmp(a, b, length) == 0;
 	if (res) {
 		for (; *b && !(*b >= '1' && *b <= '9'); ++b);
-		for (*val = 0; *b && !(*val >> 26); ++b) {
+		for (*val = 0; *b && !(*val >> 26); ++b)
 			*val = *val * 10 + *b - '0';
-		}
 		if (*val == 0) *val = 1 ;
 	}
 	return res;
