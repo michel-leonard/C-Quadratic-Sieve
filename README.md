@@ -151,7 +151,7 @@ The file contains utilities that are not specifically intended for a quadratic s
 # The file fac_quadratic.c
 
 The quadratic sieve file structure is as follows:
-- the ~40 lines funcition which allows to see the algorithm **structure**
+- the ~40 lines function that allows to see the algorithm **structure**
 - the 2 important loop **conditions**
 - the algorithm **parameters**
 - the **functions** approximately in the order they are called
