@@ -52,7 +52,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 18 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.\
+Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.
 
 # Fermat numbers factorization
 |F| Value | Took  |
