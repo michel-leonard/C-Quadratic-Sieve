@@ -79,9 +79,9 @@ Largest number factored during development was the 79 digits 8th Fermat Number.
 
 The software is intended as a generalist factorization solution.
 
-msieve's author claims that no software is faster than his between 40 and 50 digits :
-- msieve153.exe was downloaded from [sourceforge.net](https://sourceforge.net/u/jasonp_sf/profile/)
-- general input tests between 0 and 50 digits ranked the software faster than the popular [msieve](https://github.com/radii/msieve)
+[msieve](https://github.com/radii/msieve)'s author claims that no software is faster than his between 40 and 50 digits :
+- msieve153.exe was downloaded from [sourceforge.net](https://sourceforge.net/u/jasonp_sf/profile/) during development
+- the software was ranked faster than the popular msieve for general input under 50 digits
 
 ## Random
 
