@@ -45,7 +45,7 @@ static int quadratic_sieve(fac_caller *caller) {
 				register_relations(&qs, qs.vars.A, qs.vars.B, qs.vars.C);
 			}
 		} while (inner_continuation_condition(&qs));
-		// Lanczos may read-only (small N) or write to the matrix (larger N).
+		// Lanczos may read-only (small N) or write to the relations (larger N).
 		finalization_part_1(&qs, lanczos_block(&qs));
 		finalization_part_2(&qs);
 	} while (outer_continuation_condition(&qs));
@@ -108,8 +108,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
 
-	static const double param_m_alloc     [][2]= { {110, 1e7}, {270, 1e8}, {290, 2e8}, {0} };
-	qs->info.total_bytes_allocated = linear_param_resolution(param_m_alloc, bits);
+	qs->info.total_bytes_allocated = qs->base.length << 13;
 
 	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);

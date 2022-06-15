@@ -212,10 +212,13 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, v_size = qs->relations.length.lanczos;
 	uint64_t **md, **xl, **sm, *tmp, *res, i, iter, dim_0, dim_1, mask_0, mask_1 ;
 	char *ptr_1, *ptr_2;
-	qs->mem.now = (uint64_t*) qs->mem.now + 1 ; // keep one zero before the answer.
+	qs->mem.now = (uint64_t*) qs->mem.now + 16 ; // keep some leading space.
 	lanczos_build_array(qs, &md, 6, v_size);
 	lanczos_build_array(qs, &sm, 13, 64);
-	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized, I did not find the right size.
+	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized.
+
+	res = (*md) - 1; // simple "trick" to return mask + null_rows
+
 	for (i = 0; i < 64; ++i)
 		sm[12][i] = i;
 	dim_0 = 0;
@@ -276,31 +279,33 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 		assert(iter < 365);
 	}
 
+	// ===== answer finalization =====
+	// res will be a simple array of the form [mask, null_rows ...]
+	// it's assumed that a null mask means "miss, no answer"
+
+	*res = 0; // mask
+
 	if(dim_0) {
 		lanczos_mul_MxN_Nx64(qs, md[0], md[3]);
 		lanczos_mul_MxN_Nx64(qs, md[1], md[2]);
 		lanczos_combine_cols(qs, md[0], md[1], md[3], md[2]);
 		lanczos_mul_MxN_Nx64(qs, md[0], md[1]);
-		for (i = 0; i < n_cols; ++i)
-			if (md[1][i]) // shouldn't happen
-				md[0] = 0, i = n_cols;
-	} else
-		md[0] = 0; // linear algebra failed
+		if (*md[1] == 0) // should hold
+			if (memcmp(md[1], md[1] + 1, (v_size - 1) * sizeof(uint64_t)) == 0)
+				for (i = 0; i < n_cols; *res |= (*md)[i++]);
+	}
 
-	ptr_1 = (char*) md[1];
-	ptr_2 = qs->mem.now ; // try to clear all but the answer.
+	// if no mask found : clears everything
+	// if mask found : clear all but (mask + null rows)
+	ptr_1 = (char*) md[*res != 0];
+	ptr_2 = qs->mem.now ;
 	qs->mem.now = memset(ptr_1, 0, ptr_2 - ptr_1);
-
-	// finalize answer as "mask followed by null_rows".
-	res = (*md) - 1;
-	*res = 0; // null_rows known, calculates the mask.
-	if (*md) for (i = 0; i < n_cols; *res |= (*md)[i++]);
 
 	return res;
 }
 
 static inline void lanczos_reduce_matrix(qs_sheet *qs) {
-	// the operation writes to the relations, Y data, Y lengths and relations counter may change.
+	// the operation writes to the relations, Y data, Y lengths and relations counter will probably change.
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
 	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
 	for (a = 0; a < qs->relations.length.now; ++a)
