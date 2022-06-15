@@ -213,7 +213,7 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 				factors[0] = factors[c = a];
 		res = mul[c];
 	}
-	simple_int_to_cint(MULTIPLIER, res);
+	simple_int_to_cint(MULTIPLIER, res); // Knuth-Schroeppel average speedup = 1.46 * faster
 	if (res > 1)
 		cint_dup(B, kN), cint_mul(B, MULTIPLIER, kN);
 	return res;
