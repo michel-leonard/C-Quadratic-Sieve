@@ -41,7 +41,7 @@ The software will show you its answer. To see the help use the `-h` option.
 
 Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 
-|Bits| Command| Took  |
+|Bits| Command| Took
 |--|--|--|
 | 130 | `./qs 982374584994591973035454918323883152991`  | 0.1 s
 | 150 | `./qs 1179676342138800493769972880071793674490763037`  | 0.2 s
@@ -52,7 +52,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 18 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.
+Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.\
 
 # Fermat numbers factorization
 |F| Value | Took  |
@@ -77,7 +77,9 @@ Largest number factored during development was the 79 digits 8th Fermat Number.
 
 # Other factorizations
 
-The software is intended as a generalist factorization solution.
+The software is intended as a generalist factorization solution.\
+General input tests between 0 and 50 digits showed the software to be faster than msieve.\
+This "information" is given because the [msieve github](https://github.com/radii/msieve) page claims that no other algorithm is faster than itself.
 
 ## Random
 
