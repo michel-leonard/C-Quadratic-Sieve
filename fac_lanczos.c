@@ -1,14 +1,5 @@
-//  GNU General Public License
-
-//      As an undergraduate student, this project is part of my computer science + maths training.
-//          - This software proposition is from Michel Leonard (student at Université de Franche-Comté, Mon, 11 Jul 2022)
-//          - There is no guarantee of any kind on the software
-//          - C code is shared under the terms of the GNU General Public License
-//          - The main mathematical and logical inspiration source is located at :
-//              http://web.mit.edu/sage/export/flintqs-0.0.20070817/QS.cpp - GNU General Public License
-
-// This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by William Hart.
-// Also thanks to Jason S Papadopoulos for its help (sharing many great source code).
+// As an undergraduate student, this project is part of my computer science + maths training.
+// If you think this Lanczos Block implementation works, please star the Jason Papadopoulos's "msieve" github.
 
 // results of operations are last AND non-const arguments.
 

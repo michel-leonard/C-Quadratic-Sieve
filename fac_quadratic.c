@@ -201,9 +201,8 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 			simple_int_to_cint(B, a);
 			cint_div(qs->calc, kN, B, C, D);
 			d = kronecker_symbol(simple_cint_to_int(D), a);
-			for (c = 0; c < n_mul; ++c) {
+			for (c = 0; c < n_mul; ++c)
 				factors[c] += logarithm + logarithm * d * kronecker_symbol(mul[c], a);
-			}
 			--b;
 		}
 	for (a = 1, c = 0; a < n_mul; ++a)
@@ -791,9 +790,8 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 	cint *A = &qs->vars.temp[0], *B = A + 1, *C = A + 2, *D = A + 3;
 	qs_md a, b, c, mask;
 	qs_sm *power_of_primes;
-	for (a = mask = 0; a < qs->relations.length.now; ++a) {
+	for (a = mask = 0; a < qs->relations.length.now; ++a)
 		mask |= null_rows[a];
-	}
 	//for (a = b = 0; a < 64; ++a) b += (mask & 1LLU << a) != 0; assert(b);
 	if (mask == 0)
 		return;
@@ -818,8 +816,9 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *null_rows) 
 				}
 				cint_mul_modi(qs->calc, C, B, qs->vars.N);
 			}
-		if (h_cint_compare(A, C)) {
-			h_cint_subi(C, A), C->nat = 1; // ABS(C)
+		h_cint_subi(C, A);
+		if (C->mem != C->end) {
+			C->nat = 1; // ABS(C)
 			cint_gcd(qs->calc, qs->vars.N, C, qs->vars.FACTOR);
 			if (qs_register_factor(qs) == -1)
 				break;
