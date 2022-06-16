@@ -244,7 +244,7 @@ static double log_computation(const double n) {
 	if (n > 0) {
 		for (c = n < 1 ? 1 / n : n; (c /= euler) > 1; ++a);
 		c = 1 / (c * euler - 1), c = c + c + 1, f = c * c, b = 0;
-		for (d = 1, c /= 2; e = b, b += 1 / (d * c), b - e > 0.00000001;) {
+		for (d = 1, c /= 2; e = b, b += 1 / (d * c), b - e > 0.00001;) {
 			d += 2, c *= f;
 		}
 	} else { b = (n == 0) / 0.; }
