@@ -95,13 +95,13 @@ I again thanks [William Hart](https://github.com/wbhart), a factor has always be
 
 # Testing
 
-All measurements were not made with the same parameters, so they are only provided as an indication.
-
 Not needed at all for regular use, a basic ~ 100 lines testing feature is available :
 - the goal is simply to give some background
 - test durations are between 30 seconds (130-bit) and 3 minutes (200-bit)
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
+
+All measurements were not made with the same parameters and the same device, so they are only indicative.
 
 # Memory
 
