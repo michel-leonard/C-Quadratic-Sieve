@@ -231,6 +231,7 @@ Decides if sieving shoud continue or break, the relation counter is usually the 
 This algorithm is supposed to find matrix eigenvalues.
 - the process need memory, **fac_lanczos.c** have its own array builder
 - all memory taken in **mem.now** is zeroed and reusable after calculations
+- a **reduce_matrix** function is used before giving up
 
 ### finalization_part_1 .. 2 .. 3
 
