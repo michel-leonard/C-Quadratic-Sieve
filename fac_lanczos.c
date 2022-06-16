@@ -280,7 +280,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	}
 
 	// ===== answer finalization =====
-	// res will be a simple array of the form [mask, null_rows ...]
+	// res will be a simple array of the form [mask, null_rows...]
 	// it's assumed that a null mask means "miss, no answer"
 
 	*res = 0; // mask
@@ -305,7 +305,8 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 }
 
 static inline void lanczos_reduce_matrix(qs_sheet *qs) {
-	// the operation writes to the relations, Y data, Y lengths and relations counter will probably change.
+	// this filtering process is not always necessary to make "lanczos_block_worker" succeed :
+	// - it writes to the relations [ Y data, Y lengths, relation counters ] will change
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
 	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
 	for (a = 0; a < qs->relations.length.now; ++a)
@@ -345,15 +346,16 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 }
 
 static inline uint64_t * lanczos_block(qs_sheet *qs) {
-	// 4 tries = 2 tries without reducing + 2 tries with reduced.
+	// the worker algorithm is probabilistic with high success rate
+	// submit at most 2 * the raw matrix, and 2 * the reduced matrix
 	uint64_t *res ;
 	for (qs_sm i = 0; i < 4; ++i) {
 		qs->relations.length.lanczos = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 		res = lanczos_block_worker(qs);
-		if (*res) // 210-bit and less often works without reducing.
+		if (*res) // under 210-bit it succeeds without reducing
 			break;
 		else if(i == 1)
-			lanczos_reduce_matrix(qs); // often need reduce with 230-bit.
+			lanczos_reduce_matrix(qs); // 230-bit need reduce
 	}
 	return res;
 }

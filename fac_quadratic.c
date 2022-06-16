@@ -60,8 +60,8 @@ static inline int inner_continuation_condition(qs_sheet *qs) {
 	int res = 1;
 	res &= qs->relations.length.now < qs->relations.length.expected; // the condition.
 	if (qs->caller->params->silent == 0) {
-		const int rel_begin = (int) qs->relations.length.now, rel_end = (int) qs->relations.length.expected;
-		fac_display_progress("Quadratic sieve", rel_begin * 100 / rel_end);
+		const double rel_begin = (double) qs->relations.length.now, rel_end = (double) qs->relations.length.expected, pct = 100. * rel_begin / rel_end ;
+		fac_display_progress("Quadratic sieve", 1.4 * pct - .004 * pct * pct); // progress isn't linear
 	}
 	return res;
 }
@@ -101,20 +101,21 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	// params are { bits, value }
 	// static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 30000}, {0} };
-	static const double param_base_size   [][2]= { {130, 847}, {150, 1131}, {170, 1970}, {190, 3336}, {210, 5520}, {230, 8947}, {250, 14244}, {270, 22320}, {290, 34479}, {0} };
 	// static const double param_base_size   [][2]= { {120, 800}, {140, 1200}, {160, 1800}, {180, 2500}, {200, 4000}, {220, 6000}, {240, 10000}, {260, 25000}, {290, 35000}, {0} };
-	qs->base.length = qs->relations.length.expected = linear_param_resolution(param_base_size, bits); // given by (int) exp(.32 * sqrt(log($n) * log(log($n))))
+	static const double param_base_size   [][2]= { {130, 847}, {150, 1131}, {170, 1970}, {190, 3336}, {210, 5520}, {230, 8947}, {260, 14244}, {280, 22320}, {300, 34479}, {0} };
+	qs->base.length = linear_param_resolution(param_base_size, bits);
+	qs->relations.length.expected = bits < 220 ? qs->base.length : linear_param_resolution(param_base_size, bits + 10) ;
 
 	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
 
 	qs->info.total_bytes_allocated = qs->base.length << 13;
 
-	static const double param_error      [][2]= { {110, 14}, {290, 32}, {0} };
+	static const double param_error      [][2]= { {110, 14}, {250, 30}, {290, 40}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);
 
 	//static const double param_threshold   [][2]= { {110, 63}, {220, 77}, {300, 102}, {0} };
-	static const double param_threshold   [][2]= { {120, 64}, {140, 66}, {160, 70}, {180, 73}, {200, 80}, {220, 87}, {240, 93}, {260, 100}, {290, 114}, {0} };
+	static const double param_threshold   [][2]= { {120, 64}, {140, 66}, {160, 70}, {180, 73}, {200, 80}, {220, 87}, {240, 93}, {260, 112}, {290, 134}, {0} };
 	qs->info.threshold = linear_param_resolution(param_threshold, bits);
 
 
@@ -135,7 +136,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
 	qs->info.p_list[5] = qs->base.length; // factor base size
 
-	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {290, 3e8}, {0} };
+	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {210, 1e7}, {240, 3e7}, {260, 13e7}, {290, 3e8}, {0} };
 	qs->info.p_list[6] =  linear_param_resolution(param_large_prime, bits); // large
 
 	qs->info.the_span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2;
@@ -157,7 +158,7 @@ static inline void preparation_part_1(qs_sheet *qs, fac_caller *caller) {
 	qs->caller = caller;
 	qs->calc = caller->calc;
 	qs->constants.A = caller->vars; // adjustor
-	qs->constants.M = caller->vars + 1; // qs_multiplier
+	qs->constants.M = caller->vars + 1; // multiplier
 	qs->constants.kN = caller->vars + 2;
 	qs->vars.N = caller->vars + 3;
 	qs->vars.temp = caller->vars + 4;
@@ -213,7 +214,7 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 				factors[0] = factors[c = a];
 		res = mul[c];
 	}
-	simple_int_to_cint(MULTIPLIER, res); // Knuth-Schroeppel average speedup = 1.46 * faster
+	simple_int_to_cint(MULTIPLIER, res); // Knuth-Schroeppel make 1.46 * more relations
 	if (res > 1)
 		cint_dup(B, kN), cint_mul(B, MULTIPLIER, kN);
 	return res;
@@ -540,6 +541,7 @@ static inline void iteration_part_9(qs_sheet *qs, const qs_sm add, const qs_sm *
 static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B, const cint *C) {
 	cint *D = &qs->vars.temp[0], *E = D + 1, *KEY = D + 2, *VALUE = D + 3;
 	qs_sm a, b, bits, extra, mod, v_1, v_2, verification, *data;
+	qs_sm t = qs->info.threshold;
 	for (a = 0; a < qs->info.m.double_value; ++a)
 		if(qs->others.sieve[a] >= qs->info.threshold){
 			simple_int_to_cint(D, a);
@@ -613,6 +615,7 @@ static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B
 				// If verification is false : "An abnormally unusable data row has been ignored during relation registering".
 			}
 		}
+	qs->info.threshold = t ;
 }
 
 static int qs_register_factor(qs_sheet *qs) {

@@ -95,7 +95,7 @@ static inline void *mem_aligned(void *);
 static inline int fac_apply_custom_param(const char *, const char *, int, int *);
 static inline char *fac_fill_params(fac_params *params, int argc, char **args);
 static char *fac_answer_to_string(fac_cint **);
-static inline void fac_display_progress(const char *, int);
+static inline void fac_display_progress(const char *, double);
 static inline int fac_sort_result(const void * , const void *);
 
 

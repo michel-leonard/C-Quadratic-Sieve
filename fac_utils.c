@@ -168,9 +168,8 @@ static inline int fac_pollard_rho_64_bits(fac_caller *m) {
 		// Perform a Pollard's Rho test, this one can't complete with number prime.
 		qs_md n[2] = {simple_cint_to_int(&m->number->cint), 1,}; // number and its factor.
 		for (size_t limit = 7; n[1] == 1 || n[0] == n[1]; ++limit) {
-			if (m->params->silent == 0) {
-				fac_display_progress("Pollard Rho", (int) limit * 100 / 21);
-			}
+			if (m->params->silent == 0)
+				fac_display_progress("Pollard Rho", 100. * (double) limit / 21);
 			size_t a = -1, b = 2, c = limit;
 			qs_md d, e = rand_64(), f = 1;
 			for (n[1] = 1, d = e %= n[0]; n[1] == 1 && --c; e = d, b <<= 1, a = -1) {
@@ -444,9 +443,9 @@ static char *fac_answer_to_string(fac_cint **ans) {
 	return res;
 }
 
-static inline void fac_display_progress(const char *name, int percentage) {
+static inline void fac_display_progress(const char *name, double percentage) {
 	// Functions are allowed to print their progress.
-	printf("%s at %d%%...", name, percentage);
+	printf("%s at %.02f %%...", name, percentage);
 	putchar('\r');
 	fflush(stdout);
 }
