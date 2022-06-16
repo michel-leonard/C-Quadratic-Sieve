@@ -102,7 +102,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	// params are { bits, value }
 	// static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {200, 3200}, {260, 15000}, {290, 30000}, {0} };
 	// static const double param_base_size   [][2]= { {120, 800}, {140, 1200}, {160, 1800}, {180, 2500}, {200, 4000}, {220, 6000}, {240, 10000}, {260, 25000}, {290, 35000}, {0} };
-	static const double param_base_size   [][2]= { {130, 847}, {150, 1131}, {170, 1970}, {190, 3336}, {210, 5520}, {230, 8947}, {260, 14244}, {280, 22320}, {300, 34479}, {0} };
+	static const double param_base_size   [][2]= { {130, 847}, {150, 1131}, {170, 1970}, {190, 3336}, {220, 5520}, {240, 8947}, {260, 14244}, {280, 22320}, {300, 34479}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 	qs->relations.length.expected = bits < 220 ? qs->base.length : linear_param_resolution(param_base_size, bits + 10) ;
 
