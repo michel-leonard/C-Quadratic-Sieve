@@ -95,6 +95,8 @@ I again thanks [William Hart](https://github.com/wbhart), a factor has always be
 
 # Testing
 
+All measurements were not made with the same parameters, so they are only provided as an indication.
+
 Not needed at all for regular use, a basic ~ 100 lines testing feature is available :
 - the goal is simply to give some background
 - test durations are between 30 seconds (130-bit) and 3 minutes (200-bit)
