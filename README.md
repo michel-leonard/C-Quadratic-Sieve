@@ -219,7 +219,7 @@ Buffered knowledge is structured by `register_relation_kind_1` ans `register_rel
 - informations potentially useful are saved into a struct **qs_relation***
 - `register_relation_kind_1` immediately build a matrix of **qs_relation***, using AVL tree
 - `register_relation_kind_2` combine **qs_relation*** together, using AVL tree
-- *Progress printed is not always linear, `register_relation_kind_2` may add 50% of total relations but does not start immediately.*
+- *progress printed isn't always linear, `register_relation_kind_2` may add many relations but may not start immediately*
 
 The AVL tree is used to identify duplicates and retrieve their data.
 
