@@ -139,7 +139,6 @@ typedef struct {
 		cint * M ; // constant M is the "qs_multiplier"
 		cint * kN ;
 		cint * ONE ;
-		cint * LOWER ;
 		cint * UPPER ;
 		cint * M_2 ;
 	} constants;
@@ -220,7 +219,7 @@ typedef struct {
 		uint8_t *flags;
 	} others;
 
-	// data analysis by algorithm after sieving
+	// data analysis made by algorithm after sieving
 	struct {
 		struct avl_manager tree ;
 		struct qs_relation **data;
@@ -232,7 +231,7 @@ typedef struct {
 	} relations;
 
 	struct {
-		// divisors pointers are kept in a flat array.
+		// divisors of N are kept (symbolically) in a flat array
 		struct avl_manager tree ;
 		qs_sm processing_index ;
 		qs_sm total_primes ;

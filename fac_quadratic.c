@@ -24,7 +24,7 @@ static int quadratic_sieve(fac_caller *caller) {
 	preparation_part_1(&qs, caller);
 	preparation_part_2(&qs, qs.vars.N, qs.constants.A, qs.constants.kN);
 	preparation_part_3(&qs, qs.constants.kN, qs.constants.M);
-	// adjustor and qs_multiplier of number are defined, parametrize.
+	// adjustor and multiplier are known, parametrize.
 	qs_parametrize(&qs);
 	preparation_part_4(&qs);
 	preparation_part_5(&qs);
@@ -45,7 +45,7 @@ static int quadratic_sieve(fac_caller *caller) {
 				register_relations(&qs, qs.vars.A, qs.vars.B, qs.vars.C);
 			}
 		} while (inner_continuation_condition(&qs));
-		// Lanczos may read-only (small N) or write to the relations (larger N).
+		// Lanczos may read-only (small N) or update the relations (larger N).
 		finalization_part_1(&qs, lanczos_block(&qs));
 		finalization_part_2(&qs);
 	} while (outer_continuation_condition(&qs));
@@ -56,7 +56,7 @@ static int quadratic_sieve(fac_caller *caller) {
 
 // Quadratic sieve main condition 1
 static inline int inner_continuation_condition(qs_sheet *qs) {
-	// Used to decide if the inner loop (sieving loop) should continue to search relations or break.
+	// continue to search relations or break ? res is the answer.
 	int res = 1;
 	res &= qs->relations.length.now < qs->relations.length.needs; // the condition.
 	if (qs->caller->params->silent == 0) {
@@ -68,8 +68,7 @@ static inline int inner_continuation_condition(qs_sheet *qs) {
 
 // Quadratic sieve main condition 2
 static inline int outer_continuation_condition(qs_sheet *qs) {
-	// The algorithm has normally finished its work, the prime factors if they exist have been identified.
-	// Used to decide whether the algorithm returns to the inner loop (sieving) or returns control.
+	// return to sieving or stop the algorithm ? res is the answer.
 	int res = qs->analyzer.retry_perms-- > 0; // avoid infinite loop.
 	res &= qs->divisors.total_primes < qs->analyzer.retry_perms; // search at least (2.. 1.. 0) prime factors.
 	if (res) {
@@ -99,24 +98,24 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	const qs_sm bits = (qs_sm) cint_count_bits(qs->constants.kN);
 	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
-	// params are { bits, value }
-	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {0} };
+	// params as { bits, value } take the extremal value if bits exceed.
+	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	static const double param_lazyness   [][2]= { {110, 90}, {230, 100}, {250, 130} };
-	// collecting less relations than recommended, then sieve again in case of fail (was a testing feature).
+	static const double param_lazyness [][2]= { {110, 90}, {230, 100}, {250, 130} };
+	// collecting more/fewer relations than recommended (was a testing feature)
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_lazyness, bits) / 100 ;
-	qs->analyzer.retry_perms = 3; // Sieve again up to 3 times before giving up.
+	qs->analyzer.retry_perms = 3; // Sieve again up to 3 times before giving up
 
-	static const double param_m_value     [][2]= { {110, 64e3}, {170, 256e3}, {0} };
+	static const double param_m_value [][2]= { {110, 64e3}, {170, 256e3}, {0} };
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
 
 	qs->info.total_bytes_allocated = qs->relations.length.needs << 13;
 
-	static const double param_error      [][2]= { {110, 13}, {300, 33}, {0} };
+	static const double param_error [][2]= { {110, 13}, {300, 33}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);
 
-	static const double param_threshold   [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
+	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
 	qs->info.threshold = linear_param_resolution(param_threshold, bits);
 
 	// Other parameters
@@ -129,6 +128,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
 	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
+
 	qs->info.p_list[2] = 1000 ; // medium
 	qs->info.p_list[3] = qs->base.length < 2000 ? qs->base.length : 2000; // mid
 	qs->info.p_list[4] = qs->base.length < 5000 ? qs->base.length : 5000; // sec
@@ -152,7 +152,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 // Quadratic sieve source
 static inline void preparation_part_1(qs_sheet *qs, fac_caller *caller) {
-	// Algorithm is initialized with the caller's resources
+	// initializing with the caller's resources
 	qs->caller = caller;
 	qs->calc = caller->calc;
 	qs->constants.A = caller->vars; // adjustor
@@ -165,7 +165,7 @@ static inline void preparation_part_1(qs_sheet *qs, fac_caller *caller) {
 }
 
 static inline void preparation_part_2(qs_sheet *qs, const cint * N, cint * ADJUSTOR, cint * kN) {
-	// Input is transparently adjusted by a prime to measure at least 115-bit.
+	// Input is "transparently" adjusted by a prime to measure at least 115-bit.
 	static const int prime_generator[] = {
 			9, 7, 5, 3, 17, 27, 3, 1, 29, 3, 21, 7, 17, 15,
 			9, 43, 35, 15, 29, 3, 11, 3, 11, 15, 17, 25, 53,
@@ -195,7 +195,7 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 			const int mod = b * mul[a] % 8;
 			factors[a] = -.5 * log_computation(mul[a]) + (mod & 1) * 0.3465736 * (mod == 1 ? 4 : mod == 5 ? 2 : 1);
 		}
-		// check primes until they are greater than a convenient limit.
+		// scan primes contributions until they are greater than a convenient limit.
 		b = 2048 ;
 		for (a = 3; a < b; a += 2)
 			if (is_prime_4669921(a)) {
@@ -215,7 +215,6 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 	}
 	simple_int_to_cint(MULTIPLIER, res);
 	// relations accumulate 1.46 times faster (on average)
-	// more small primes are quadratic residues modulo kN.
 	if (res > 1)
 		cint_dup(B, kN), cint_mul(B, MULTIPLIER, kN);
 	return res;
@@ -227,15 +226,15 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	assert(mem);
 	qs->info.s_rand = mix_rand_seed(&mem);
 
-	// cint are 16 integers ... contiguously allocated, not larger than kN, not resized during execution
+	// cint are 15 integers ... contiguously allocated, not larger than kN, not resized
 	cint *num = qs->vars.temp = mem_aligned(mem);
-	mem = num + 16;
-	for (int i = 0; i < 16; ++i)
+	mem = num + 15;
+	for (int i = 0; i < 15; ++i)
 		simple_inline_cint(&num[i], qs->constants.kN->size, &mem);
 
 	// 5 are left to compute anything
 
-	// 5 are named vars
+	// 5 are the named variables
 	qs->vars.A = num + 5; qs->vars.B = num + 6;
 	qs->vars.C = num + 7, qs->vars.D = num + 8;
 	qs->vars.FACTOR = num + 9 ;
@@ -245,12 +244,12 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	cint_dup(num + 10, qs->vars.N), qs->vars.N = num + 10;
 	cint_dup(num + 11, qs->constants.kN), qs->constants.kN = num + 11;
 
-	// 4 are named constants
-	qs->constants.ONE = num + 12, qs->constants.LOWER = num + 13 ;
-	qs->constants.M_2 = num + 14, qs->constants.UPPER = num + 15 ;
+	// 3 are the named constants
+	qs->constants.ONE = num + 12 ;
+	qs->constants.M_2 = num + 13;
+	qs->constants.UPPER = num + 14 ;
 
 	simple_int_to_cint(qs->constants.ONE, 1);
-	simple_int_to_cint(qs->constants.LOWER, 1000);
 	simple_int_to_cint(qs->constants.UPPER, qs->info.p_list[6]);
 	simple_int_to_cint(qs->constants.M_2, qs->info.m.value);
 
@@ -552,7 +551,7 @@ static inline void register_relations(qs_sheet *qs, const cint *A, const cint *B
 			cint_addi(E, B); // AX + 2B
 			cint_mul(E, D, VALUE); // AX^2 + 2BX
 			cint_addi(VALUE, C); // AX^2 + 2BX + C
-			KEY->nat = VALUE->nat = 1 ; // abs values
+			KEY->nat = VALUE->nat = 1 ; // abs values (not sure if that's a good idea or not)
 			bits = (qs_sm) cint_count_bits(VALUE) - qs->info.error_bits;
 			extra = 0, verification = 1;
 			data = qs->others.md_uncleared_buffer; // buffered data may be used by next function.
@@ -675,7 +674,7 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 	qs->mem.now = rel + 1 ;
 	// create a new relation.
 	rel->X = node->key; // constant X is const-stored by the node key.
-	rel->Y.data = qs->mem.now; // data Y has a known length which only decrease.
+	rel->Y.data = qs->mem.now; // data Y has a known length which may decrease.
 	rel->axis.Z.data = rel->Y.data + (p_2 - p_1) + (p_4 - p_3); // writes Z ahead.
 	for (; p_1 < p_2; p_1 += 2) process_column_array(rel, p_1);
 	for (; p_3 < p_4; p_3 += 2) process_column_array(rel, p_3);
@@ -692,7 +691,7 @@ static inline void register_relation_kind_1(qs_sheet *qs, const cint *KEY, qs_sm
 		close = qs->mem.now;
 		qs->mem.now = memset(open, 0, close - open);
 	} else {
-		// relation saved, commit, memory updated.
+		// relation saved, commit.
 		node->value = qs->relations.data[qs->relations.length.now] = rel;
 		qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 		rel->id = ++qs->relations.length.now;
@@ -796,7 +795,7 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 
 static inline void finalization_part_1(qs_sheet *qs, const uint64_t *lanczos_answer) {
 	const uint64_t mask = *lanczos_answer, *null_rows = lanczos_answer + 1;
-	// snapshot answer isn't a struct, it's "mask followed by null_rows".
+	// lanczos answer isn't a struct, it's simply "mask followed by null_rows".
 	if (mask == 0 || null_rows == 0)
 		return;
 
@@ -836,7 +835,7 @@ static inline void finalization_part_1(qs_sheet *qs, const uint64_t *lanczos_ans
 }
 
 static inline void finalization_part_2(qs_sheet *qs) {
-	if (cint_count_bits(qs->vars.N) == 1)
+	if (h_cint_compare(qs->vars.N, qs->constants.ONE) == 0)
 		return;
 
 	cint * F = qs->vars.FACTOR, **di = qs->divisors.data, *Q = qs->vars.temp, *R = Q + 1 ;
@@ -867,21 +866,20 @@ static inline void finalization_part_2(qs_sheet *qs) {
 		qs->divisors.processing_index = k ;
 	} while(k != qs->divisors.length); // until no new divisor
 
-	if (qs->analyzer.retry_perms) {
-		for (i = 0, j = qs->relations.length.allocated; qs->relations.data[--j] && i < j; ++i) {
+	i = 0, j = qs->relations.length.allocated - 1 ;
+	if (qs->analyzer.retry_perms && qs->relations.data[j]) {
+		// restore pointers saved before a "lanczos matrix reducing"
+		do{
 			qs->relations.data[i] = qs->relations.data[j];
 			qs->relations.data[i]->Y.length = qs->relations.data[i]->Y.snapshot;
 			qs->relations.data[j] = 0;
-		}
-		qs->relations.length.now = qs->relations.length.needs = i ;
-		assert(i < j);
+		} while(++i < --j && qs->relations.data[j]);
+		qs->relations.length.now = qs->relations.length.needs = i;
 	}
-	printf("\nREPLAYED\n");
-
 }
 
 static inline int finalization_part_3(qs_sheet *qs) {
-	// Usually do nothing, N equals 1
+	// Usually do nothing, (N = 1)
 	// Otherwise push something non-trivial to the caller's routine
 	int res = h_cint_compare(qs->vars.N, qs->constants.ONE) == 0 ;
 	if (res == 0){

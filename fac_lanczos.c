@@ -139,7 +139,7 @@ static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64
 }
 
 static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
-	uint64_t a, b, c, d, * Z ; // Z is zeroed during iteration, nobody above would notice.
+	uint64_t a, b, c, d, * Z ; // Z is zeroed automatically by the loop.
 	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
 	for (a = 0; a < qs->relations.length.now; ++a)
 		for (b = 0, c = a >> 6, d = 1LLU << (a % 64); Z[a]; Z[a] >>= 1, ++b)
@@ -212,7 +212,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, max_size = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 	uint64_t **md, **xl, **sm, *tmp, *res, i, iter, dim_0, dim_1, mask_0, mask_1 ;
 	char *ptr_1, *ptr_2;
-	qs->mem.now = (uint64_t*) qs->mem.now + 16 ; // keep some leading space.
+	qs->mem.now = (uint64_t*) qs->mem.now + 16 ; // keep some padding.
 	lanczos_build_array(qs, &md, 6, max_size);
 	lanczos_build_array(qs, &sm, 13, 64);
 	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized.
@@ -296,7 +296,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	}
 
 	// if no mask found : clears everything
-	// if mask found : clear all but (mask + null rows)
+	// if mask found : clear all but [mask + null rows]
 	ptr_1 = (char*) md[*res != 0];
 	ptr_2 = qs->mem.now ;
 	qs->mem.now = memset(ptr_1, 0, ptr_2 - ptr_1);
@@ -306,7 +306,8 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 
 static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 	// this filtering process is not always necessary to make "lanczos_block_worker" succeed :
-	// - it writes to the relations [ Y data, Y lengths, relation counters ] will change
+	// - it writes to the relations [ Y lengths, relation counters ] will change
+	// - it takes a snapshot so algorithm can restore the current state
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
 	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
 	memcpy(qs->relations.data + qs->relations.length.allocated - qs->relations.length.now, qs->relations.data, qs->relations.length.now * sizeof(struct qs_relation *));
@@ -343,7 +344,7 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 
 static inline uint64_t * lanczos_block(qs_sheet *qs) {
 	// the worker algorithm is probabilistic with high success rate
-	// submit at most 2 * the raw matrix, and 2 * the reduced matrix
+	// submit up to 2 * the raw matrix, and 2 * the reduced matrix
 	uint64_t *res ;
 	for (qs_sm i = 0; i < 4; ++i) {
 		res = lanczos_block_worker(qs);
