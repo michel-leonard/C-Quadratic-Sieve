@@ -3,9 +3,9 @@
 
 // results of operations are last AND non-const arguments.
 
-static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, uint64_t *Y) {
+static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, const qs_sm max_size, uint64_t *Y) {
 	assert(Y != X);
-	memset(Y, 0, qs->relations.length.lanczos * sizeof(uint64_t));
+	memset(Y, 0, max_size * sizeof(uint64_t));
 	for (qs_sm a = 0, b ; a < qs->relations.length.now; ++a) {
 		struct qs_relation *const rel = qs->relations.data[a];
 		for (b = 0; b < rel->Y.length; ++b)
@@ -209,11 +209,11 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const 
 }
 
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
-	const uint64_t n_cols = qs->relations.length.now, v_size = qs->relations.length.lanczos;
+	const uint64_t n_cols = qs->relations.length.now, max_size = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 	uint64_t **md, **xl, **sm, *tmp, *res, i, iter, dim_0, dim_1, mask_0, mask_1 ;
 	char *ptr_1, *ptr_2;
 	qs->mem.now = (uint64_t*) qs->mem.now + 16 ; // keep some leading space.
-	lanczos_build_array(qs, &md, 6, v_size);
+	lanczos_build_array(qs, &md, 6, max_size);
 	lanczos_build_array(qs, &sm, 13, 64);
 	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized.
 
@@ -227,12 +227,12 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	iter = 0;
 	for (i = 0; i < qs->relations.length.now; ++i)
 		md[1][i] = (uint64_t) rand_64();
-	memcpy(md[0], md[1], v_size * sizeof(uint64_t));
-	lanczos_mul_MxN_Nx64(qs, md[1], xl[1]);
+	memcpy(md[0], md[1], max_size * sizeof(uint64_t));
+	lanczos_mul_MxN_Nx64(qs, md[1], max_size, xl[1]);
 	lanczos_mul_trans_MxN_Nx64(qs, xl[1], md[1]);
-	memcpy(xl[0], md[1], v_size * sizeof(uint64_t));
+	memcpy(xl[0], md[1], max_size * sizeof(uint64_t));
 	for (; ++iter;) {
-		lanczos_mul_MxN_Nx64(qs, md[1], xl[1]);
+		lanczos_mul_MxN_Nx64(qs, md[1], max_size, xl[1]);
 		lanczos_mul_trans_MxN_Nx64(qs, xl[1], md[4]);
 		lanczos_mul_64xN_Nx64(qs, md[1], md[4], xl[1], sm[3]);
 		lanczos_mul_64xN_Nx64(qs, md[4], md[4], xl[1], sm[5]);
@@ -286,12 +286,12 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	*res = 0; // mask
 
 	if(dim_0) {
-		lanczos_mul_MxN_Nx64(qs, md[0], md[3]);
-		lanczos_mul_MxN_Nx64(qs, md[1], md[2]);
+		lanczos_mul_MxN_Nx64(qs, md[0], max_size, md[3]);
+		lanczos_mul_MxN_Nx64(qs, md[1], max_size, md[2]);
 		lanczos_combine_cols(qs, md[0], md[1], md[3], md[2]);
-		lanczos_mul_MxN_Nx64(qs, md[0], md[1]);
+		lanczos_mul_MxN_Nx64(qs, md[0], max_size, md[1]);
 		if (*md[1] == 0) // should hold
-			if (memcmp(md[1], md[1] + 1, (v_size - 1) * sizeof(uint64_t)) == 0)
+			if (memcmp(md[1], md[1] + 1, (max_size - 1) * sizeof(uint64_t)) == 0)
 				for (i = 0; i < n_cols; *res |= (*md)[i++]);
 	}
 
@@ -309,9 +309,12 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 	// - it writes to the relations [ Y data, Y lengths, relation counters ] will change
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
 	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
-	for (a = 0; a < qs->relations.length.now; ++a)
+	memcpy(qs->relations.data + qs->relations.length.allocated - qs->relations.length.now, qs->relations.data, qs->relations.length.now * sizeof(struct qs_relation *));
+	for (a = 0; a < qs->relations.length.now; ++a) {
+		qs->relations.data[a]->Y.snapshot = qs->relations.data[a]->Y.length ;
 		for (b = 0; b < qs->relations.data[a]->Y.length; ++b)
 			++counts[qs->relations.data[a]->Y.data[b]];
+	}
 	do {
 		row = reduced_rows;
 		do {
@@ -334,15 +337,8 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 			qs->relations.length.now = b;
 		}
 	} while (++passes, row != reduced_rows);
-	for (a = 0, b = 0; a < qs->base.length; ++a)
-		counts[a] = b += counts[a] != 0;
-	for (a = 0; a < qs->relations.length.now; ++a) {
-		struct qs_relation *const rel = qs->relations.data[a];
-		for (b = 0; b < rel->Y.length; ++b)
-			rel->Y.data[b] = counts[rel->Y.data[b]];
-	}
-	if (qs->relations.length.expected < qs->relations.length.now)
-		qs->relations.length.expected = qs->relations.length.now ;
+	if (qs->relations.length.needs < qs->relations.length.now)
+		qs->relations.length.needs = qs->relations.length.now ;
 }
 
 static inline uint64_t * lanczos_block(qs_sheet *qs) {
@@ -350,7 +346,6 @@ static inline uint64_t * lanczos_block(qs_sheet *qs) {
 	// submit at most 2 * the raw matrix, and 2 * the reduced matrix
 	uint64_t *res ;
 	for (qs_sm i = 0; i < 4; ++i) {
-		qs->relations.length.lanczos = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 		res = lanczos_block_worker(qs);
 		if (*res) // under 210-bit it succeeds without reducing
 			break;

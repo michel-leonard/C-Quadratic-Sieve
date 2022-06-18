@@ -364,7 +364,7 @@ static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint 
 	// The fastest division algorithm for small inputs, it uses the approximation algorithm.
 	if (rhs->mem == rhs->end)
 		assert(0), cint_binary_div(lhs, rhs, q, r);
-	else {
+	else if (lhs->end > lhs->mem + 2){
 		cint *tmp_1 = h_cint_tmp(sheet, 0, lhs), *tmp_2 = h_cint_tmp(sheet, 1, lhs);
 		cint_reinit(q, 0);
 		cint_dup(r, lhs);
@@ -375,8 +375,17 @@ static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint 
 		}
 		if (r->end != r->mem && r->nat != lhs->nat) // lhs = q * rhs + r
 			cint_reinit(tmp_2, q->nat), h_cint_subi(q, tmp_2), h_cint_subi(r, rhs);
+	} else if (rhs->end  > rhs->mem + 2) {
+		cint_reinit(q, 0);
+		cint_dup(r, lhs);
+	} else {
+		// System divides faster.
+		const h_cint_t a = *lhs->mem | *(lhs->mem + 1) << cint_exponent, b = *rhs->mem | *(rhs->mem + 1) << cint_exponent;
+		cint_reinit(q, a / b);
+		cint_reinit(r, a % b);
 	}
 }
+
 
 __attribute__((unused)) static inline void cint_mul_mod(cint_sheet *sheet, const cint *lhs, const cint *rhs, const cint *mod, cint *res) {
 	cint *a = h_cint_tmp(sheet, 2, res), *b = h_cint_tmp(sheet, 3, res);

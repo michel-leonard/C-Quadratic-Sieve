@@ -58,9 +58,9 @@ static int quadratic_sieve(fac_caller *caller) {
 static inline int inner_continuation_condition(qs_sheet *qs) {
 	// Used to decide if the inner loop (sieving loop) should continue to search relations or break.
 	int res = 1;
-	res &= qs->relations.length.now < qs->relations.length.expected; // the condition.
+	res &= qs->relations.length.now < qs->relations.length.needs; // the condition.
 	if (qs->caller->params->silent == 0) {
-		const double rel_begin = (double) qs->relations.length.now, rel_end = (double) qs->relations.length.expected ;
+		const double rel_begin = (double) qs->relations.length.now, rel_end = (double) qs->relations.length.needs ;
 		fac_display_progress("Quadratic sieve", 100. * rel_begin / rel_end); // progress isn't linear
 	}
 	return res;
@@ -75,7 +75,7 @@ static inline int outer_continuation_condition(qs_sheet *qs) {
 	if (res) {
 		// puts("quadratic sieve need more relations");
 		// the new parameter is to collect a little more relations.
-		qs->relations.length.expected = qs->relations.length.now + (qs->relations.length.now >> (1 + qs->analyzer.retry_perms));
+		qs->relations.length.needs = qs->relations.length.now + (qs->relations.length.now >> (1 + qs->analyzer.retry_perms));
 	}
 	return res;
 }
@@ -100,15 +100,18 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->info.kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
 	// params are { bits, value }
-	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 18000}, {0} };
+	static const double param_base_size   [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	qs->relations.length.expected = bits < 230 ? qs->base.length : linear_param_resolution(param_base_size, 6 * bits / 5 - 40) ;
+	static const double param_lazyness   [][2]= { {110, 90}, {230, 100}, {250, 130} };
+	// collecting less relations than recommended, then sieve again in case of fail (was a testing feature).
+	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_lazyness, bits) / 100 ;
+	qs->analyzer.retry_perms = 3; // Sieve again up to 3 times before giving up.
 
-	static const double param_m_value     [][2]= { {110, 64e3}, {200, 256e3}, {0} };
+	static const double param_m_value     [][2]= { {110, 64e3}, {170, 256e3}, {0} };
 	qs->info.m.value = linear_param_resolution(param_m_value, bits);
 
-	qs->info.total_bytes_allocated = qs->relations.length.expected << 13;
+	qs->info.total_bytes_allocated = qs->relations.length.needs << 13;
 
 	static const double param_error      [][2]= { {110, 13}, {300, 33}, {0} };
 	qs->info.error_bits = linear_param_resolution(param_error, bits);
@@ -117,7 +120,6 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->info.threshold = linear_param_resolution(param_threshold, bits);
 
 	// Other parameters
-	qs->analyzer.retry_perms = 3; // Sieve again 3 times before giving up.
 	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
 	qs->info.poly_max = (1 << qs->s.values.subtract_one) - 1;
 	qs->info.cache_block_size = 32000;
@@ -127,9 +129,9 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
 	qs->info.p_list[1] = linear_param_resolution(param_first_prime, bits); // first
-	qs->info.p_list[2] = 896 ; // medium
-	qs->info.p_list[3] = qs->base.length < 1536 ? qs->base.length : 1536; // mid
-	qs->info.p_list[4] = qs->base.length < 5120 ? qs->base.length : 5120; // sec
+	qs->info.p_list[2] = 1000 ; // medium
+	qs->info.p_list[3] = qs->base.length < 2000 ? qs->base.length : 2000; // mid
+	qs->info.p_list[4] = qs->base.length < 5000 ? qs->base.length : 5000; // sec
 	qs->info.p_list[5] = qs->base.length; // factor base size
 
 	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {240, 3e7}, {280, 2e8}, {0} };
@@ -212,8 +214,8 @@ static inline int preparation_part_3(qs_sheet *qs, cint * kN, cint * MULTIPLIER)
 		res = mul[c];
 	}
 	simple_int_to_cint(MULTIPLIER, res);
-	// with Knuth-Schroeppel the relations accumulate 1.46 times faster (on average)
-	// this should because more small primes are quadratic residues modulo kN
+	// relations accumulate 1.46 times faster (on average)
+	// more small primes are quadratic residues modulo kN.
 	if (res > 1)
 		cint_dup(B, kN), cint_mul(B, MULTIPLIER, kN);
 	return res;
@@ -266,9 +268,9 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	}
 
 	// Other allocations
-	const size_t relations_reserved = qs->relations.length.expected << 2 ;
-	qs->relations.data = mem_aligned(mem); // 4 * more relations than first guessed are available in array, hard limit.
-	qs->others.sm_buffer = mem_aligned(qs->relations.data + relations_reserved); // Small buffer, sized for A-invariants
+	qs->relations.length.allocated = qs->relations.length.needs << 2 ;
+	qs->relations.data = mem_aligned(mem); // 2 * more relations than first guessed are available in array, hard limit.
+	qs->others.sm_buffer = mem_aligned(qs->relations.data + qs->relations.length.allocated); // Small buffer, sized for A-invariants
 	const size_t medium_buffer_size = qs->base.length + (qs->info.p_list[1] << 1);
 	qs->others.md_uncleared_buffer = mem_aligned(qs->others.sm_buffer + qs->s.values.double_value); // Medium buffer, not cleared after usage
 	qs->others.md_cleared_buffer = mem_aligned(qs->others.md_uncleared_buffer + medium_buffer_size); // Medium buffer, cleared after usage
@@ -794,7 +796,7 @@ static inline void register_relation_kind_2(qs_sheet *qs, const qs_sm *data_end,
 
 static inline void finalization_part_1(qs_sheet *qs, const uint64_t *lanczos_answer) {
 	const uint64_t mask = *lanczos_answer, *null_rows = lanczos_answer + 1;
-	// lanczos answer isn't a struct, it's "mask followed by null_rows".
+	// snapshot answer isn't a struct, it's "mask followed by null_rows".
 	if (mask == 0 || null_rows == 0)
 		return;
 
@@ -864,6 +866,17 @@ static inline void finalization_part_2(qs_sheet *qs) {
 		count = qs->divisors.total_primes ;
 		qs->divisors.processing_index = k ;
 	} while(k != qs->divisors.length); // until no new divisor
+
+	if (qs->analyzer.retry_perms) {
+		for (i = 0, j = qs->relations.length.allocated; qs->relations.data[--j] && i < j; ++i) {
+			qs->relations.data[i] = qs->relations.data[j];
+			qs->relations.data[i]->Y.length = qs->relations.data[i]->Y.snapshot;
+			qs->relations.data[j] = 0;
+		}
+		qs->relations.length.now = qs->relations.length.needs = i ;
+		assert(i < j);
+	}
+	printf("\nREPLAYED\n");
 
 }
 

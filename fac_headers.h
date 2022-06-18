@@ -69,7 +69,6 @@ static inline void fac_push(fac_caller *, const fac_cint *, int);
 
 // Math
 static inline int is_prime_4669921(qs_sm n);
-static int kronecker_symbol(qs_md, qs_md);
 static double log_computation(double);
 static inline qs_md multiplication_modulo(qs_md, qs_md, qs_md);
 static inline qs_md power_modulo(qs_md, qs_md, qs_md);
@@ -106,7 +105,8 @@ struct qs_relation {
 	cint *X;
 	struct {
 		qs_sm *data;
-		qs_sm length;
+		qs_sm length ;
+		qs_sm snapshot ;
 	} Y;
 	union {
 		struct {
@@ -226,8 +226,8 @@ typedef struct {
 		struct qs_relation **data;
 		struct {
 			qs_sm now ;
-			qs_sm expected ;
-			qs_sm lanczos ;
+			qs_sm needs ;
+			qs_sm allocated ;
 		} length;
 	} relations;
 
@@ -274,7 +274,7 @@ static inline int outer_continuation_condition(qs_sheet *);
 static inline int finalization_part_3(qs_sheet *qs);
 
 // Quadratic sieve Lanczos part
-static inline void lanczos_mul_MxN_Nx64(const qs_sheet *, const uint64_t *, uint64_t *);
+static inline void lanczos_mul_MxN_Nx64(const qs_sheet *, const uint64_t *, qs_sm, uint64_t *);
 static inline void lanczos_mul_trans_MxN_Nx64(const qs_sheet *, const uint64_t *, uint64_t *);
 static void lanczos_mul_64xN_Nx64(const qs_sheet *, const uint64_t *, const uint64_t *, uint64_t *, uint64_t *);
 static uint64_t lanczos_find_non_singular_sub(const uint64_t *, const uint64_t *, uint64_t *, uint64_t, uint64_t *);
