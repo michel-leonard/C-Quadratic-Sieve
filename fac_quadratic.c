@@ -177,7 +177,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 }
 
 __attribute__((unused)) static inline void preparation_part_3_j(qs_sheet *qs) {
-	// The function applies a Knuth-Schroeppel multiplier to N, this is the "JP" version.
+	// The function applies a Knuth-Schroeppel multiplier to N, this is called the "J" version.
 	cint * kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	static const int mul[] = {1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23, 26, 29, 30, 31, 33, 34, 35, 37, 38, 39, 41, 42, 43, 46, 47, 51, 53, 55, 57, 58, 59, 61, 62, 65, 66, 67, 69, 70, 71, 73}, n_mul = sizeof(mul) / sizeof(*mul);
 	int a, b, c;
@@ -217,7 +217,7 @@ __attribute__((unused)) static inline void preparation_part_3_j(qs_sheet *qs) {
 }
 
 static inline void preparation_part_3_w(qs_sheet *qs) {
-	// The function applies a Knuth-Schroeppel multiplier to N, this is the "WH" version.
+	// The function applies a Knuth-Schroeppel multiplier to N, this is called the "W" version.
 	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(*mul);
 	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	double score[15];
