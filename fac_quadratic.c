@@ -366,8 +366,10 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		qs->relations.length.needs = qs->relations.length.now ;
 	}
 	// D isn't usually randomized, but it solves some 64-bit problems.
-	// computation of sol[0] and sol[1] are originally done with multi-precision.
-	cint_random_bits(&qs->vars.D, qs->d_bits);
+	// computation of sol[0] and sol[1] are to be done with multi-precision.
+	if (qs->relations.length.prev == qs->relations.length.now)
+		cint_random_bits(&qs->vars.D, qs->d_bits);
+	qs->relations.length.prev = qs->relations.length.now;
 }
 
 static inline void iteration_part_1(qs_sheet *qs, cint *A) {

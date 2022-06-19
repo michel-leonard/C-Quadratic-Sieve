@@ -233,6 +233,7 @@ typedef struct {
 		struct qs_relation **data;
 		struct {
 			qs_sm now ;
+			qs_sm prev ;
 			qs_sm needs ;
 			qs_sm allocated ;
 		} length;
