@@ -147,7 +147,7 @@ typedef struct {
 		cint M_2 ;
 	} constants;
 
-	qs_sm knuth_schroppel ;
+	qs_sm knuth_schroeppel ;
 
 	struct {
 		qs_sm bytes_allocated;

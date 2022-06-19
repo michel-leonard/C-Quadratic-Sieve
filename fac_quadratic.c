@@ -177,12 +177,12 @@ static inline void preparation_part_2(qs_sheet *qs) {
 }
 
 __attribute__((unused)) static inline void preparation_part_3_j(qs_sheet *qs) {
-	// The function applies a Knuth-Shroppel multiplier to N, this is the "JP" version.
+	// The function applies a Knuth-Schroeppel multiplier to N, this is the "JP" version.
 	cint * kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	static const int mul[] = {1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23, 26, 29, 30, 31, 33, 34, 35, 37, 38, 39, 41, 42, 43, 46, 47, 51, 53, 55, 57, 58, 59, 61, 62, 65, 66, 67, 69, 70, 71, 73}, n_mul = sizeof(mul) / sizeof(*mul);
 	int a, b, c;
 	if (qs->caller->params->qs_multiplier)
-		qs->knuth_schroppel = qs->caller->params->qs_multiplier ;
+		qs->knuth_schroeppel = qs->caller->params->qs_multiplier ;
 	else {
 		double factors[n_mul], logarithm;
 		b = (int) (*kN->mem & 7);
@@ -206,18 +206,18 @@ __attribute__((unused)) static inline void preparation_part_3_j(qs_sheet *qs) {
 		for (a = 1, c = 0; a < n_mul; ++a)
 			if (factors[a] > factors[0])
 				factors[0] = factors[c = a];
-		qs->knuth_schroppel = mul[c];
+		qs->knuth_schroeppel = mul[c];
 	}
 	// relations accumulate 1.46 times faster (on average)
-	if (qs->knuth_schroppel > 1){
-		simple_int_to_cint(A, qs->knuth_schroppel);
+	if (qs->knuth_schroeppel > 1){
+		simple_int_to_cint(A, qs->knuth_schroeppel);
 		cint_dup(B, kN);
 		cint_mul(A, B, kN);
 	}
 }
 
 static inline void preparation_part_3_w(qs_sheet *qs) {
-	// The function applies a Knuth-Shroppel multiplier to N, this is the "WH" version.
+	// The function applies a Knuth-Schroeppel multiplier to N, this is the "WH" version.
 	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(*mul);
 	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	double score[15];
@@ -242,7 +242,7 @@ static inline void preparation_part_3_w(qs_sheet *qs) {
 		if (score[i] > score[0])
 			score[0] = score[j = i];
 	cint_dup(A, kN);
-	simple_int_to_cint(B, qs->knuth_schroppel = mul[j]);
+	simple_int_to_cint(B, qs->knuth_schroeppel = mul[j]);
 	cint_mul(A, B, kN);
 }
 
@@ -341,8 +341,8 @@ static inline void preparation_part_5(qs_sheet *qs) {
 
 	// The base has the form [ multiplier, 2, primes... ]
 
-	if (qs->knuth_schroppel != 2)
-		qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(qs->base.data[i].num = qs->knuth_schroppel)), ++i;
+	if (qs->knuth_schroeppel != 2)
+		qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(qs->base.data[i].num = qs->knuth_schroeppel)), ++i;
 
 	qs->base.data[i].num = 2, qs->base.data[i].size = 1;
 	qs->base.data[i].sqrt = *qs->constants.kN.mem % 8 == 1 || *qs->constants.kN.mem % 8 == 7;
