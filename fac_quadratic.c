@@ -23,7 +23,7 @@ static int quadratic_sieve(fac_caller *caller) {
 	qs_sheet qs = {0};
 	preparation_part_1(&qs, caller);
 	preparation_part_2(&qs);
-	preparation_part_3(&qs);
+	preparation_part_3_w(&qs);
 	// adjustor and multiplier are known, parametrize.
 	qs_parametrize(&qs);
 	preparation_part_4(&qs);
@@ -128,8 +128,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 
 	static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
 	qs->p_list[1] = linear_param_resolution(param_first_prime, bits); // first
-
-	qs->p_list[2] = 1000 ; // medium
+	qs->p_list[2] = qs->base.length > 1000 ? 1000 : qs->base.length; // medium
 	qs->p_list[3] = qs->base.length < 2000 ? qs->base.length : 2000; // mid
 	qs->p_list[4] = qs->base.length < 5000 ? qs->base.length : 5000; // sec
 	qs->p_list[5] = qs->base.length; // factor base size
@@ -177,7 +176,8 @@ static inline void preparation_part_2(qs_sheet *qs) {
 	}
 }
 
-static inline void preparation_part_3(qs_sheet *qs) {
+__attribute__((unused)) static inline void preparation_part_3_j(qs_sheet *qs) {
+	// The function applies a Knuth-Shroppel multiplier to N, this is the "JP" version.
 	cint * kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	static const int mul[] = {1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23, 26, 29, 30, 31, 33, 34, 35, 37, 38, 39, 41, 42, 43, 46, 47, 51, 53, 55, 57, 58, 59, 61, 62, 65, 66, 67, 69, 70, 71, 73}, n_mul = sizeof(mul) / sizeof(*mul);
 	int a, b, c;
@@ -214,6 +214,36 @@ static inline void preparation_part_3(qs_sheet *qs) {
 		cint_dup(B, kN);
 		cint_mul(A, B, kN);
 	}
+}
+
+static inline void preparation_part_3_w(qs_sheet *qs) {
+	// The function applies a Knuth-Shroppel multiplier to N, this is the "WH" version.
+	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(*mul);
+	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
+	double score[15];
+	qs_sm i, j;
+	const qs_md n_mod_8 = *kN->mem % 8;
+	for (i = 0; i < n_mul; ++i) {
+		qs_md calc = n_mod_8 * mul[i] % 8;
+		calc = 1 << (1 << (!(calc & 6) + !(calc & 2)));
+		score[i] = log_computation((double) calc / (double) mul[i]) / 2;
+	}
+	for (qs_sm prime = 3, limit = 8192 ; prime < limit; prime += 2) {
+		if (is_prime_4669921(prime)) {
+			double calc = log_computation((double) prime) / prime;
+			simple_int_to_cint(A, prime);
+			cint_div(qs->calc, kN, A, B, C);
+			int k = kronecker_symbol(simple_cint_to_int(C), prime);
+			for (i = 0; i < n_mul; ++i)
+				score[i] += calc + calc * k * kronecker_symbol(mul[i], prime);
+		}
+	}
+	for (i = 1, j = 0; i < n_mul; ++i)
+		if (score[i] > score[0])
+			score[0] = score[j = i];
+	cint_dup(A, kN);
+	simple_int_to_cint(B, qs->knuth_schroppel = mul[j]);
+	cint_mul(A, B, kN);
 }
 
 static inline void preparation_part_4(qs_sheet *qs) {
@@ -272,15 +302,14 @@ static inline void preparation_part_4(qs_sheet *qs) {
 
 	// Allocates "base length" rows
 	qs->base.data = mem;
-	mem = qs->base.data + qs->base.length;
 
 	// Allocates "s" rows
-	qs->s.data = mem;
-	mem = qs->s.data + qs->s.values.defined;
+	qs->s.data = mem_aligned(qs->base.data + qs->base.length);
+	mem = mem_aligned(qs->s.data + qs->s.values.defined);
 	for (size_t i = 0; i < qs->s.values.defined; ++i) {
 		simple_inline_cint(&qs->s.data[i].B_terms, kn_size, &mem); // also "s" more cint
 		qs->s.data[i].A_inv_2B = mem;
-		mem = qs->s.data[i].A_inv_2B + qs->base.length;
+		mem = mem_aligned(qs->s.data[i].A_inv_2B + qs->base.length);
 	}
 
 	// Other allocations

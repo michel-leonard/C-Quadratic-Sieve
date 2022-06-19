@@ -251,6 +251,22 @@ static inline qs_md power_modulo(qs_md n, qs_md exp, const qs_md mod) {
 	return res;
 }
 
+static inline int kronecker_symbol(qs_md a, qs_md b) {
+	static const int s[8] = {0, 1, 0, -1, 0, -1, 0, 1};
+	qs_md c;
+	int res = (int) (a | b);
+	if (a && b)
+		if (res & 1) {
+			for (c = 0; !(b & 1); ++c, b >>= 1);
+			// When b is odd Jacobi and Kronecker symbols are identical, in factorization algorithms b is often the num.
+			// When b is an odd num, Jacobi symbol is equal to the Legendre symbol.
+			for (res = c & 1 ? s[a & 7] : 1; a; c & 1 ? res *= s[b & 7] : 0, a & b & 2 ? res = -res : 0, c = b % a, b = a, a = c)
+				for (c = 0; !(a & 1); ++c, a >>= 1);
+			res = b == 1 ? res : 0;
+		} else res = 0;
+	else res = res == 1;
+	return res;
+}
 
 static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	// return root such that (root * root) % mod congruent to n % mod.
