@@ -23,6 +23,7 @@ typedef struct{
 	int silent ;
 	int help ;
 	int qs_multiplier ;
+	int has_threads;
 } fac_params;
 
 typedef struct {
@@ -79,12 +80,12 @@ static inline qs_md rand_upto(qs_md );
 static inline unsigned mix_rand_seed(void *);
 
 // Cint shortcuts
-static inline void simple_inline_cint(cint *N, size_t size, void **mem);
+static inline void simple_inline_cint(cint *N, size_t, void **);
 static inline void simple_dup_cint(cint *, const cint *, void **);
 static inline void simple_int_to_cint(cint *, qs_md);
 static inline qs_md simple_cint_to_int(const cint *);
 
-// Avl
+// Avl;
 static inline struct avl_node *avl_cint_inserter(void *, const void *);
 
 // System
@@ -92,7 +93,7 @@ static inline void *mem_aligned(void *);
 
 // Misc.
 static inline int fac_apply_custom_param(const char *, const char *, int, int *);
-static inline char *fac_fill_params(fac_params *params, int argc, char **args);
+static inline char *fac_fill_params(fac_params *, int, char **);
 static char *fac_answer_to_string(fac_cint **);
 static inline void fac_display_progress(const char *, double);
 static inline int fac_sort_result(const void * , const void *);
@@ -122,28 +123,34 @@ struct qs_relation {
 
 typedef struct {
 
+	qs_sm n_threads ;
+
 	fac_caller * caller ;
 
 	struct {
-		cint * temp ;
-		cint * N ;
-		cint * A ;
-		cint * B ;
-		cint * C ;
-		cint * D ;
-		cint * FACTOR ;
+		cint N ;
+		cint A ;
+		cint B ;
+		cint C ;
+		cint D ;
+		cint FACTOR ;
+		cint X ;
+		cint KEY ;
+		cint VALUE ;
+		cint TEMP[5];
 	} vars;
 
 	struct{
-		cint * A ; // constant A is the "adjustor"
-		cint * M ; // constant M is the "qs_multiplier"
-		cint * kN ;
-		cint * ONE ;
-		cint * UPPER ;
-		cint * M_2 ;
+		cint kN ;
+		cint ONE ;
+		cint UPPER ;
+		cint M_2 ;
 	} constants;
 
+	qs_sm knuth_schroppel ;
+
 	struct {
+		qs_sm bytes_allocated;
 		void * base ;
 		void * now ;
 	} mem;
@@ -151,11 +158,12 @@ typedef struct {
 	cint_sheet * calc ;
 
 	// vars and parameters to the algorithm
-	struct {
+
 		qs_sm n_bits;
 		qs_sm kn_bits;
+		qs_sm d_bits;
+
 		qs_sm cache_block_size;
-		qs_sm the_min;
 		struct {
 			qs_sm value;
 			qs_sm double_value;
@@ -164,22 +172,19 @@ typedef struct {
 			qs_sm r;
 			qs_sm n_reps;
 		} m;
+		struct{
+			qs_sm the_span ;
+			qs_sm the_span_half ;
+			qs_sm the_min ;
+		} mini;
 		qs_sm p_list[10];
 		qs_sm error_bits;
 		qs_sm threshold;
 		qs_sm poly_max;
-		size_t the_span;
 		qs_sm s_rand;
-		qs_sm total_bytes_allocated;
-	} info;
 
-	// manager's analysis during iteration
-	struct {
-		qs_sm retry_perms;
-		qs_sm blank;
-		qs_sm progress;
+		qs_sm sieve_again_perms;
 		qs_sm curves;
-	} analyzer;
 
 	// useful data sharing same length
 	struct {
@@ -219,9 +224,12 @@ typedef struct {
 		uint8_t *flags;
 	} others;
 
+	// 3 unicity trees : [ relations, cycle finder, divisors of N, ]
+	struct avl_manager unicity[3] ;
+
 	// data analysis made by algorithm after sieving
 	struct {
-		struct avl_manager tree ;
+		qs_sm reduced_by_lanczos ;
 		struct qs_relation **data;
 		struct {
 			qs_sm now ;
@@ -232,7 +240,6 @@ typedef struct {
 
 	struct {
 		// divisors of N are kept (symbolically) in a flat array
-		struct avl_manager tree ;
 		qs_sm processing_index ;
 		qs_sm total_primes ;
 		qs_sm length ;
@@ -246,12 +253,12 @@ static inline qs_sm linear_param_resolution(const double [][2], qs_sm);
 static inline void qs_parametrize(qs_sheet *);
 static int quadratic_sieve(fac_caller *);
 static inline void preparation_part_1(qs_sheet *, fac_caller *);
-static inline void preparation_part_2(qs_sheet *, const cint *, cint *, cint *);
-static inline int preparation_part_3(qs_sheet *, cint *, cint *);
+static inline void preparation_part_2(qs_sheet *);
+static inline void preparation_part_3(qs_sheet *);
 static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);
 static inline qs_sm preparation_part_6(qs_sheet *, cint *);
-static inline void iteration_analyzer(qs_sheet *);
+static inline void get_started_iteration(qs_sheet *qs);
 static inline void iteration_part_1(qs_sheet *, cint *);
 static inline cint *iteration_part_2(qs_sheet *, const cint *, const cint *);
 static inline void iteration_part_3(qs_sheet *, const cint *, cint *);
@@ -283,6 +290,6 @@ static void lanczos_transpose_vector(qs_sheet *, const uint64_t *, uint64_t **);
 static void lanczos_combine_cols(qs_sheet *, uint64_t *, uint64_t *, uint64_t *, uint64_t *);
 static inline void lanczos_build_array(qs_sheet *, uint64_t ***, size_t, size_t);
 static inline uint64_t *lanczos_block_worker(qs_sheet *);
-static inline uint64_t * lanczos_block(qs_sheet *qs);
+static inline uint64_t * lanczos_block(qs_sheet *);
 
 #endif //QS_HEADERS

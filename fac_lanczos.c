@@ -208,6 +208,7 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const 
 		(*target)[i] = qs->mem.now, qs->mem.now = mem_aligned((*target)[i] + n_cols);
 }
 
+
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, max_size = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
 	uint64_t **md, **xl, **sm, *tmp, *res, i, iter, dim_0, dim_1, mask_0, mask_1 ;
@@ -310,7 +311,7 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 	// - it takes a snapshot so algorithm can restore the current state
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
 	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
-	memcpy(qs->relations.data + qs->relations.length.allocated - qs->relations.length.now, qs->relations.data, qs->relations.length.now * sizeof(struct qs_relation *));
+	qs->relations.reduced_by_lanczos = 1 ;
 	for (a = 0; a < qs->relations.length.now; ++a) {
 		qs->relations.data[a]->Y.snapshot = qs->relations.data[a]->Y.length ;
 		for (b = 0; b < qs->relations.data[a]->Y.length; ++b)

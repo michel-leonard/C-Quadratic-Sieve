@@ -447,7 +447,7 @@ static char *fac_answer_to_string(fac_cint **ans) {
 }
 
 static inline void fac_display_progress(const char *name, double percentage) {
-	// Functions are allowed to print their progress.
+	// There are functions that print their progress.
 	printf("%s at %.02f %%...", name, percentage);
 	putchar('\r');
 	fflush(stdout);
