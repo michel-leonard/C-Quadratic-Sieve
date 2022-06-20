@@ -46,7 +46,7 @@ static int quadratic_sieve(fac_caller *caller) {
 				register_relations(&qs, &qs.variables.A, &qs.variables.B, &qs.variables.C);
 			}
 		} while (inner_continuation_condition(&qs));
-		// Lanczos may read-only (small N) or update the relations (larger N).
+		// Lanczos may do more than read-only to the relations.
 		finalization_part_1(&qs, lanczos_block(&qs));
 		finalization_part_2(&qs);
 	} while (outer_continuation_condition(&qs));
@@ -104,7 +104,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
 	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 130}, {0} };
-	// collecting more/fewer relations than recommended (was a testing feature)
+	// collecting more/fewer relations than recommended (was used to test the "sieve again" feature)
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
 
@@ -212,30 +212,31 @@ __attribute__((unused)) static inline void preparation_part_3_proposition(qs_she
 }
 
 static inline void preparation_part_3_original(qs_sheet *qs) {
-	// The function defines a Knuth-Schroeppel multiplier for N, this is the "W" version.
-	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(*mul);
+	// The function defines a Knuth-Schroeppel multiplier for N, intended to optimize runtime..
+	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47}, n_mul = sizeof(mul) / sizeof(qs_md);
 	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	if (qs->caller->params->qs_multiplier)
 		qs->knuth_schroeppel = (qs_sm) qs->caller->params->qs_multiplier ;
 	else {
-		double score[15];
+		double score[n_mul];
 		qs_sm i, j;
 		const qs_md n_mod_8 = *kN->mem % 8;
 		for (i = 0; i < n_mul; ++i) {
 			qs_md calc = n_mod_8 * mul[i] % 8;
-			calc = 1 << (1 << (!(calc & 6) + !(calc & 2)));
-			score[i] = log_computation((double) calc / (double) mul[i]) / 2;
+			if (calc == 1) score[i] = 1.38629436;
+			else if (calc == 5) score[i] = 0.69314718;
+			else score[i] = 0.34657359 ;
+			score[i] -= log_computation((double) calc) / 2;
 		}
-		for (qs_sm prime = 3, limit = 8192; prime < limit; prime += 2) {
+		for (qs_sm prime = 3, limit = 8192; prime < limit; prime += 2)
 			if (is_prime_4669921(prime)) {
-				double calc = log_computation((double) prime) / prime;
+				const double calc = log_computation((double) prime) / prime;
 				simple_int_to_cint(A, prime);
 				cint_div(qs->calc, kN, A, B, C);
 				int k = kronecker_symbol(simple_cint_to_int(C), prime);
 				for (i = 0; i < n_mul; ++i)
 					score[i] += calc + calc * k * kronecker_symbol(mul[i], prime);
 			}
-		}
 		for (i = 1, j = 0; i < n_mul; ++i)
 			if (score[i] > score[0])
 				score[0] = score[j = i];
@@ -244,9 +245,9 @@ static inline void preparation_part_3_original(qs_sheet *qs) {
 }
 
 static inline void preparation_part_3(qs_sheet *qs) {
-	// since this part can speed up the factorization by a factor 2 there are 2 propositions.
-	// relations accumulate 1.46 times faster (on average)
+	// this part can speed up the factorization by a factor , so 2 functions are proposed.
 	preparation_part_3_original(qs);
+	// relations accumulate 1.46 times faster (on average)
 	if (qs->knuth_schroeppel > 1){
 		cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2 ;
 		simple_int_to_cint(A, qs->knuth_schroeppel);
@@ -263,7 +264,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	if (qs->caller->params->qs_rand_seed) srand(qs->rand_seed = qs->caller->params->qs_rand_seed);
 	else qs->caller->params->qs_rand_seed = qs->rand_seed = mix_rand_seed(&mem);
 
-	// kN was computed into the caller's courtesy memory, now QS has parametrized and reserved.
+	// kN was computed into the caller's courtesy memory, now QS has parametrized and "allocated".
 	const size_t kn_size = qs->caller->vars[0].end - qs->caller->vars[0].mem + 1 ;
 	// standard QS numbers are able to temporarily hold at most kN ^ 2
 	const size_t vars_size = kn_size << 1 ;
@@ -326,7 +327,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	qs->relations.length.reserved = qs->relations.length.needs << 1 ;
 	// 2 * more relations than first guessed are available, hard limit.
 	qs->lanczos.snapshot = mem_aligned(mem) ;
-	// Lanczos Block has its memory to take a "pointers snapshot" before reducing the matrix.
+	// Lanczos Block has its memory to take a "lite" snapshot.
 	qs->relations.data = mem_aligned(qs->lanczos.snapshot + qs->relations.length.reserved);
 	qs->others.a_invariants = mem_aligned(qs->relations.data + qs->relations.length.reserved);
 	qs->others.buffer[0] = mem_aligned(qs->others.a_invariants + qs->s.values.double_value);
@@ -343,18 +344,16 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	for (int i = 0; i < 3; ++i) {
 		qs->unicity[i].inserter_argument = &qs->mem.now;
 		qs->unicity[i].inserter = &avl_cint_inserter;
-		qs->unicity[i].comparator = (int (*)(const void *, const void *)) &h_cint_compare; // use default sign-less comparator.
+		qs->unicity[i].comparator = (int (*)(const void *, const void *)) &h_cint_compare;
+		// use default sign-less comparator.
 	}
-
 }
 
 static inline void preparation_part_5(qs_sheet *qs) {
 	static const double inv_ln_2 = 1.44269504088896340736;
 	cint *A = qs->variables.TEMP, *B = A + 1, *C = A + 2;
 	qs_sm i = 0, prime;
-
-	// The base has the form [ multiplier, 2, primes... ]
-
+	// The factor base contains [ multiplier, 2, primes... ]
 	if (qs->knuth_schroeppel != 2)
 		qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(qs->base.data[i].num = qs->knuth_schroeppel)), ++i;
 
@@ -392,9 +391,9 @@ static inline qs_sm preparation_part_6(qs_sheet *qs, cint *res) {
 
 static inline void get_started_iteration(qs_sheet *qs) {
 	if (qs->lanczos.snapshot[0].relation) {
-		// the operation is fast, shouldn't happen in average case.
+		// this fast operation shouldn't happen in average case.
 		// it restores the relations reduced by Lanczos algorithm.
-		// decrease "laziness" parameter make it happen.
+		// decreasing "laziness" parameter can trigger it.
 		qs_sm i ;
 		for(i = 0; qs->lanczos.snapshot[i].relation; ++i) {
 			qs->relations.data[i] = qs->lanczos.snapshot[i].relation;
@@ -403,8 +402,8 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		}
 		qs->relations.length.now = i ;
 	}
-	// D isn't usually randomized, but it solves some 64-bit problems.
-	// computation of sol[0] and sol[1] have to be done with multi-precision.
+	// D is generally not randomized, but it is a counterpart,
+	// sol[0] and sol[1] should be computed with multi-precision instead of 64-bit.
 	if (qs->relations.length.prev == qs->relations.length.now)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
@@ -450,7 +449,7 @@ static inline void iteration_part_3(qs_sheet * qs, const cint * A, cint * B) {
 	cint_reinit(B, 0);
 	for (a = 0; a < qs->s.values.defined; ++a) {
 		*buffer++ = 1, *buffer++ = qs->s.data[a].a_ind;
-		// write later required A-invariants into buffer.
+		// write A-invariants into buffer.
 		b = qs->base.data[qs->s.data[a].a_ind].num;
 		simple_int_to_cint(D, b);
 		cint_div(qs->calc, A, D, E, F);
@@ -745,13 +744,14 @@ static inline void register_relation_kind_1(qs_sheet * qs, const cint * KEY, qs_
 	char * open = qs->mem.now = mem_aligned(qs->mem.now), *close;
 	// between "open" and "close" data will be stored (commit) or be zeroed (rollback).
 	struct qs_relation * rel = qs->mem.now;
+	// create a new relation (they must be swappable for Lanczos Block reducing).
 	qs->mem.now = rel + 1 ;
-	// create a new relation.
-	rel->X = node->key; // constant X is const-stored by the node key.
-	rel->Y.data = qs->mem.now; // data Y has a known length which may decrease.
+	rel->X = node->key; // constant X is stored by the node key.
+	rel->Y.data = qs->mem.now; // data Y has a known bounded length.
 	rel->axis.Z.data = rel->Y.data + (p_2 - p_1) + (p_4 - p_3); // writes Z ahead.
 	for (; p_1 < p_2; p_1 += 2) process_column_array(rel, p_1);
 	for (; p_3 < p_4; p_3 += 2) process_column_array(rel, p_3);
+	// Z length is known
 	qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 	cint *A = qs->variables.TEMP, *B = A + 1, *C = A + 2, *D = A + 3;
 	cint_reinit(A, 1);
@@ -762,10 +762,10 @@ static inline void register_relation_kind_1(qs_sheet * qs, const cint * KEY, qs_
 	cint_mul(rel->X, rel->X, C);
 	cint_div(qs->calc, C, &qs->constants.kN, D, B);
 	if (cint_compare(A, B) && (cint_addi(A, B), cint_compare(A, &qs->constants.kN))) {
-		close = qs->mem.now;
+		close = qs->mem.now; // Forget all
 		qs->mem.now = memset(open, 0, close - open);
 	} else {
-		// relation snapshot, commit.
+		// Keep this relation
 		node->value = qs->relations.data[qs->relations.length.now] = rel;
 		qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 		rel->id = ++qs->relations.length.now;
@@ -784,9 +784,9 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 	old = node->value;
 	if (old) {
 		if (old->id)
-			return; // normally no collision.
+			return; // normally there is no collision.
 		if (old->X == 0)
-			return; // modular inverse (p, number) failed.
+			return; // modular inverse (p, number) already failed.
 		for (; old; old = old->axis.next)
 			if (h_cint_compare(KEY, old->X) == 0)
 				return; // same KEY already registered.
@@ -817,7 +817,8 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 	new->X = qs->mem.now;
 
 	if (BEZOUT) {
-		// BEZOUT is stored directly after X, newcomer become the root of the linked list.
+		// BEZOUT is stored directly after X.
+		// The newcomer become the root of the linked list.
 		qs->mem.now = new->X + 2;
 		simple_dup_cint(new->X, KEY, &qs->mem.now);
 		simple_dup_cint(new->X + 1, BEZOUT, &qs->mem.now);
@@ -860,6 +861,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 					if (data[a])
 						*close++ = data[a], *close++ = a;
 				// it register [1000, 3000] regular relations with [200-bit, 220bit] input.
+				// it can take a large amount of memory with large inputs.
 				register_relation_kind_1(qs, &qs->variables.KEY, open, close, 0, 0);
 				memset(open, 0, (char *) close - (char *) open); // zeroed.
 			}

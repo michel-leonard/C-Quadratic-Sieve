@@ -10,7 +10,7 @@ typedef uint32_t qs_sm; // small size (32-bit),   the normal native integer used
 typedef uint64_t qs_md; // medium size (64-bit),  the large native integer used in this implementation.
 typedef int64_t qs_md_tmp_si; // medium size,  signed for intermediates computations.
 
-// The factorization manager, it calls the quadratic sieve with an appropriated input
+// The factorization manager calls the quadratic sieve with an appropriated input
 // Quadratic sieve can assume N is 64+ bits, isn't trial divisible, isn't a perfect power
 
 typedef struct {
@@ -65,7 +65,7 @@ typedef struct {
 // Quadratic sieve structures
 
 struct qs_relation {
-	qs_sm id ; // only definitive relations have a non-zero id.
+	qs_sm id ; // definitive relations have a non-zero id.
 	cint *X;
 	struct {
 		qs_sm *data;
@@ -79,7 +79,7 @@ struct qs_relation {
 		struct qs_relation * next ;
 	} axis ;
 	// axis :
-	// -  "Z" field is used by standard definitive relations.
+	// -  "Z" field is used by definitive relations.
 	// - "next" is used by data that wait to be paired, it uses a linked list instead of a "Z" field.
 };
 
@@ -91,6 +91,7 @@ typedef struct {
 	// computation sheet
 	cint_sheet *calc;
 
+	// numbers updated
 	struct {
 		cint N;
 		cint A;
@@ -104,6 +105,7 @@ typedef struct {
 		cint TEMP[5];
 	} variables;
 
+	// constants
 	struct {
 		cint kN;
 		cint ONE;
@@ -111,6 +113,7 @@ typedef struct {
 		cint M;
 	} constants;
 
+	// system
 	struct {
 		qs_sm bytes_allocated;
 		void *base;
@@ -181,7 +184,7 @@ typedef struct {
 		uint8_t *flags;
 	} others;
 
-	// 3 unicity trees : [ relations, cycle finder, divisors of N, ]
+	// unicity trees : [ relations, cycle finder, divisors of N, ]
 	struct avl_manager unicity[3];
 
 	// data collection made by algorithm
@@ -196,7 +199,7 @@ typedef struct {
 		} length;
 	} relations;
 
-	// divisors of N are kept in a flat array of pointers
+	// pointers to the divisors of N are kept in a flat array
 	struct {
 		qs_sm processing_index;
 		qs_sm total_primes;
@@ -204,10 +207,10 @@ typedef struct {
 		cint **data;
 	} divisors;
 
+	// lanczos has its own struct
 	struct {
 		qs_sm safe_length ;
 		struct {
-			// many stories of length are available.
 			struct qs_relation *relation;
 			qs_sm y_length;
 		} * snapshot ;
@@ -263,7 +266,7 @@ static inline void preparation_part_2(qs_sheet *);
 static inline void preparation_part_3(qs_sheet *);
 static inline void preparation_part_3_original(qs_sheet *qs);
 //
-__attribute__((unused)) static inline void preparation_part_3_proposition(qs_sheet *qs);
+__attribute__((unused)) static inline void preparation_part_3_proposition(qs_sheet *);
 //
 static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);

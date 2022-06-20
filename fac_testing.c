@@ -1,9 +1,11 @@
 #include <time.h>
 #include <sys/time.h>
-// Basic ~ 100 lines factorization tester : use test=1 or test=160
+// Basic ~ 100 lines factorization tester
+// use test=1 or test=160 to execute it
 
 static inline void fac_mini_tests(fac_params *m) {
-	// Welcome to the testing feature, init 5 numbers + a computation sheet.
+	// Welcome to the testing feature
+	// init 5 numbers + a computation sheet
 	cint nums[5];
 	for (int i = 0; i < 5; ++i)
 		cint_init(&nums[i], 2048, 0);
@@ -27,7 +29,7 @@ static inline void fac_mini_tests(fac_params *m) {
 	double chronometer = 0;
 
 	for (int nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
-		int trial_max = bits > 50 && bits % nth ? 100000 : 0;
+		int trial_max = bits < 50 || nth == 1 ? 0 : 100000;
 
 		if (m->testing == 1)
 			cint_random_bits(N, nth), *N->mem |= 1;
@@ -35,12 +37,12 @@ static inline void fac_mini_tests(fac_params *m) {
 			retry :
 			cint_random_bits(N, bits), *N->mem |= trial_max != 0;
 			if (cint_is_prime(sheet, N, 2))
-				goto retry; // it's not a prime
+				goto retry; // a prime isn't submitted
 
 			for (int n = 3; n < trial_max; n += 2)
 				if (is_prime_4669921(n))
 					if (cint_reinit(Q, n), cint_remove(sheet, N, Q))
-						goto retry; // it's not a 'trial' divisible
+						goto retry; // ia trial 'trial' divisible number isn't submitted
 		}
 
 		char *str = cint_to_string(N, 10);

@@ -207,34 +207,13 @@ __attribute__((unused)) void avl_walk(const struct avl_manager *manager, void(*f
 	}
 }
 
-// Tested from 0 to 100M keys in 40s, with 91M rotations.
-
 /*
-	The problem of a rapid search is well illustrated
-	in terms of looking up a word in an ordinary dictionary containing
-	n words. Finding a given word in such a dictionary requires
-	at most C log n operations. How to organize a quick lookup
-	in a dictionary whose content is constantly changing ?
-	This problem was solved by Adelson-Velsky and Landis.
-	It turns out that words in a constantly growing dictionary should
-	not be ordered linearly, but rather should be organized as a
-	binary tree with a natural ordering: the right subtree goes up
-	and the left subtree goes down. The tree should be balanced,
-	that is, the heights of the left and right child subtrees
-	of any node should differ by at most one. Lookup of a word in
-	such a tree with n nodes also requires C log n operations.
-	But what is most important is that both deletion and insertion
-	in such a tree require the same number of operations. However,
-	when a new word is inserted and takes its place in the naturally
-	ordered tree (which requires C log n operations), the tree may
-	become unbalanced: the height of the right subtree rooted at
-	some 'unbalanced' node may differ from the height of the left
-	subtree by more than one.
+	Every AVL tree is a red-black tree.
 
-	The AVL algorithm in this case performs a rebalancing of the tree
-	in a neighbourhood of the 'unbalanced' node with a finite
-	(independent of n) number of operations in such a way that
-	the tree becomes balanced again.
+	The AVL algorithm performs a rebalancing of the tree
+	in a neighbourhood of any 'unbalanced' node with a finite
+	(independent of tree size) number of operations
+	in such a way that the tree becomes balanced again.
 
     Read more : https://www.math.toronto.edu/askold/2014-UMN-4-e-Adelson-.pdf
 

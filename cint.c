@@ -7,8 +7,8 @@
 #include <assert.h>
 #include <stdio.h>
 
-// cint is not using global or static variables.
 // memory is supposed provided by the system, allocations are passed to "assert".
+// cint use "computation sheets" instead of global variables.
 
 // the functions name that terminates by "i" means immediate, in place.
 // the functions name that begin by "h_" means intended for internal usage.
@@ -33,7 +33,7 @@ typedef struct {
 } cint_sheet;
 
 static cint_sheet * cint_new_sheet(const size_t bits) {
-	// a computation sheet is required by some function needing temporary variables.
+	// a computation sheet is required by function needing temporary variables.
 	cint_sheet * sheet = calloc(1, sizeof(cint_sheet));
 	assert(sheet);
 	const size_t num_size = 2 + bits / cint_exponent;
@@ -66,7 +66,7 @@ static size_t cint_count_bits(const cint * num) {
 }
 
 static size_t cint_count_zeros(const cint * num){
-	// it returns the number of "right shifts" it takes to get an odd number.
+	// it returns the total of "right shifts" it takes to turn "num" odd.
 	size_t res = 0, i;
 	h_cint_t * ptr ;
 	for (ptr = num->mem; ptr < num->end && !*ptr; ++ptr, res += cint_exponent);
@@ -184,7 +184,7 @@ __attribute__((unused)) static double cint_to_double(const cint *num) {
 __attribute__((unused)) static inline void cint_init_by_double(cint *num, const size_t size, const double value) { cint_init(num, size, 0), cint_reinit_by_double(num, value); }
 
 static void cint_dup(cint *to, const cint *from) {
-	// duplicate (no verification about the target available space)
+	// duplicate number (no verification about overlapping or available memory, caller must check)
 	const size_t b = from->end - from->mem, a = to->end - to->mem;
 	memcpy(to->mem, from->mem, b * sizeof(*from->mem));
 	to->end = to->mem + b;
@@ -193,7 +193,7 @@ static void cint_dup(cint *to, const cint *from) {
 }
 
 static void cint_rescale(cint *num, const size_t bits) {
-	// rarely tested, it should allow getting more memory without changing the number.
+	// rarely tested, it should allow to resize a number transparently.
 	size_t curr_size = num->end - num->mem ;
 	size_t new_size = 1 + bits / cint_exponent ;
 	new_size = new_size + 8 - new_size % 8 ;
@@ -365,7 +365,7 @@ static void h_cint_div_approx(const cint *lhs, const cint *rhs, cint *res) {
 }
 
 static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint *q, cint *r) {
-	// The combined division algorithm for small inputs, it uses the approximation algorithm.
+	// The combined division algorithm, it uses the approximation algorithm, "fast" with small inputs.
 	assert(rhs->mem != rhs->end);
 	cint_erase(q);
 	const int cmp = h_cint_compare(lhs, rhs);
@@ -474,7 +474,7 @@ static void cint_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cin
 }
 
 __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cint * gcd){
-	// the binary GCD algorithm, rarely tested.
+	// a binary GCD algorithm.
 	if (lhs->mem == lhs->end) cint_dup(gcd, rhs);
 	else if(rhs->mem == rhs->end) cint_dup(gcd, lhs);
 	else {
@@ -584,7 +584,7 @@ static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nt
 }
 
 static void cint_nth_root_remainder(cint_sheet * sheet, const cint *num, const unsigned nth, cint *res, cint * rem){
-	// nth-root algorithm don't provide the remainder for nth > 3, so it computes the remainder in these cases.
+	// nth-root algorithm don't provide the remainder, so here it computes the remainder.
 	if (nth == 2) cint_sqrt(sheet, num, res, rem);
 	else if(nth == 3) cint_cbrt(sheet, num, res, rem);
 	else {
@@ -597,7 +597,8 @@ static void cint_nth_root_remainder(cint_sheet * sheet, const cint *num, const u
 }
 
 static void cint_random_bits(cint *num, size_t bits) {
-	// provide a random number with exactly the number of bits asked. Normally no one more, no one less.
+	// provide a random number with exactly the number of bits asked.
+	// Normally no one bit more, no one less.
 	int i = 0;
 	cint_erase(num);
 	for (; bits; ++num->end)
@@ -607,7 +608,7 @@ static void cint_random_bits(cint *num, size_t bits) {
 }
 
 static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cint * rhs, cint * res){
-	// original modular inverse algorithm, answer is also called u1 in extended Euclidean algorithm context.
+	// original modular inverse algorithm, answer is also called "u1" in extended Euclidean algorithm context.
 	if (*rhs->mem > 1 || rhs->end > rhs->mem + 1){
 		cint *a = h_cint_tmp(sheet, 2, rhs),
 		*b = h_cint_tmp(sheet, 3, rhs),
@@ -633,7 +634,7 @@ static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cin
 }
 
 int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
-	// Perform a Miller-Rabin test, returns a truthy value.
+	// Perform a Miller-Rabin test, returns a truthy value describing the "primality" of N.
 	int res, i;
 		if (N->mem + 1 >= N->end && *N->mem < 119) {
 			const int n = (int) *N->mem; // returns hardcoded if number < 7 bits.
