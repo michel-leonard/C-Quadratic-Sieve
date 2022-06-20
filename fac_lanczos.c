@@ -344,8 +344,8 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	uint64_t *res;
 	qs_sm tries = 4, reduce_at;
 	//
-	if (qs->sieve_again_perms < 2) tries >>= 1 ;
-	if (qs->sieve_again_perms < 1) tries >>= 1 ;
+	if (qs->sieve_again_perms < 3) tries <<= 1 ;
+	if (qs->sieve_again_perms < 2) tries <<= 1 ;
 	reduce_at = tries >> 2 ;
 	//
 	if (qs->lanczos.safe_length < qs->relations.length.now) qs->lanczos.safe_length = qs->relations.length.now ;

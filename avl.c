@@ -208,7 +208,7 @@ __attribute__((unused)) void avl_walk(const struct avl_manager *manager, void(*f
 }
 
 /*
-	Every AVL tree is a red-black tree.
+	 Every AVL tree can be colored such that it obeys all the properties of a red-black tree.
 
 	The AVL algorithm performs a rebalancing of the tree
 	in a neighbourhood of any 'unbalanced' node with a finite

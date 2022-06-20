@@ -112,6 +112,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->m.value = linear_param_resolution(param_m_value, bits);
 
 	qs->mem.bytes_allocated = qs->relations.length.needs << 13;
+	qs->mem.bytes_allocated += (1 << 22) - qs->mem.bytes_allocated % (1 << 22); // round to the next 4 MB
 
 	static const double param_error [][2]= { {110, 13}, {300, 33}, {0} };
 	qs->error_bits = linear_param_resolution(param_error, bits);
