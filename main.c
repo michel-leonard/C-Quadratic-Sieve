@@ -17,8 +17,6 @@ static inline void fac_display_help(char *name);
 int main(int argc, char *argv[]){
 	cint N ;
 	fac_params config = {0};
-	config.has_threads = 1 ; // the number of QS threads.
-
 	char * n ; // the string to factor in base 10.
 	n = fac_fill_params(&config, argc, argv);
 	if (config.testing) fac_mini_tests(&config);
@@ -62,4 +60,4 @@ static inline void fac_display_help(char *name) {
 
 // Development (Linux) done with gcc version 8.3.0 (Debian 8.3.0-6)
 // Development (Microsoft Windows) done with gcc version 11.2.0 (MinGW-W64 x86_64-ucrt-posix-seh)
-// In 2022, the common software speed is 1s for 170-bit RSA, 1 the_min for 220-bit.
+// In 2022, the common software speed is 1s for 170-bit RSA, 1 min for 220-bit.

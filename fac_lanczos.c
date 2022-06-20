@@ -1,3 +1,5 @@
+// Block Lanczos algorithm : "nullspace over a finite field"
+
 // As an undergraduate student, this project is part of my computer science + maths training.
 // If you think this Lanczos Block implementation works, please star the Jason Papadopoulos's "msieve" github.
 
@@ -41,7 +43,6 @@ static void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const u
 		for (b = 0, c = 0; b < 8; ++b, c += 8)
 			T[c] = tmp[b];
 	}
-
 }
 
 static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_s, uint64_t *s, uint64_t last_dim, uint64_t *w) {
@@ -150,7 +151,6 @@ static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t *
 static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
 	int64_t i, j, k, bit_pos, col, col_words, num_deps ;
 	uint64_t mask, *mat_1[128], *mat_2[128], *tmp;
-	char * ptr_1 = qs->mem.now, *ptr_2 ;
 	num_deps = 64 << (v && av);
 	col_words = (qs->relations.length.now + 63) / 64;
 	for (i = 0; i < num_deps; ++i) {
@@ -158,7 +158,6 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 		mat_2[i] = mat_1[i] + col_words;
 		qs->mem.now = mat_2[i] + col_words;
 	}
-	ptr_2 = qs->mem.now ;
 	lanczos_transpose_vector(qs, x, mat_1);
 	lanczos_transpose_vector(qs, ax, mat_2);
 	if (num_deps == 128) {
@@ -198,87 +197,82 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 				word |= 1LLU << k;
 		x[j] = word;
 	}
-	qs->mem.now = memset(ptr_1, 0, ptr_2 - ptr_1);
+	char * open = (char*)mat_1[0], * close = qs->mem.now ;
+	qs->mem.now = memset(open, 0, close - open);
 }
 
-static inline void lanczos_build_array(qs_sheet *qs, uint64_t *** target, const size_t n_rows, const size_t n_cols){
-	*target = mem_aligned(qs->mem.now);
-	qs->mem.now = mem_aligned(*target + n_rows) ;
+static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const size_t n_rows, const size_t n_cols){
 	for(size_t i = 0; i < n_rows; ++i)
-		(*target)[i] = qs->mem.now, qs->mem.now = mem_aligned((*target)[i] + n_cols);
+		target[i] = qs->mem.now, qs->mem.now = mem_aligned(target[i] + n_cols);
 }
-
 
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
-	const uint64_t n_cols = qs->relations.length.now, max_size = qs->relations.length.now > qs->base.length ? qs->relations.length.now : qs->base.length;
-	uint64_t **md, **xl, **sm, *tmp, *res, i, iter, dim_0, dim_1, mask_0, mask_1 ;
-	char *ptr_1, *ptr_2;
-	qs->mem.now = (uint64_t*) qs->mem.now + 16 ; // keep some padding.
-	lanczos_build_array(qs, &md, 6, max_size);
-	lanczos_build_array(qs, &sm, 13, 64);
-	lanczos_build_array(qs, &xl, 2, 1 << 17); // maybe over-sized.
-
+	const uint64_t n_cols = qs->relations.length.now, v_size = n_cols > qs->base.length ? n_cols : qs->base.length;
+	const uint64_t safe_size = qs->lanczos.safe_length;
+	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 256 ;
+	qs->mem.now = mem_aligned((int64_t*) qs->mem.now + 1) ; // keep some padding.
+	lanczos_build_array(qs, md, 6, safe_size);
+	lanczos_build_array(qs, sm, 13, 64);
+	lanczos_build_array(qs, xl, 2, safe_size < 2048 ? 2048 : safe_size);
 	res = (*md) - 1; // simple "trick" to return mask + null_rows
-
 	for (i = 0; i < 64; ++i)
 		sm[12][i] = i;
 	dim_0 = 0;
 	dim_1 = 64;
 	mask_1 = (uint64_t) -1;
-	iter = 0;
 	for (i = 0; i < qs->relations.length.now; ++i)
 		md[1][i] = (uint64_t) rand_64();
-	memcpy(md[0], md[1], max_size * sizeof(uint64_t));
-	lanczos_mul_MxN_Nx64(qs, md[1], max_size, xl[1]);
+	memcpy(md[0], md[1], v_size * sizeof(uint64_t));
+	lanczos_mul_MxN_Nx64(qs, md[1], v_size, xl[1]);
 	lanczos_mul_trans_MxN_Nx64(qs, xl[1], md[1]);
-	memcpy(xl[0], md[1], max_size * sizeof(uint64_t));
-	for (; ++iter;) {
-		lanczos_mul_MxN_Nx64(qs, md[1], max_size, xl[1]);
+	memcpy(xl[0], md[1], v_size * sizeof(uint64_t));
+	do{
+		lanczos_mul_MxN_Nx64(qs, md[1], v_size, xl[1]);
 		lanczos_mul_trans_MxN_Nx64(qs, xl[1], md[4]);
 		lanczos_mul_64xN_Nx64(qs, md[1], md[4], xl[1], sm[3]);
 		lanczos_mul_64xN_Nx64(qs, md[4], md[4], xl[1], sm[5]);
 		for (i = 0; i < 64 && !(sm[3][i]); ++i);
-		if (i == 64)
-			break;
-		dim_0 = lanczos_find_non_singular_sub(sm[3], sm[12], sm[11], dim_1, sm[0]);
+		if (i != 64) {
+			dim_0 = lanczos_find_non_singular_sub(sm[3], sm[12], sm[11], dim_1, sm[0]);
+			if (dim_0) {
+				mask_0 = 0;
+				for (i = 0; i < dim_0; ++i)
+					mask_0 |= 1LLU << sm[11][i];
+				for (i = 0; i < 64; ++i)
+					sm[7][i] = (sm[5][i] & mask_0) ^ sm[3][i];
+				lanczos_mul_64x64_64x64(sm[0], sm[7], sm[7]);
+				for (i = 0; i < 64; ++i)
+					sm[7][i] ^= 1LLU << i;
+				lanczos_mul_64x64_64x64(sm[1], sm[3], sm[8]);
+				for (i = 0; i < 64; ++i)
+					sm[8][i] &= mask_0;
+				lanczos_mul_64x64_64x64(sm[4], sm[1], sm[9]);
+				for (i = 0; i < 64; ++i)
+					sm[9][i] ^= 1LLU << i;
+				lanczos_mul_64x64_64x64(sm[2], sm[9], sm[9]);
+				for (i = 0; i < 64; ++i)
+					sm[10][i] = ((sm[6][i] & mask_1) ^ sm[4][i]) & mask_0;
+				lanczos_mul_64x64_64x64(sm[9], sm[10], sm[9]);
+				for (i = 0; i < qs->relations.length.now; ++i)
+					md[4][i] &= mask_0;
+				lanczos_mul_Nx64_64x64_acc(qs, md[1], sm[7], xl[1], md[4]);
+				lanczos_mul_Nx64_64x64_acc(qs, md[3], sm[8], xl[1], md[4]);
+				lanczos_mul_Nx64_64x64_acc(qs, md[2], sm[9], xl[1], md[4]);
+				lanczos_mul_64xN_Nx64(qs, md[1], xl[0], xl[1], sm[7]);
+				lanczos_mul_64x64_64x64(sm[0], sm[7], sm[7]);
+				lanczos_mul_Nx64_64x64_acc(qs, md[1], sm[7], xl[1], md[0]);
+				tmp = md[2], md[2] = md[3], md[3] = md[1], md[1] = md[4], md[4] = tmp;
+				tmp = sm[2], sm[2] = sm[1], sm[1] = sm[0], sm[0] = tmp;
+				tmp = sm[4], sm[4] = sm[3], sm[3] = tmp;
+				tmp = sm[6], sm[6] = sm[5], sm[5] = tmp;
+				memcpy(sm[12], sm[11], 64 * sizeof(int64_t));
+				mask_1 = mask_0;
+				dim_1 = dim_0;
+			}
+		}
+	} while(--endless_guard && dim_0 && i != 64);
 
-		if (dim_0 == 0)
-			break;
-		mask_0 = 0;
-		for (i = 0; i < dim_0; ++i)
-			mask_0 |= 1LLU << sm[11][i];
-		for (i = 0; i < 64; ++i)
-			sm[7][i] = (sm[5][i] & mask_0) ^ sm[3][i];
-		lanczos_mul_64x64_64x64(sm[0], sm[7], sm[7]);
-		for (i = 0; i < 64; ++i)
-			sm[7][i] ^= 1LLU << i;
-		lanczos_mul_64x64_64x64(sm[1], sm[3], sm[8]);
-		for (i = 0; i < 64; ++i)
-			sm[8][i] &= mask_0;
-		lanczos_mul_64x64_64x64(sm[4], sm[1], sm[9]);
-		for (i = 0; i < 64; ++i)
-			sm[9][i] ^= 1LLU << i;
-		lanczos_mul_64x64_64x64(sm[2], sm[9], sm[9]);
-		for (i = 0; i < 64; ++i)
-			sm[10][i] = ((sm[6][i] & mask_1) ^ sm[4][i]) & mask_0;
-		lanczos_mul_64x64_64x64(sm[9], sm[10], sm[9]);
-		for (i = 0; i < qs->relations.length.now; ++i)
-			md[4][i] &= mask_0;
-		lanczos_mul_Nx64_64x64_acc(qs, md[1], sm[7], xl[1], md[4]);
-		lanczos_mul_Nx64_64x64_acc(qs, md[3], sm[8], xl[1], md[4]);
-		lanczos_mul_Nx64_64x64_acc(qs, md[2], sm[9], xl[1], md[4]);
-		lanczos_mul_64xN_Nx64(qs, md[1], xl[0], xl[1], sm[7]);
-		lanczos_mul_64x64_64x64(sm[0], sm[7], sm[7]);
-		lanczos_mul_Nx64_64x64_acc(qs, md[1], sm[7], xl[1], md[0]);
-		tmp = md[2], md[2] = md[3], md[3] = md[1], md[1] = md[4], md[4] = tmp;
-		tmp = sm[2], sm[2] = sm[1], sm[1] = sm[0], sm[0] = tmp ;
-		tmp = sm[4], sm[4] = sm[3], sm[3] = tmp;
-		tmp = sm[6], sm[6] = sm[5], sm[5] = tmp;
-		memcpy(sm[12], sm[11], 64 * sizeof(int64_t));
-		mask_1 = mask_0;
-		dim_1 = dim_0;
-		assert(iter < 365);
-	}
+	assert(endless_guard);
 
 	// ===== answer finalization =====
 	// res will be a simple array of the form [mask, null_rows...]
@@ -287,42 +281,42 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	*res = 0; // mask
 
 	if(dim_0) {
-		lanczos_mul_MxN_Nx64(qs, md[0], max_size, md[3]);
-		lanczos_mul_MxN_Nx64(qs, md[1], max_size, md[2]);
+		lanczos_mul_MxN_Nx64(qs, md[0], v_size, md[3]);
+		lanczos_mul_MxN_Nx64(qs, md[1], v_size, md[2]);
 		lanczos_combine_cols(qs, md[0], md[1], md[3], md[2]);
-		lanczos_mul_MxN_Nx64(qs, md[0], max_size, md[1]);
-		if (*md[1] == 0) // should hold
-			if (memcmp(md[1], md[1] + 1, (max_size - 1) * sizeof(uint64_t)) == 0)
+		lanczos_mul_MxN_Nx64(qs, md[0], v_size, md[1]);
+		if (*md[1] == 0) // should hold (the buffer must contain only zero)
+			if (memcmp(md[1], md[1] + 1, (v_size - 1) * sizeof(uint64_t)) == 0)
 				for (i = 0; i < n_cols; *res |= (*md)[i++]);
 	}
 
-	// if no mask found : clears everything
-	// if mask found : clear all but [mask + null rows]
-	ptr_1 = (char*) md[*res != 0];
-	ptr_2 = qs->mem.now ;
-	qs->mem.now = memset(ptr_1, 0, ptr_2 - ptr_1);
-
+	// if no mask found : clears everything, otherwise leave [mask + null rows]
+	char * open = (char*) md[*res != 0], * close = qs->mem.now ;
+	qs->mem.now = memset(open, 0, close - open);
 	return res;
 }
 
 static inline void lanczos_reduce_matrix(qs_sheet *qs) {
-	// this filtering process is not always necessary to make "lanczos_block_worker" succeed :
-	// - it writes to the relations [ Y lengths, relation counters ] will change
-	// - it takes a snapshot so algorithm can restore the current state
-	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, passes = 0, *counts;
-	counts = memset(qs->others.md_uncleared_buffer, 0, qs->base.length * sizeof(*qs->others.md_uncleared_buffer));
-	qs->relations.reduced_by_lanczos = 1 ;
-	for (a = 0; a < qs->relations.length.now; ++a) {
-		qs->relations.data[a]->Y.snapshot = qs->relations.data[a]->Y.length ;
+	// a filtering is not always necessary to make "lanczos_block_worker" succeed :
+	// - it writes to the relations [ Y lengths, relation counter ] will change
+	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, *counts;
+	counts = memset(qs->others.buffer[1], 0, qs->base.length * sizeof(*qs->others.buffer[1]));
+	if (qs->sieve_again_perms)
+		for (a = 0; a < qs->relations.length.now; ++a) {
+			// "snapshot" pointers, so they can be restored if "sieve again" is fired.
+			qs->lanczos.snapshot[a].relation = qs->relations.data[a] ;
+			qs->lanczos.snapshot[a].y_length = qs->relations.data[a]->Y.length ;
+		}
+	for (a = 0; a < qs->relations.length.now; ++a)
 		for (b = 0; b < qs->relations.data[a]->Y.length; ++b)
 			++counts[qs->relations.data[a]->Y.data[b]];
-	}
+	//
 	do {
 		row = reduced_rows;
 		do {
 			col = qs->relations.length.now;
 			for (a = b = 0; a < qs->relations.length.now; ++a) {
-				struct qs_relation * const rel = qs->relations.data[a];
+				struct qs_relation * restrict const rel = qs->relations.data[a];
 				for (c = 0; c < rel->Y.length && counts[rel->Y.data[c]] > 1; ++c);
 				if (c < rel->Y.length)
 					for (; rel->Y.length;)
@@ -334,25 +328,31 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 		for (a = reduced_rows = 0; a < qs->base.length; reduced_rows += counts[a++] != 0);
 		if (b = reduced_rows + 64 , qs->relations.length.now > b) { // 64 extra rows
 			for (a = b; a < qs->relations.length.now; ++a)
-				for (struct qs_relation * const rel = qs->relations.data[a]; rel->Y.length;)
+				for (struct qs_relation * restrict const rel = qs->relations.data[a]; rel->Y.length;)
 					--counts[rel->Y.data[--rel->Y.length]];
 			qs->relations.length.now = b;
 		}
-	} while (++passes, row != reduced_rows);
-	if (qs->relations.length.needs < qs->relations.length.now)
-		qs->relations.length.needs = qs->relations.length.now ;
+	} while (row != reduced_rows);
 }
 
-static inline uint64_t * lanczos_block(qs_sheet *qs) {
+static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	// the worker algorithm is probabilistic with high success rate
-	// submit up to 2 * the raw matrix, and 2 * the reduced matrix
-	uint64_t *res ;
-	for (qs_sm i = 0; i < 4; ++i) {
+	// it receives as input the raw matrix then the reduced matrix
+	uint64_t *res;
+	qs_sm tries = 4, reduce_at;
+	//
+	if (qs->sieve_again_perms < 2) tries >>= 1 ;
+	if (qs->sieve_again_perms < 1) tries >>= 1 ;
+	//
+	reduce_at = tries >> 2 ;
+	if (qs->lanczos.safe_length < qs->relations.length.now) qs->lanczos.safe_length = qs->relations.length.now ;
+	if (qs->lanczos.safe_length < qs->base.length) qs->lanczos.safe_length = qs->base.length ;
+	qs->lanczos.safe_length += 64 - qs->lanczos.safe_length % 64 ;
+	//
+	do {
+		if (tries == reduce_at) // 230-bit need reduce
+			lanczos_reduce_matrix(qs);
 		res = lanczos_block_worker(qs);
-		if (*res) // under 210-bit it succeeds without reducing
-			break;
-		else if(i == 1)
-			lanczos_reduce_matrix(qs); // 230-bit need reduce
-	}
+	} while (!*res && --tries);
 	return res;
 }

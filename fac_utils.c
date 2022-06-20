@@ -15,7 +15,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	m.calc = cint_new_sheet((1 + (input_bits >> 10)) << 10);
 	assert(m.calc);
 
-	// prepare 10 vars.
+	// prepare 10 variables.
 	const size_t vars_size = 500 * (1 + input_bits / 500) / cint_exponent;
 	for (int i = 0; i < 10; ++i)
 		simple_inline_cint(&m.vars[i], vars_size, &mem);
@@ -353,7 +353,7 @@ static inline unsigned mix_rand_seed(void *addr) {
 
 // Cint shortcuts
 static inline void simple_inline_cint(cint *N, const size_t size, void **mem) {
-	// Fixed size cint is allocated directly in mem, and mem is updated accordingly.
+	// Fixed size cint is reserved directly in mem, and mem is updated accordingly.
 	N->mem = N->end = (h_cint_t *) *mem;
 	*mem = N->mem + (N->size = size);
 }
@@ -400,7 +400,7 @@ static inline void *mem_aligned(void *ptr) {
 }
 
 // Misc.
-static inline int fac_apply_custom_param(const char *a, const char *b, int length, int *val) {
+static inline int fac_apply_custom_param(const char *a, const char *b, int length, unsigned *val) {
 	int res = memcmp(a, b, length) == 0;
 	if (res) {
 		for (; *b && !(*b >= '1' && *b <= '9'); ++b);
@@ -422,6 +422,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)
+					|| fac_apply_custom_param("rand=", s, 1, &params->qs_rand_seed)
 					|| fac_apply_custom_param("help=", s, 1, &params->help);
 			assert(a >= 0);
 		} else if (n == 0) {

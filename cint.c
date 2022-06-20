@@ -21,7 +21,7 @@ static const h_cint_t cint_mask = cint_base - 1;
 static const char *cint_alpha = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 typedef struct {
-	h_cint_t *mem; // allocated data pointer.
+	h_cint_t *mem; // reserved data pointer.
 	h_cint_t *end;
 	h_cint_t nat; // -1 = negative, +1 = positive, (zero is a positive)
 	size_t size;
@@ -56,7 +56,7 @@ void cint_clear_sheet(cint_sheet *sheet) {
 	free(sheet);
 }
 
-static size_t cint_count_bits(const cint *num) {
+static size_t cint_count_bits(const cint * num) {
 	size_t res = 0;
 	if (num->end != num->mem) {
 		for (; *(num->end - 1) >> ++res;);
@@ -74,21 +74,21 @@ static size_t cint_count_zeros(const cint * num){
 	return res + i ;
 }
 
-static inline int h_cint_compare(const cint *lhs, const cint *rhs) {
+static inline int h_cint_compare(const cint * lhs, const cint * rhs) {
 	h_cint_t res = (h_cint_t) ((lhs->end - lhs->mem) - (rhs->end - rhs->mem));
 	if (res == 0 && rhs->end != rhs->mem)
 		for (const h_cint_t *l = lhs->end, *r = rhs->end; !(res = *--l - *--r) && l != lhs->mem;);
 	return res > 0 ? 1 : res == 0 ? 0 : -1;
 }
 
-static inline int cint_compare(const cint *lhs, const cint *rhs) {
+static inline int cint_compare(const cint * lhs, const cint * rhs) {
 	// compare the sign first, then the data
 	int res = (int)(lhs->nat - rhs->nat);
 	if (res == 0) res = (int) lhs->nat * h_cint_compare(lhs, rhs);
 	return res;
 }
 
-static void cint_init(cint *num, size_t bits, long long int value) {
+static void cint_init(cint * num, size_t bits, long long int value) {
 	num->size = bits / cint_exponent;
 	num->size += 8 - num->size % 4 ;
 	num->end = num->mem = calloc(num->size, sizeof(*num->mem));
@@ -97,18 +97,18 @@ static void cint_init(cint *num, size_t bits, long long int value) {
 	for (; value; *num->end = (h_cint_t)(value % cint_base), value /= cint_base, ++num->end);
 }
 
-static inline void cint_erase(cint *num) {
+static inline void cint_erase(cint * num) {
 	num->nat = 1, num->end = memset(num->mem, 0, (num->end - num->mem) * sizeof(h_cint_t));
 }
 
-static void cint_reinit(cint *num, long long int value) {
+static void cint_reinit(cint * num, long long int value) {
 	// it's like an init, but without memory allocation
 	num->end = memset(num->mem, 0, (num->end - num->mem) * sizeof(h_cint_t));
 	if ((num->nat = 1 - ((value < 0) << 1)) < 0) value = -value;
 	for (; value; *num->end = (h_cint_t)(value % cint_base), value /= cint_base, ++num->end);
 }
 
-__attribute__((unused)) static inline cint * cint_immediate(cint_sheet *sheet, const long long int value){
+__attribute__((unused)) static inline cint * cint_immediate(cint_sheet * sheet, const long long int value){
 	cint * res = &sheet->temp[8 + (sheet->immediate_state++ & 1)];
 	cint_reinit(res, value);
 	return res ;

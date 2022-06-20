@@ -16,7 +16,7 @@ static inline void fac_mini_tests(fac_params *m) {
 	unsigned sr = mix_rand_seed(sheet);
 	sr ^= time(0);
 
-	const int bits = m->testing > 2 && m->testing < 220 ? m->testing : 130 + (int) rand_upto(50);
+	const unsigned bits = m->testing > 2 && m->testing < 220 ? m->testing : 130 + (unsigned) rand_upto(50);
 	int error_number = 0;
 	int seconds = bits < 140 ? 30 : bits < 160 ? 60 : bits < 180 ? 120 : 180;
 	const char *seconds_str = bits < 140 ? "30 seconds" : bits < 160 ? "minute" : bits < 180 ? "2 minutes" : "3 minutes";
@@ -95,6 +95,7 @@ static inline void fac_mini_tests(fac_params *m) {
 	if (error_number & 4) puts("bit count of the factor was wrong");
 	if (error_number & 8) puts("factor of number wasn't 'prime'");
 	if (error_number & 16) puts("number wasn't correctly factored");
+	if (error_number) printf("qs rand seed was %u\n", params.qs_rand_seed);
 
 	printf("Thank you, technical chronometer displays ==== [ %.3f s ] ====.\n\n", chronometer / 1e6);
 
