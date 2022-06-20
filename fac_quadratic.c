@@ -24,7 +24,7 @@ static int quadratic_sieve(fac_caller *caller) {
 	qs_sheet qs = {0};
 	preparation_part_1(&qs, caller);
 	preparation_part_2(&qs);
-	preparation_part_3_j(&qs);
+	preparation_part_3(&qs);
 	// adjustor and multiplier are known, parametrize.
 	qs_parametrize(&qs);
 	preparation_part_4(&qs);
@@ -177,7 +177,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 	}
 }
 
-static inline void preparation_part_3_j(qs_sheet *qs) {
+static inline void preparation_part_3_proposition(qs_sheet *qs) {
 	// The function applies a Knuth-Schroeppel multiplier to N, this is called the "J" version.
 	cint * kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	static const int mul[] = {1, 2, 3, 5, 6, 7, 10, 11, 13, 14, 15, 17, 19, 21, 22, 23, 26, 29, 30, 31, 33, 34, 35, 37, 38, 39, 41, 42, 43, 46, 47, 51, 53, 55, 57, 58, 59, 61, 62, 65, 66, 67, 69, 70, 71, 73}, n_mul = sizeof(mul) / sizeof(*mul);
@@ -217,7 +217,7 @@ static inline void preparation_part_3_j(qs_sheet *qs) {
 	}
 }
 
-static inline void preparation_part_3_w(qs_sheet *qs) {
+static inline void preparation_part_3_original(qs_sheet *qs) {
 	// The function applies a Knuth-Schroeppel multiplier to N, this is called the "W" version.
 	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(*mul);
 	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
@@ -250,6 +250,12 @@ static inline void preparation_part_3_w(qs_sheet *qs) {
 	cint_dup(A, kN);
 	simple_int_to_cint(B, qs->knuth_schroeppel);
 	cint_mul(A, B, kN);
+}
+
+static inline void preparation_part_3(qs_sheet *qs) {
+	// since this part can speed up the factorization by a factor 2 there are 2 propositions.
+	if (rand_64() & 1) preparation_part_3_original(qs);
+	else preparation_part_3_proposition(qs);
 }
 
 static inline void preparation_part_4(qs_sheet *qs) {
