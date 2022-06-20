@@ -262,7 +262,9 @@ static inline void preparation_part_1(qs_sheet *, fac_caller *);
 static inline void preparation_part_2(qs_sheet *);
 static inline void preparation_part_3(qs_sheet *);
 static inline void preparation_part_3_original(qs_sheet *qs);
-static inline void preparation_part_3_proposition(qs_sheet *qs);
+//
+__attribute__((unused)) static inline void preparation_part_3_proposition(qs_sheet *qs);
+//
 static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);
 static inline qs_sm preparation_part_6(qs_sheet *, cint *);
