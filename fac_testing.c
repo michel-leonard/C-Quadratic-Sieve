@@ -18,22 +18,21 @@ static inline void fac_mini_tests(fac_params *m) {
 	unsigned sr = add_rand_seed(sheet);
 	sr ^= time(0);
 
-	const unsigned bits = m->testing > 2 && m->testing < 220 ? m->testing : 130 + (unsigned) rand_upto(50);
+	const unsigned bits = m->testing > 2 && m->testing <= 220 ? m->testing : 130 + (unsigned) rand_upto(50);
 	int error_number = 0;
 	int seconds = bits < 140 ? 30 : bits < 160 ? 60 : bits < 180 ? 120 : 180;
 	const char *seconds_str = bits < 140 ? "30 seconds" : bits < 160 ? "minute" : bits < 180 ? "2 minutes" : "3 minutes";
 
-	printf("-- %d-bit : your %s factorization test -- \n\n", bits, seconds_str);
+	printf("-- %3d-bit : your %s factorization test -- \n\n", bits, seconds_str);
 
 	double timeout = 1e6 * seconds;
 	double chronometer = 0;
 
-	for (int nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
+	int nth ;
+	for ( nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
 		int trial_max = bits < 50 || nth == 1 ? 0 : 100000;
 
-		if (m->testing == 1)
-			cint_random_bits(N, nth), *N->mem |= 1;
-		else {
+		{
 			retry :
 			cint_random_bits(N, bits), *N->mem |= trial_max != 0;
 			if (cint_is_prime(sheet, N, 2))
@@ -91,7 +90,7 @@ static inline void fac_mini_tests(fac_params *m) {
 		free(factors);
 	}
 
-	if (error_number == 0 && m->testing > 1) puts("Prime numbers are not inputted, silent tester implies legal answer.");
+	if (error_number == 0 && m->testing > 1) puts("Prime numbers wasn't submitted, the software has checked the answers.");
 	if (error_number & 1) puts("Answer does not begin with an exemplar of number");
 	if (error_number & 2) puts("number wasn't a multiple of the factor");
 	if (error_number & 4) puts("bit count of the factor was wrong");
@@ -99,7 +98,9 @@ static inline void fac_mini_tests(fac_params *m) {
 	if (error_number & 16) puts("number wasn't correctly factored");
 	if (error_number) printf("qs rand seed was %u\n", params.qs_rand_seed);
 
-	printf("Thank you, technical chronometer displays ==== [ %.3f s ] ====.\n\n", chronometer / 1e6);
+	chronometer /= 1e6 ;
+	printf("Thank you, technical chronometer displays     %6.3f s   .\n", chronometer);
+	printf("On average a %3d-bit factorization take       %6.3f s    .\n",  bits, chronometer / nth);
 
 	// Clear the numbers + the computation sheet.
 	cint_clear_sheet(sheet);

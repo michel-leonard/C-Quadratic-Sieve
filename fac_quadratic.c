@@ -263,7 +263,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	void *mem;
 	mem = qs->mem.base = calloc(1, qs->mem.bytes_allocated);
 	assert(mem);
-	qs->caller->params->qs_rand_seed = 1 ;
+
 	if (qs->caller->params->qs_rand_seed) srand(qs->rand_seed = qs->caller->params->qs_rand_seed);
 	else qs->caller->params->qs_rand_seed = qs->rand_seed = add_rand_seed(&mem);
 
