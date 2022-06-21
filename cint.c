@@ -388,8 +388,8 @@ static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint 
 			if (lhs->mem[i] < *rhs->mem)
 				*r->mem = lhs->mem[i--];
 			for(;i >= 0;){
-				const h_cint_t tmp = (h_cint_t)(*r->mem << cint_exponent) | (h_cint_t)lhs->mem[i];
-				*r->mem = (h_cint_t)(tmp - (q->mem[i--] = tmp / *rhs->mem) * *rhs->mem);
+				const h_cint_t tmp = (*r->mem << cint_exponent) | lhs->mem[i];
+				q->mem[i--] = tmp / *rhs->mem; *r->mem = tmp % *rhs->mem;
 			}
 			q->end += *q->end != 0;
 			r->end += *r->end != 0;

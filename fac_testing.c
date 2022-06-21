@@ -15,7 +15,7 @@ static inline void fac_mini_tests(fac_params *m) {
 	fac_params params = {0}; params.silent = 1 ;
 	//---------------
 
-	unsigned sr = mix_rand_seed(sheet);
+	unsigned sr = add_rand_seed(sheet);
 	sr ^= time(0);
 
 	const unsigned bits = m->testing > 2 && m->testing < 220 ? m->testing : 130 + (unsigned) rand_upto(50);

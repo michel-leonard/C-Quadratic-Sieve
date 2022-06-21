@@ -8,7 +8,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	// initially allocates 1 Mb for each 300-bit chunk.
 	mem = m.mem.base = calloc(1, alloc_bits);
 	assert(mem);
-	mix_rand_seed(&mem);
+	add_rand_seed(&mem);
 	m.mem.end = (char *) mem + alloc_bits;
 	if (config) m.params = config;
 	else m.params = mem, mem = m.params + 1;
@@ -272,17 +272,15 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	// return 0 if no solution to the congruence exists.
 	// mod is assumed odd prime.
 	const qs_sm a = n % mod;
-	qs_md res, b, c, d, e, f, g, h;
-	if (power_modulo(a, (mod - 1) >> 1, mod) != 1)
-		res = 0;
-	else
+	qs_md res = kronecker_symbol(a, mod) == 1, b, c, d, e, f, g, h;
+	if (res)
 		switch (mod & 7) {
 			case 3 : case 7 :
 				res = power_modulo(a, (mod + 1) >> 2, mod);
 				break;
 			case 5 :
 				res = power_modulo(a, (mod + 3) >> 3, mod);
-				if (multiplication_modulo(res, res, mod) != a){
+				if (multiplication_modulo(res, res, mod) != a) {
 					b = power_modulo(2, (mod - 1) >> 2, mod);
 					res = multiplication_modulo(res, b, mod);
 				}
@@ -298,7 +296,7 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 					for (h = 0, g = 0; h < e; h++) {
 						d = power_modulo(b, g, mod);
 						d = multiplication_modulo(d, f, mod);
-						d = power_modulo(d, 1 << (e - 1 - h), mod);
+						d = power_modulo(d, 1 << (e - h - 1), mod);
 						if (d == mod - 1)
 							g += 1 << h;
 					}
@@ -309,7 +307,6 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 		}
 	return res;
 }
-
 
 static qs_md modular_inverse(qs_md ra, qs_md rb) {
 	// Return a modular multiplicative inverse of n with respect to the modulus.
@@ -340,13 +337,15 @@ static inline qs_md rand_upto(const qs_md limit) {
 	return rand_64() % limit;
 }
 
-static inline unsigned mix_rand_seed(void *addr) {
+static inline unsigned add_rand_seed(void *addr) {
 	// Take addresses of memory addresses as argument.
 	// Addresses are used together to seed the rand, not too often.
 	static unsigned seed;
-	seed ^= *(unsigned *) addr + (unsigned) (uintptr_t) &errno;
-	seed = power_modulo(seed + 1, seed - 3, -5);
-	srand(seed);
+	if (addr) {
+		seed ^= *(unsigned *) addr + (unsigned) (uintptr_t) &errno;
+		seed = power_modulo(seed + 1, seed - 3, -5);
+		srand(seed);
+	}
 	return seed;
 }
 
@@ -419,7 +418,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 		for (; *s && !(*s >= '1' && *s <= '9') && !(*s >= 'a' && *s <= 'z'); ++s);
 		if (*s >= 'a' && *s <= 'z') {
 			int a =
-					fac_apply_custom_param("limit=", s, 1, &params->limit) // add your CLI parameters...
+					fac_apply_custom_param("limit=", s, 1, &params->limit) // add command line parameters...
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)

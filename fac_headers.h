@@ -102,6 +102,7 @@ typedef struct {
 		cint X;
 		cint KEY;
 		cint VALUE;
+		cint CYCLE;
 		cint TEMP[5];
 	} variables;
 
@@ -109,6 +110,7 @@ typedef struct {
 	struct {
 		cint kN;
 		cint ONE;
+		cint SMALL_PRIME;
 		cint LARGE_PRIME;
 		cint M;
 	} constants;
@@ -184,8 +186,8 @@ typedef struct {
 		uint8_t *flags;
 	} others;
 
-	// unicity trees : [ relations, cycle finder, divisors of N, ]
-	struct avl_manager unicity[3];
+	// uniqueness trees : [ relations, cycle finder, divisors of N, ]
+	struct avl_manager uniqueness[3];
 
 	// data collection made by algorithm
 	struct {
@@ -236,7 +238,7 @@ static qs_md tonelli_shanks(qs_md, unsigned);
 static qs_md modular_inverse(qs_md, qs_md);
 static inline qs_md rand_64();
 static inline qs_md rand_upto(qs_md );
-static inline unsigned mix_rand_seed(void *);
+static inline unsigned add_rand_seed(void *);
 
 // Cint shortcuts
 static inline void simple_inline_cint(cint *, size_t, void **);
@@ -263,17 +265,17 @@ static inline void qs_parametrize(qs_sheet *);
 static int quadratic_sieve(fac_caller *);
 static inline void preparation_part_1(qs_sheet *, fac_caller *);
 static inline void preparation_part_2(qs_sheet *);
-static inline void preparation_part_3(qs_sheet *);
-static inline void preparation_part_3_original(qs_sheet *qs);
 //
-__attribute__((unused)) static inline void preparation_part_3_proposition(qs_sheet *);
+static inline void preparation_part_3(qs_sheet *);
+static inline qs_sm preparation_part_3_original(qs_sheet *);
+static inline qs_sm preparation_part_3_proposition(qs_sheet *);
 //
 static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);
 static inline qs_sm preparation_part_6(qs_sheet *, cint *);
 static inline void get_started_iteration(qs_sheet *);
 static inline void iteration_part_1(qs_sheet *, cint *);
-static inline cint *iteration_part_2(qs_sheet *, const cint *, const cint *);
+static inline void iteration_part_2(qs_sheet *, const cint *, cint *);
 static inline void iteration_part_3(qs_sheet *, const cint *, cint *);
 static inline void iteration_part_4(qs_sheet *, const cint *, const cint *);
 static inline qs_sm iteration_part_5(const qs_sheet *, qs_sm, qs_sm **, cint *);
@@ -281,11 +283,11 @@ static inline void iteration_part_6(qs_sheet *, const cint *, const cint *);
 static inline void iteration_part_7(qs_sheet *, const cint *, const cint *, const cint *, cint *);
 static inline void iteration_part_8(qs_sheet *, qs_sm , const qs_sm *);
 static inline void iteration_part_9(qs_sheet *, qs_sm , const qs_sm *);
-static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
-static inline int qs_register_factor(qs_sheet *);
 static inline void process_column_array(struct qs_relation *, const qs_sm *);
-static inline void register_relation_kind_1(qs_sheet *, const cint *, qs_sm *, const qs_sm *, qs_sm *, const qs_sm *);
+static inline int qs_register_factor(qs_sheet *);
 static inline void register_relation_kind_2(qs_sheet *, const qs_sm *, const cint *, const cint *);
+static inline void register_relation_kind_1(qs_sheet *, const cint *, qs_sm *, const qs_sm *, qs_sm *, const qs_sm *);
+static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);
 static inline int inner_continuation_condition(qs_sheet *);
