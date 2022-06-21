@@ -30,18 +30,17 @@ static inline void fac_mini_tests(fac_params *m) {
 
 	int nth ;
 	for ( nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
-		int trial_max = bits < 50 || nth == 1 ? 0 : 100000;
-
+		int trial_max = (bits > 50) * 100000;
 		{
 			retry :
 			cint_random_bits(N, bits), *N->mem |= trial_max != 0;
 			if (cint_is_prime(sheet, N, 2))
-				goto retry; // a prime isn't submitted
+				goto retry; // a prime number isn't submitted
 
 			for (int n = 3; n < trial_max; n += 2)
 				if (is_prime_4669921(n))
 					if (cint_reinit(Q, n), cint_remove(sheet, N, Q))
-						goto retry; // ia trial 'trial' divisible number isn't submitted
+						goto retry; // a 'trial' divisible number isn't submitted
 		}
 
 		char *str = cint_to_string(N, 10);
@@ -99,8 +98,8 @@ static inline void fac_mini_tests(fac_params *m) {
 	if (error_number) printf("qs rand seed was %u\n", params.qs_rand_seed);
 
 	chronometer /= 1e6 ;
-	printf("Thank you, technical chronometer displays     %6.3f s   .\n", chronometer);
-	printf("On average a %3d-bit factorization take       %6.3f s    .\n",  bits, chronometer / nth);
+	printf("Thank you, technical chronometer displays    %6.3f s   .\n", chronometer);
+	printf("On average a %3d-bit factorization take      %6.3f s   .\n",  bits, chronometer / nth);
 
 	// Clear the numbers + the computation sheet.
 	cint_clear_sheet(sheet);
