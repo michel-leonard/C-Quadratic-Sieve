@@ -353,7 +353,6 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	qs->lanczos.safe_length += 64 - qs->lanczos.safe_length % 64 ;
 	//
 	do {
-		printf("count avant lanczos %d\n", qs->relations.length.now);
 		if (tries == reduce_at) // 230-bit need reduce
 			lanczos_reduce_matrix(qs);
 		res = lanczos_block_worker(qs);
