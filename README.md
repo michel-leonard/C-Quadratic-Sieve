@@ -50,6 +50,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 210 | `./qs 1143938601578848425045957187554857460827103223569512762813742971`  | 15 s
 | 230 | `./qs 1268631359685752304166485771456206118633849920528997030903788793364933`  | 45 s
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 4 min
+| 270 | `./qs 1415606447884291776606783262139201189953436249643759632827004228713595295320953939`  | 13 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
 Only a few dozen RSA numbers larger than 250 bits have been tested, all of them have been factorized.
@@ -68,7 +69,7 @@ One of the largest number factored during development was the 79 digits 8th Ferm
 
 |Number| Decimal digits | Fully factored in  |
 |--|--|--|
-| 2^259 - 1 | 78  | 8 min
+| 2^259 - 1 | 78  | 1 min 40 s
 | 2^360 - 1 | 109  | 3 s
 | 2^468 - 1 | 141  | 40 s
 
