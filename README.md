@@ -52,7 +52,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 4 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 230 bits have been tested, all of them have been factorized.
+Only a few dozen RSA numbers larger than 250 bits have been tested, all of them have been factorized.
 
 # Fermat numbers factorization
 |F| Value | Took  |
@@ -70,7 +70,7 @@ One of the largest number factored during development was the 79 digits 8th Ferm
 |--|--|--|
 | 2^259 - 1 | 78  | 8 min
 | 2^360 - 1 | 109  | 3 s
-| 2^468 - 1 | 141  | 2 min 30 s
+| 2^468 - 1 | 141  | 40 s
 
 - Mersenne numbers were factored by the trial division algorithm and then completed by the quadratic sieve
 - the quadratic sieve for conveinance reject inputs greater than 220-bit, so the option `-limit=230` was used
@@ -101,7 +101,7 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
 
-Time measurements are only indicative, not all were not made by the same device.
+The time measurements are indicative, not all were taken by the same device.
 
 # Memory
 
