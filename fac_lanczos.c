@@ -1,4 +1,4 @@
-// Block Lanczos algorithm : "nullspace over a finite field"
+// Block Lanczos algorithm : "nullspace over a finite field", take advantage of sparsity of the matrix.
 
 // As an undergraduate student, this project is part of my computer science + maths training.
 // If you think this Lanczos Block implementation works, please star the Jason Papadopoulos's "msieve" github.

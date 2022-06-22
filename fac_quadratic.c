@@ -641,6 +641,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 			return; // modular inverse (p, number) already failed.
 		if (old->axis.next)
 			return; // lanczos may not be able to produce an answer if all "next" are accepted without caring.
+			// Occurrence of linearly dependent rows in the matrix would reduce the chance to find a nontrivial solution.
 		for (; old; old = old->axis.next)
 			if (h_cint_compare(KEY, old->X) == 0)
 				return; // same KEY already registered.
@@ -702,7 +703,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 		do {
 			if (old != new) {
 				++n_new_relations ;
-				// combines, it registers regular relation using the 2 buffers.
+				// combines, it registers a regular relation using the 2 buffers.
 				cint_mul_mod(qs->calc, &qs->variables.CYCLE, old->X, &qs->constants.kN, &qs->variables.KEY);
 				open = close = qs->others.buffer[0];
 				data = memset(qs->others.buffer[1], 0, qs->base.length * sizeof(*data));
@@ -764,7 +765,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 	cint *  TMP = qs->variables.TEMP, * K = &qs->variables.KEY, * V = &qs->variables.VALUE ;
 	qs_sm a, b, bits, extra, mod, v_1, v_2, verification, *data;
 	for (a = 0; a < qs->m.double_value; ++a)
-		if(qs->others.sieve[a] >= qs->threshold.value){
+		if (qs->others.sieve[a] >= qs->threshold.value) {
 			simple_int_to_cint(&qs->variables.X, a);
 			cint_subi(&qs->variables.X, &qs->constants.M); // TMP
 			cint_mul(A, &qs->variables.X, TMP); // AX
@@ -887,8 +888,8 @@ static inline void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_a
 				}
 			h_cint_subi(C, A);
 			if (C->mem != C->end) {
-				C->nat = 1; // ABS(C)
-				cint_gcd(qs->calc, &qs->variables.N, C, &qs->variables.FACTOR);
+				C->nat = 1; // absolute value
+				cint_gcd(qs->calc, &qs->variables.N, C, &qs->variables.FACTOR); // gcd
 				if(qs_register_factor(qs) == -1)
 					break;
 			}
