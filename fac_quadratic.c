@@ -879,6 +879,7 @@ static inline void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_a
 			}
 			for (b = 0; b < qs->base.length; ++b)
 				if (power_of_primes[b]){
+					assert((power_of_primes[b] & 1) == 0); //square root
 					simple_int_to_cint(B, qs->base.data[b].num);
 					simple_int_to_cint(D, power_of_primes[b] >> 1);
 					cint_pow_modi(qs->calc, B, D, &qs->variables.N);
