@@ -1,4 +1,5 @@
 
+
 # C Factorization using Quadratic Sieve
 
 Pure C factorizer using self-initialising  **Quadratic Sieve**.
@@ -6,7 +7,7 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 260 bits (260+ bits were factored in the lab)
+ - is a C99 **command line** factorizer from 0 to 260 bits (270+ bits were factored in the lab)
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
@@ -53,7 +54,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 270 | `./qs 1415606447884291776606783262139201189953436249643759632827004228713595295320953939`  | 13 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 250 bits have been tested, all of them have been factorized.
+Only a few dozen RSA numbers larger than 250 bits have been tested, they have been factorized.
 
 # Fermat numbers factorization
 |F| Value | Took  |
@@ -170,8 +171,9 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | N | Prime factors are removed from **N** and **N** is updated until `N = 1`  |
 | kN | Algorithm computes with **kN** which always remains a constant |
 
-*The quadratic sieve is able to factor number fewer than 120-bit without using two multipliers.\
-This is not parameterized as it can be an interesting challenge left to the enthusiastic developers. Thanks.*
+*There is multiple interesting discussion/analysis on the **Knuth-Schroeppel** multiplier. On average I think that the algorithm completes 1.45 times faster with it.*
+
+*The quadratic sieve is able to factor number fewer than 120-bit without using two multipliers. This maybe interesting challenge is left to the enthusiastic developers. Thanks.*
 
 ### qs_parametrize, preparation_part_4
 
@@ -198,12 +200,9 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 - associates the prime with its size (log2)
 - computes invariants like **D** used to generate the **A** polynomial coefficient
 
-### iteration_analyzer
-- normally do nothing (very large majority of tested cases, all cases < 220-bit)
-- may help you if you try to better configure the software (helped me around 230-bit)
-- can unblock sieving by randomizing **D**, an important variable
-
-*I have identified that in some rare cases after 220-bit, sieving was blocked (no more relations found) due to a 65-bit result stored into a 64-bit variable. I have identified that because i cleared the 64-th bit of all variables during a test, that's how I was able to generate this case on command.* This function resolved that case and the software "always" completed its execution, a 128-bit support may do it too.
+### get_started_iteration
+- can restore the relations previously saved by Lanczos algorithm
+- can be used to perform analysis (the function is called periodically)
 
 ### Polynomial `AX^2 + 2BX + C` coefficients : 
 
@@ -219,9 +218,9 @@ Polynomial and related data are computed until `iteration_part_7` complete.\
 `iteration_part_8` and `iteration_part_9` are used for sieving.
 
 ### Search sieve for relations
- `register_relations` defines the variable **X** , computes the polynomial value in **X** then searches sieve for relations.
+`register_relations` searches sieve for relations, it reads the sieve. When the function finds interesting to define the variable **X** , calculates the value of the polynomial in **X** then divides the value with the factorial base, it thus tries to establish relations.
 
-Buffered knowledge is structured by `register_relation_kind_1` ans `register_relation_kind_2` :
+Buffered knowledge is structured by `register_relation_kind_1` and `register_relation_kind_2` :
 - informations potentially useful are saved into a struct **qs_relation***
 - `register_relation_kind_1` immediately build a matrix of **qs_relation***, using AVL tree
 - `register_relation_kind_2` combine **qs_relation*** together, using AVL tree
@@ -233,8 +232,10 @@ Decides if sieving shoud continue or break, the relation counter is usually the 
 
 ### lanczos_block
 This algorithm is supposed to find matrix eigenvalues.
+
 - the process need memory, **fac_lanczos.c** have its own array builder
 - all memory taken in **mem.now** is zeroed and reusable after calculations
+- the process is usually fast with small numbers, it can take over 100 iterations
 - a **reduce_matrix** function is used before giving up
 
 ### finalization_part_1 .. 2 .. 3
