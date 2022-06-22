@@ -109,13 +109,13 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 
 	static const double param_m_value [][2]= { {110, 1}, {190, 4}, {0} };
-	qs->m.value = 63488 * linear_param_resolution(param_m_value, bits);
+	qs->m.double_value = (qs->m.value = 31744 * linear_param_resolution(param_m_value, bits)) << 1;
 
 	static const double param_error [][2]= { {110, 13}, {300, 33}, {0} };
 	qs->error_bits = linear_param_resolution(param_error, bits);
 
 	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
-	qs->threshold = linear_param_resolution(param_threshold, bits);
+	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
 	qs->mem.bytes_allocated = qs->relations.length.needs << 13;
 	qs->mem.bytes_allocated += (1 << 22) - qs->mem.bytes_allocated % (1 << 22);
@@ -125,32 +125,22 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	// Other parameters
 	qs->s.values.double_value = (qs->s.values.defined = (qs->s.values.subtract_one = bits / 28) + 1) << 1;
 	qs->poly_max = (1 << qs->s.values.subtract_one) - 1;
-	qs->cache_block_size = 32000;
 
-	// Computations
-	qs->iterative_list[0] = 1; // one
-
-	static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
-	qs->iterative_list[1] = linear_param_resolution(param_first_prime, bits); // first
-	qs->iterative_list[2] = qs->base.length > 1000 ? 1000 : qs->base.length; // medium
-	qs->iterative_list[3] = qs->base.length < 2500 ? qs->base.length : 2000; // mid
-	qs->iterative_list[4] = qs->base.length < 5000 ? qs->base.length : 5000; // sec
-	qs->iterative_list[5] = qs->base.length; // factor base size
-
-	static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {240, 3e7}, {280, 2e8}, {0} };
-	qs->iterative_list[6] =  linear_param_resolution(param_large_prime, bits); // large
+	{
+		// Iterative list (not always fully ordered)
+		qs->iterative_list[0] = 1; // one
+		static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
+		qs->iterative_list[1] = linear_param_resolution(param_first_prime, bits); // first
+		const size_t large_base = qs->base.length > 5000 ? 5000 : qs->base.length;
+		qs->iterative_list[2] = large_base >> 2; // medium
+		qs->iterative_list[3] = large_base >> 1; // mid
+		qs->iterative_list[4] = large_base; // sec
+		qs->iterative_list[5] = qs->base.length; // factor base size
+		static const double param_large_prime [][2]= { {110, 25e4}, {170, 1e6}, {240, 3e7}, {280, 2e8}, {0} };
+		qs->iterative_list[6] =  linear_param_resolution(param_large_prime, bits); // large prime
+	}
 
 	qs->the.span_half = (qs->the.span = qs->base.length / qs->s.values.defined / qs->s.values.defined / 2) >> 1;
-	assert(qs->cache_block_size <= qs->m.value);
-	{
-		qs->m.double_value = qs->m.value << 1;
-		const qs_sm q = qs->m.double_value / qs->cache_block_size;
-		const qs_sm r = qs->m.double_value % qs->cache_block_size;
-		qs->m.q = q;
-		qs->m.r = r;
-		qs->m.n_reps = 1 + (q > 0) * ((q > 1) * (q - 2) + 1 + (r != 0));
-		qs->m.divided = qs->m.double_value / sizeof(uint64_t);
-	}
 }
 
 // Quadratic sieve source : algorithm
@@ -237,7 +227,7 @@ static inline qs_sm preparation_part_3_original(qs_sheet *qs) {
 		if (calc == 1) score[b] = 1.38629436;
 		else if (calc == 5) score[b] = 0.69314718;
 		else score[b] = 0.34657359 ;
-		score[b] -= log_computation((double) calc) / 2;
+		score[b] -= log_computation((double) mul[b]) / 2.0;
 	}
 	// the time spent here can vary with the projected largest prime number in factor base.
 	static const double max_prime_bound [][2]= {{120, 2e4}, {215, 11e4}, {240, 2e5}, {260, 35e5}, {0} };
@@ -340,9 +330,9 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	qs->others.buffer[1] = mem_aligned(qs->others.buffer[0] + buffers_size);
 	// - the buffer[0] is to be zeroed after use.
 	// - the buffer[1] is to be left as is after use.
-	qs->others.offsets[0] = mem_aligned(qs->others.buffer[1] + buffers_size);
-	qs->others.offsets[1] = mem_aligned(qs->others.offsets[0] + qs->base.length);
-	qs->others.flags = mem_aligned(qs->others.offsets[1] + qs->base.length);
+	qs->others.pos[0] = mem_aligned(qs->others.buffer[1] + buffers_size);
+	qs->others.pos[1] = mem_aligned(qs->others.pos[0] + qs->base.length);
+	qs->others.flags = mem_aligned(qs->others.pos[1] + qs->base.length);
 	qs->others.sieve = mem_aligned(qs->others.flags + qs->base.length);
 	qs->divisors.data = mem_aligned(qs->others.sieve + qs->m.double_value + 4);
 	qs->mem.now = mem_aligned(qs->divisors.data + 512);
@@ -409,13 +399,12 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		}
 		qs->relations.length.now = i ;
 	}
-	// D is generally not randomized, but it is a counterpart,
-	// sol[0] and sol[1] should be computed with multi-precision instead of 64-bit.
+	// D is generally not randomized, but it is a simplification that can avoid infinite loop due to 64-bit overflow
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
-	//
-	assert((char*)qs->mem.now + (1 << 20) < (char*)qs->mem.base + qs->mem.bytes_allocated);
+	// it remains 2 MB or memory for linear algebra
+	assert((char*)qs->mem.now + (1 << 21) < (char*)qs->mem.base + qs->mem.bytes_allocated);
 }
 
 static inline void iteration_part_1(qs_sheet * qs, cint * A) {
@@ -542,80 +531,68 @@ static inline void iteration_part_7(qs_sheet *qs, const cint *N, const cint *A, 
 	assert(E->mem == E->end); // div exact.
 }
 
-static inline void iteration_part_8(qs_sheet * qs, const qs_sm add, const qs_sm * corr) {
-	qs_sm a, b, c, d;
+static inline void iteration_part_8(qs_sheet * qs, const qs_sm add, const qs_sm * restrict corr) {
 	memset(qs->others.sieve, 0, qs->m.double_value);
 	memset(qs->others.flags, 0, qs->base.length);
-	uint8_t *pos[2], *end = qs->others.sieve + qs->m.double_value;
+	uint8_t * restrict end = qs->others.sieve + qs->m.double_value, *p_0, *p_1;
 	*end = 255;
-	for (a = 3, b = 1 + a; a < 5; ++a, ++b)
-		for (c = qs->iterative_list[a]; c < qs->iterative_list[b]; ++c) {
-			for (d = 0; d < 2; pos[d] = qs->others.sieve + qs->base.data[c].sol[d], ++d) {
-				qs->base.data[c].sol[d] += add ? -corr[c] + qs->base.data[c].num : corr[c];
-				for (; qs->base.data[c].sol[d] >= qs->base.data[c].num; qs->base.data[c].sol[d] -= qs->base.data[c].num);
-			}
-			for (; end > pos[0] && end > pos[1];)
-				for (d = 0; d < 2; ++d)
-					*pos[d] += qs->base.data[c].size, pos[d] += qs->base.data[c].num;
-			if (a == 2) {
-				for (d = 0; d < 2; ++d)
-					if (end > pos[d])
-						*pos[d] += qs->base.data[c].size;
-			} else
-				for (d = 0; d < 2; ++d)
-					for (; end > pos[d];)
-						qs->others.flags[c] |= 1 << ((pos[d] - qs->others.sieve) & 7), *pos[d] += qs->base.data[c].size, pos[d] += qs->base.data[c].num;
-		}
+	for(qs_sm i = qs->iterative_list[3], j = qs->iterative_list[4]; i < j; ++i){
+		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = add ? prime - corr[i] : corr[i] ;
+		for(qs->base.data[i].sol[0] += co; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
+		for(qs->base.data[i].sol[1] += co; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
+		p_0 = qs->others.sieve + qs->base.data[i].sol[0] ;
+		p_1 = qs->others.sieve + qs->base.data[i].sol[1] ;
+		for(; end > p_0 && end > p_1;)
+			*p_0 += size, p_0 += prime, *p_1 += size, p_1 += prime ;
+		*p_0 += (end > p_0) * size, *p_1 += (end > p_1) * size;
+	}
+	for(qs_sm i = qs->iterative_list[4], j = qs->iterative_list[5]; i < j; ++i){
+		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = add ? prime - corr[i] : corr[i] ;
+		qs->base.data[i].sol[0] += co; for(; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
+		qs->base.data[i].sol[1] += co; for(; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
+		for(p_0 = qs->others.sieve + qs->base.data[i].sol[0]; end > p_0; qs->others.flags[i] |= 1 << ((p_0 - qs->others.sieve) & 7), *p_0 += size, p_0 += prime);
+		for(p_1 = qs->others.sieve + qs->base.data[i].sol[1]; end > p_1; qs->others.flags[i] |= 1 << ((p_1 - qs->others.sieve) & 7), *p_1 += size, p_1 += prime);
+	}
 }
 
 static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm *  corr) {
-	qs_sm a, b, c, d, e;
-	ptrdiff_t diff;
-	uint8_t *pos[2], *curr, *end, *tmp;
-	for (a = 0; a < qs->m.n_reps; ++a) {
-		const int cond_1 = a == 0;
-		const int cond_2 = qs->m.n_reps == 1 || a != qs->m.n_reps - 1;
-		curr = qs->others.sieve + qs->cache_block_size * a;
-		end = curr + (cond_2 ? qs->cache_block_size : qs->m.r);
-		for (b = 0, c = 1 + b; b < 3; ++b, ++c) {
-			const qs_sm times = 1 << (3 - b);
-			if (b || cond_1) {
-				for (d = qs->iterative_list[b]; d < qs->iterative_list[c]; ++d)
-					if (b == 2 || qs->base.data[d].sol[1] != -1U) {
-						if (cond_1) {
-							for (e = 0; e < 2; ++e) {
-								qs->base.data[d].sol[e] += add ? -corr[d] + qs->base.data[d].num : corr[d];
-								for (; qs->base.data[d].sol[e] >= qs->base.data[d].num; qs->base.data[d].sol[e] -= qs->base.data[d].num);
-							}
-						}
-						if (b) {
-							for (e = 0; e < 2; ++e)
-								pos[e] = cond_1 ? curr + qs->base.data[d].sol[e] : qs->others.offsets[e][d];
-							diff = pos[1] - pos[0];
-							tmp = end - qs->base.data[d].num * times;
-							for (; tmp > pos[0];)
-								for (e = 0; e < times; ++e)
-									*pos[0] += qs->base.data[d].size, *(pos[0] + diff) += qs->base.data[d].size, pos[0] += qs->base.data[d].num;
-							if (b == 1) {
-								for (; tmp = pos[0] + diff, end > pos[0] && end > tmp;)
-									*pos[0] += qs->base.data[d].size, *tmp += qs->base.data[d].size, pos[0] += qs->base.data[d].num;
-								pos[1] = pos[0] + diff;
-							} else
-								for (pos[1] = pos[0] + diff; end > pos[0] && end > pos[1];)
-									for (e = 0; e < times; ++e)
-										*pos[e] += qs->base.data[d].size, pos[e] += qs->base.data[d].num;
-							for (e = 0; e < 2; ++e)
-								if (end > pos[e])
-									*pos[e] += qs->base.data[d].size, pos[e] += qs->base.data[d].num;
-							if (cond_2)
-								for (e = 0; e < 2; ++e)
-									qs->others.offsets[e][d] = pos[e];
-						}
-					}
-			}
+	uint8_t * chunk_open = qs->others.sieve, * chunk_close = chunk_open;
+	uint8_t * sieve_close = chunk_open + qs->m.double_value ;
+	qs_sm *buffer = qs->others.buffer[0], walk_idx, * walk = buffer;
+	// initialize
+	for(qs_sm i = 0; i < qs->iterative_list[3]; ++i)
+		if (qs->base.data[i].sol[1] != -1U) {
+			*walk++ = i ;
+			const qs_sm prime = qs->base.data[i].num, co = add ? prime - corr[i] : corr[i] ;
+			qs->base.data[i].sol[0] += co; for(; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
+			qs->base.data[i].sol[1] += co; for(; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
+			qs->others.pos[0][i] = chunk_open + qs->base.data[i].sol[0];
+			qs->others.pos[1][i] = chunk_open + qs->base.data[i].sol[1];
 		}
-	}
+	for(walk_idx = 0; buffer[walk_idx] < qs->iterative_list[1]; ++walk_idx);
+	// iterates until the next chunk "begin" where sieve "ends".
+	do{
+		walk = buffer + walk_idx ;
+		chunk_close = sieve_close;
+		// it was previously advancing by chunks using the following :
+		// chunk_close = chunk_close + CACHE_SIZE < sieve_close ? chunk_close + CACHE_SIZE : sieve_close;
+		do{
+			const qs_sm size = qs->base.data[*walk].size, prime = qs->base.data[*walk].num, times = 4 >> (*walk > qs->iterative_list[2]) ;
+			uint8_t ** const p_0 = qs->others.pos[0] + *walk, ** const p_1 = qs->others.pos[1] + *walk;
+			const ptrdiff_t diff = *p_1 - *p_0 ;
+			for(const uint8_t * const bound = chunk_close - prime * times; bound > *p_0;)
+				for(qs_sm i = 0; i < times; ++i)
+					**p_0 += size, *(*p_0 + diff) += size, *p_0 += prime;
+			for(; *p_0 < chunk_close && *p_0 + diff < chunk_close;)
+				**p_0 += size, *(*p_0 + diff) += size, *p_0 += prime;
+			*p_1 = *p_0 + diff ;
+			if (*p_0 < chunk_close) **p_0 += size, *p_0 += prime;
+			if (*p_1 < chunk_close) **p_1 += size, *p_1 += prime;
+		} while(*++walk);
+	} while(chunk_open = chunk_close, chunk_open < sieve_close);
+	memset(qs->others.buffer[0], 0, (walk - qs->others.buffer[0]) * sizeof(walk));
 }
+
 
 static int qs_register_factor(qs_sheet * qs) {
 	// returns -1 if the algorithm should stop, accept any divisor of N.
@@ -788,7 +765,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 	cint *  TMP = qs->variables.TEMP, * K = &qs->variables.KEY, * V = &qs->variables.VALUE ;
 	qs_sm a, b, bits, extra, mod, v_1, v_2, verification, *data;
 	for (a = 0; a < qs->m.double_value; ++a)
-		if(qs->others.sieve[a] >= qs->threshold){
+		if(qs->others.sieve[a] >= qs->threshold.value){
 			simple_int_to_cint(&qs->variables.X, a);
 			cint_subi(&qs->variables.X, &qs->constants.M); // TMP
 			cint_mul(A, &qs->variables.X, TMP); // AX

@@ -127,7 +127,6 @@ typedef struct {
 	qs_sm n_bits;
 	qs_sm kn_bits;
 	qs_sm d_bits;
-	qs_sm cache_block_size;
 	struct {
 		qs_sm value;
 		qs_sm double_value;
@@ -143,7 +142,9 @@ typedef struct {
 	} the;
 	qs_sm iterative_list[10];
 	qs_sm error_bits;
-	qs_sm threshold;
+	struct{
+		qs_sm value ;
+	}threshold;
 	qs_sm poly_max;
 	qs_sm rand_seed;
 	qs_sm curves;
@@ -182,7 +183,7 @@ typedef struct {
 		qs_sm *a_invariants; // proportional to the value of "s" (small)
 		qs_sm *buffer[2]; // proportional to "length of factor base" (medium or large)
 		uint8_t *sieve;
-		uint8_t **offsets[2];
+		uint8_t **pos[2];
 		uint8_t *flags;
 	} others;
 
