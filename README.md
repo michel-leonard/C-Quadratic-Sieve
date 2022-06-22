@@ -171,7 +171,7 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | kN | Algorithm computes with **kN** which always remains a constant |
 
 *The quadratic sieve is able to factor number fewer than 120-bit without using two multipliers.\
-This is not parameterized as it can be an interesting challenge left to enthusiastic developers. Thanks.**
+This is not parameterized as it can be an interesting challenge left to the enthusiastic developers. Thanks.*
 
 ### qs_parametrize, preparation_part_4
 
