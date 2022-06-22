@@ -6,7 +6,7 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 230 bits (250+ bits were factored in the lab)
+ - is a C99 **command line** factorizer from 0 to 260 bits (260+ bits were factored in the lab)
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
@@ -61,7 +61,7 @@ Only a few dozen RSA numbers larger than 230 bits have been tested, all of them 
 | 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 7 min
 
 Tests like software development were made by laptop Honor MagicBook on Windows (64-bit).\
-Largest number factored during development was the 79 digits 8th Fermat Number.
+One of the largest number factored during development was the 79 digits 8th Fermat Number.
 
 
 # Mersenne numbers factorization
