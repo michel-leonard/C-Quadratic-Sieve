@@ -210,7 +210,7 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const s
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, v_size = n_cols > qs->base.length ? n_cols : qs->base.length;
 	const uint64_t safe_size = qs->lanczos.safe_length;
-	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 256 ;
+	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 365 ;
 	qs->mem.now = mem_aligned((int64_t*) qs->mem.now + 1) ; // keep some padding.
 	lanczos_build_array(qs, md, 6, safe_size);
 	lanczos_build_array(qs, sm, 13, 64);
@@ -273,7 +273,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 		}
 	} while(--endless_guard && dim_0 && i != 64);
 
-	assert(endless_guard);
+	assert(endless_guard); // it sometimes succeeds at 100+ iterations during software testing.
 
 	// ===== answer finalization =====
 	// result will be a simple array of the form [mask, null_rows...]
@@ -342,9 +342,9 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	uint64_t *res;
 	qs_sm tries = 4, reduce_at;
 	//
-	if (qs->sieve_again_perms < 3) tries <<= 1 ;
-	if (qs->sieve_again_perms < 2) tries <<= 1 ;
-	reduce_at = tries >> 2 ;
+	if (qs->sieve_again_perms < 3) tries <<= 1 ; // 8
+	if (qs->sieve_again_perms < 2) tries <<= 1 ; // 16
+	reduce_at = tries >> 1 ;
 	//
 	if (qs->lanczos.safe_length < qs->relations.length.now) qs->lanczos.safe_length = qs->relations.length.now ;
 	if (qs->lanczos.safe_length < qs->base.length) qs->lanczos.safe_length = qs->base.length ;

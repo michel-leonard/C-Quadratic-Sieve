@@ -225,7 +225,7 @@ static inline int fac_pollard_rho_64_bits(fac_caller *);
 static inline void fac_push(fac_caller *, const fac_cint *, int);
 
 // Math
-static inline int is_prime_4669921(qs_sm n);
+static inline int is_prime_4669921(qs_sm);
 static double log_computation(double);
 static inline qs_md multiplication_modulo(qs_md, qs_md, qs_md);
 static inline qs_md power_modulo(qs_md, qs_md, qs_md);
@@ -258,6 +258,8 @@ static inline int fac_sort_result(const void * , const void *);
 static inline qs_sm linear_param_resolution(const double [][2], qs_sm);
 static inline void qs_parametrize(qs_sheet *);
 static int quadratic_sieve(fac_caller *);
+static inline int inner_continuation_condition(qs_sheet *);
+static inline int outer_continuation_condition(qs_sheet *);
 static inline void preparation_part_1(qs_sheet *, fac_caller *);
 static inline void preparation_part_2(qs_sheet *);
 //
@@ -285,9 +287,8 @@ static inline void register_relation_kind_1(qs_sheet *, const cint *, qs_sm *, c
 static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);
-static inline int inner_continuation_condition(qs_sheet *);
-static inline int outer_continuation_condition(qs_sheet *);
-static inline int finalization_part_3(qs_sheet *qs);
+static inline int finalization_part_3(qs_sheet *);
+
 
 // Quadratic sieve Lanczos part
 static inline void lanczos_mul_MxN_Nx64(const qs_sheet *, const uint64_t *, qs_sm, uint64_t *);
