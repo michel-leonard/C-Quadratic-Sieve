@@ -60,11 +60,10 @@ Only a few dozen RSA numbers larger than 250 bits have been tested, they have be
 |F| Value | Took  |
 |--|--|--|
 | 7 | `340282366920938463463374607431768211457`  | 150 ms
-| 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 7 min
+| 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 3 min
 
 Tests like software development were made by laptop Honor MagicBook on Windows (64-bit).\
 One of the largest number factored during development was the 79 digits 8th Fermat Number.
-
 
 # Mersenne numbers factorization
 
@@ -255,3 +254,9 @@ This function is used to decide if the algorithm should return the control, or r
 - unusual case is when N isn't fully factored (maybe parameters was wrong)
 
 So before giving up, the algorithm searches 10%, 25% then 50% more relations.
+
+# Thank you
+There are many people to thank, the following list is not exhaustive :
+- Carl Pomerance
+- William Hart
+- Jason Papadopoulos
