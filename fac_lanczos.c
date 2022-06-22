@@ -92,9 +92,7 @@ static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t 
 				break; // i = j = 64 ;
 			}
 		}
-		if (j == 64)
-			// submatrix is not invertible
-			return 0;
+		if (j == 64) return 0; // submatrix is not invertible
 
 		for (j = 0; j < 64; ++j) {
 			row_j = M[cols[j]];
@@ -278,7 +276,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	assert(endless_guard);
 
 	// ===== answer finalization =====
-	// res will be a simple array of the form [mask, null_rows...]
+	// result will be a simple array of the form [mask, null_rows...]
 	// it's assumed that a null mask means "miss, no answer"
 
 	*res = 0; // mask

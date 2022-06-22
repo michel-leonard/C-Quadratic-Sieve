@@ -130,10 +130,6 @@ typedef struct {
 	struct {
 		qs_sm value;
 		qs_sm double_value;
-		qs_sm divided;
-		qs_sm q;
-		qs_sm r;
-		qs_sm n_reps;
 	} m;
 	struct {
 		qs_sm span;
@@ -157,7 +153,6 @@ typedef struct {
 			qs_sm size;
 			qs_sm A_inv;
 			qs_sm sqrt;
-			qs_sm tmp;
 			qs_sm sol[2];
 		} *data;
 		size_t length;
@@ -197,7 +192,6 @@ typedef struct {
 			qs_sm now;
 			qs_sm prev;
 			qs_sm needs;
-			qs_sm max_known;
 			qs_sm reserved;
 		} length;
 	} relations;

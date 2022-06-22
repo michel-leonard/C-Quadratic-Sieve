@@ -100,11 +100,10 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
 	// params as { bits, value } take the extremal value if bits exceed.
-	//static const double param_base_size [][2]= { {110, 800}, {150, 1200}, {190, 3500}, {210, 5000}, {240, 9000}, {260, 15000}, {0} };
 	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 130}, {0} };
+	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 120}, {0} };
 	// collecting more/fewer relations than recommended (used to verify "sieve again" feature).
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 
@@ -169,7 +168,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 }
 
 static inline void preparation_part_3(qs_sheet *qs) {
-	// the current part can speed up the factorization by a factor 2.
+	// the following part can speed up the factorization by a factor 2.
 	// so it is possible to compare propositions.
 	qs_sm mul = qs->caller->params->qs_multiplier ;
 	mul = (qs_sm) qs->caller->params->qs_multiplier ;
@@ -229,11 +228,10 @@ static inline qs_sm preparation_part_3_original(qs_sheet *qs) {
 		else score[b] = 0.34657359 ;
 		score[b] -= log_computation((double) mul[b]) / 2.0;
 	}
-	// the time spent here can vary with the projected largest prime number in factor base.
+	// the time spent here can vary with the importance of the factor base.
 	static const double max_prime_bound [][2]= {{120, 2e4}, {215, 11e4}, {240, 2e5}, {260, 35e5}, {0} };
-	// another proposal would be to define b = 10,000 independently of N.
+	// another proposal would be b = 10,000.
 	b = linear_param_resolution(max_prime_bound, qs->n_bits);
-	// anyway it's near instantly calculated.
 	for (a = 3; a < b ; a += 2)
 		if (is_prime_4669921(a)) {
 			const double intake = log_computation((double) a) / a;
@@ -257,9 +255,9 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	if (qs->caller->params->qs_rand_seed) srand(qs->rand_seed = qs->caller->params->qs_rand_seed);
 	else qs->caller->params->qs_rand_seed = qs->rand_seed = add_rand_seed(&mem);
 
-	// kN was computed into the caller's courtesy memory, now QS has parametrized and "allocated".
+	// kN was computed into the caller's courtesy memory, now QS has parametrized and "allocated"
 	const size_t kn_size = qs->caller->vars[0].end - qs->caller->vars[0].mem + 1 ;
-	// standard QS numbers are able to temporarily hold at most kN ^ 2
+	// the quadratic sieve variables are able to temporarily hold at most kN ^ 2
 	const size_t vars_size = kn_size << 1 ;
 	const size_t buffers_size = qs->base.length + (qs->iterative_list[1] << 1);
 
@@ -328,8 +326,8 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	qs->others.a_invariants = mem_aligned(qs->relations.data + qs->relations.length.reserved);
 	qs->others.buffer[0] = mem_aligned(qs->others.a_invariants + qs->s.values.double_value);
 	qs->others.buffer[1] = mem_aligned(qs->others.buffer[0] + buffers_size);
-	// - the buffer[0] is to be zeroed after use.
-	// - the buffer[1] is to be left as is after use.
+	// - the buffer[0] is zeroed after use.
+	// - the buffer[1] is left as is after use.
 	qs->others.pos[0] = mem_aligned(qs->others.buffer[1] + buffers_size);
 	qs->others.pos[1] = mem_aligned(qs->others.pos[0] + qs->base.length);
 	qs->others.flags = mem_aligned(qs->others.pos[1] + qs->base.length);
@@ -342,7 +340,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 		qs->uniqueness[i].inserter_argument = &qs->mem.now;
 		qs->uniqueness[i].inserter = &avl_cint_inserter;
 		qs->uniqueness[i].comparator = (int (*)(const void *, const void *)) &h_cint_compare;
-		// use default sign-less comparator.
+		// they use default sign-less comparator.
 	}
 }
 
@@ -403,7 +401,7 @@ static inline void get_started_iteration(qs_sheet *qs) {
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
-	// it remains 2 MB or memory for linear algebra
+	// ensure it remains memory for linear algebra
 	assert((char*)qs->mem.now + (1 << 21) < (char*)qs->mem.base + qs->mem.bytes_allocated);
 }
 
@@ -556,6 +554,7 @@ static inline void iteration_part_8(qs_sheet * qs, const qs_sm add, const qs_sm 
 }
 
 static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm *  corr) {
+	// this operation isn't like "instantly" completed, it takes time.
 	uint8_t * chunk_open = qs->others.sieve, * chunk_close = chunk_open;
 	uint8_t * sieve_close = chunk_open + qs->m.double_value ;
 	qs_sm *buffer = qs->others.buffer[0], walk_idx, * walk = buffer;
@@ -627,7 +626,7 @@ static int qs_register_factor(qs_sheet * qs) {
 
 static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_end, const cint * KEY, const cint * VALUE) {
 	if (qs->kn_bits < 150)
-		return; // not faster, not slower during tests.
+		return; // ignore this kind of relation isn't slower with small inputs.
 
 	// the function searches 2 different KEY sharing the same VALUE.
 	struct avl_node *node = avl_at(&qs->uniqueness[1], VALUE);
@@ -739,6 +738,7 @@ static inline void register_relation_kind_1(qs_sheet * qs, const cint * KEY, qs_
 	qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 	int verified = 0 ;
 	if (verified == 0){
+		// it often passes but should be verified.
 		cint *A = qs->variables.TEMP, *B = A + 1;
 		cint_reinit(A, 1);
 		for (qs_sm a = 0; a < rel->axis.Z.length; ++a) {
@@ -747,7 +747,6 @@ static inline void register_relation_kind_1(qs_sheet * qs, const cint * KEY, qs_
 		}
 		cint_mul_mod(qs->calc, rel->X, rel->X, &qs->constants.kN, B);
 		verified = !cint_compare(A, B) || (cint_addi(A, B), !cint_compare(A, &qs->constants.kN));
-		assert(verified);
 	}
 	if (verified){
 		// Keep this relation
@@ -774,7 +773,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 			cint_addi(TMP, B); // AX + 2B
 			cint_mul(TMP, &qs->variables.X, V); // AX^2 + 2BX
 			cint_addi(V, C); // AX^2 + 2BX + C
-			// K->nat = V->nat = 1 ;
+			// K->nat = V->nat = 1 ; // taking the absolute value of [K and V] was an idea, it was abandoned.
 			bits = (qs_sm) cint_count_bits(V) - qs->error_bits;
 			extra = 0, verification = 1;
 			data = qs->others.buffer[1]; // buffered data may be used by next function.
@@ -793,6 +792,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 				v_1 = (v_2 = 0, qs->base.data[b].sol[1] == -1U) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
 				if (v_1) {
 					simple_int_to_cint(TMP, qs->base.data[b].num);
+					// remove is the action of updating a number so that it isn't a multiple of another number anymore.
 					*data = cint_remove(qs->calc, V, TMP);
 					verification &= v_2 <= *data;
 					if (*data) {
@@ -858,7 +858,7 @@ static inline void process_column_array(struct qs_relation * rel, const qs_sm * 
 
 static inline void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_answer) {
 	const uint64_t mask = *lanczos_answer, * null_rows = lanczos_answer + 1;
-	// lanczos answer isn't a struct, it's simply "mask followed by null_rows".
+	// Lanczos "linear algebra" answer isn't a struct, it's simply "mask followed by null_rows".
 	if (mask == 0 || null_rows == 0)
 		return;
 
