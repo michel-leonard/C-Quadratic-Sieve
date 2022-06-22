@@ -187,8 +187,9 @@ There is a struct inside the **qs_sheet** (or manager) called **mem** :
 - it holds the  **base** entry point of the malloced memory
 - it holds a **now** void* pointer which represent the current available memory
 
-**qs_sheet** holds 2 AVL tree manager :
-- one to store the relations
+**qs_sheet** holds 3 AVL tree manager :
+- one to store the regular relations
+- one to store the relations that wait to be paired (partials)
 - one to store the known divisors of N
 
 With small precautions you are supposed to be able to store anything in **now**, then to update **now** accordingly to what you stored.  **now** is always supposed to contain only zero until its end. This is the main memory management technique used by this software.  `mem_align` aims to provide aligned pointers, wasting a few bits if necessary.
