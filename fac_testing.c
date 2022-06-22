@@ -18,18 +18,19 @@ static inline void fac_mini_tests(fac_params *m) {
 	unsigned sr = add_rand_seed(sheet);
 	sr ^= time(0);
 
-	const unsigned bits = m->testing > 2 && m->testing <= 220 ? m->testing : 130 + (unsigned) rand_upto(50);
 	int error_number = 0;
+
+	unsigned nth, bits = m->testing >= 3 && m->testing <= 220 ? m->testing : 150;
 	int seconds = bits < 140 ? 30 : bits < 160 ? 60 : bits < 180 ? 120 : 180;
 	const char *seconds_str = bits < 140 ? "30 seconds" : bits < 160 ? "minute" : bits < 180 ? "2 minutes" : "3 minutes";
-
-	printf("-- %3d-bit : your %s factorization test -- \n\n", bits, seconds_str);
+	if (m->testing < 2) printf("-- crescendo : your %s factorization test -- \n\n", seconds_str);
+	else printf("-- %3d-bit : your %s factorization test -- \n\n", bits, seconds_str);
 
 	double timeout = 1e6 * seconds;
 	double chronometer = 0;
-
-	int nth ;
 	for ( nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
+		if (m->testing < 2) bits = nth > 2 ? nth : 3 ;
+
 		int trial_max = (bits > 50) * 100000;
 		{
 			retry :
@@ -99,7 +100,7 @@ static inline void fac_mini_tests(fac_params *m) {
 
 	chronometer /= 1e6 ;
 	printf("Thank you, technical chronometer displays    %6.3f s   .\n", chronometer);
-	printf("On average a %3d-bit factorization take      %6.3f s   .\n",  bits, chronometer / nth);
+	if (m->testing >= 2) printf("On average a %3d-bit factorization take      %6.3f s   .\n",  bits, chronometer / nth);
 
 	// Clear the numbers + the computation sheet.
 	cint_clear_sheet(sheet);
