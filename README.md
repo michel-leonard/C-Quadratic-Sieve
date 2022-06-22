@@ -47,7 +47,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 150 | `./qs 1179676342138800493769972880071793674490763037`  | 0.2 s
 | 170 | `./qs 1107814594796361407351721529681773419585636720020897`  | 1 s
 | 190 | `./qs 995209482127497644492758995962031762505687007535997155961`  | 3 s
-| 210 | `./qs 1143938601578848425045957187554857460827103223569512762813742971`  | 20 s
+| 210 | `./qs 1143938601578848425045957187554857460827103223569512762813742971`  | 15 s
 | 230 | `./qs 1268631359685752304166485771456206118633849920528997030903788793364933`  | 45 s
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 4 min
 
@@ -101,7 +101,7 @@ Not needed at all for regular use, a basic ~ 100 lines testing feature is availa
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
 
-All measurements were not made with the same parameters and the same device, so they are only indicative.
+Time measurements are only indicative, not all were not made by the same device.
 
 # Memory
 
