@@ -170,8 +170,8 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | N | Prime factors are removed from **N** and **N** is updated until `N = 1`  |
 | kN | Algorithm computes with **kN** which always remains a constant |
 
-*The quadratic sieve is able to factor number fewer than 120-bit without using a multiplier.\
-It's not set up as it can be an interesting challenge left to the developers. Thank You.*
+*The quadratic sieve is able to factor number fewer than 120-bit without using two multipliers.\
+This is not parameterized as it can be an interesting challenge left to enthusiastic developers. Thanks.**
 
 ### qs_parametrize, preparation_part_4
 
