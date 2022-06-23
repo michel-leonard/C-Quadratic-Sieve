@@ -339,6 +339,9 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	// the worker algorithm is probabilistic with high success rate
 	// it receives as input the raw matrix then the reduced matrix
+	if (qs->n_bits == 1)
+		return (uint64_t *) qs->others.buffer[0] ; // no answer when N = 1, return any zeroed array.
+
 	uint64_t *res;
 	qs_sm tries = 4, reduce_at;
 	//

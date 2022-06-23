@@ -37,7 +37,7 @@ static int quadratic_sieve(fac_caller *caller) {
 			iteration_part_2(&qs, &qs.variables.D, &qs.variables.A);
 			iteration_part_3(&qs, &qs.variables.A, &qs.variables.B);
 			iteration_part_4(&qs, &qs.variables.A, &qs.variables.B);
-			for (qs_sm i = 1, add, *corr; i < qs.poly_max; ++i, ++qs.curves) {
+			for (qs_sm i = 1, add, *corr; i < qs.poly_max && qs.n_bits != 1; ++i, ++qs.curves) {
 				add = iteration_part_5(&qs, i, &corr, &qs.variables.B);
 				iteration_part_6(&qs, &qs.constants.kN, &qs.variables.B);
 				iteration_part_7(&qs, &qs.constants.kN, &qs.variables.A, &qs.variables.B, &qs.variables.C);
@@ -59,6 +59,7 @@ static int quadratic_sieve(fac_caller *caller) {
 // continue to search relations or break ? res is the answer.
 static inline int inner_continuation_condition(qs_sheet *qs) {
 	int res = 1;
+	res &= qs->n_bits != 1 ; // "n_bits" is updated when algorithm registered a factor by sheer luck.
 	res &= qs->relations.length.now < qs->relations.length.needs; // the condition.
 	if (qs->caller->params->silent == 0) {
 		const double rel_begin = (double) qs->relations.length.now, rel_end = (double) qs->relations.length.needs ;
@@ -100,10 +101,10 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
 	// params as { bits, value } take the extremal value if bits exceed.
-	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {0} };
+	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {290, 25000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 120}, {0} };
+	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 100}, {0} };
 	// collecting more/fewer relations than recommended (used to verify "sieve again" feature).
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 
@@ -157,7 +158,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 			9, 7, 5, 3, 17, 27, 3, 1, 29, 3, 21, 7, 17, 15,
 			9, 43, 35, 15, 29, 3, 11, 3, 11, 15, 17, 25, 53,
 			31, 9, 7, 23, 15, 27, 15, 29, 7, 59, 15, 5, 21,
-			69, 55, 21, 21, 5, 159, 3, 81, 9, 69, 131, 33,};
+			69, 55, 21, 21, 5, 159, 3, 81, 9, 69, 131, 33, };
 	const qs_sm bits = qs->n_bits;
 	if (bits < 115) {
 		const qs_md adjustor = bits < 115 ? (1LLU << (124 - bits)) + prime_generator[115 - bits] : 1;
@@ -171,7 +172,6 @@ static inline void preparation_part_3(qs_sheet *qs) {
 	// the following part can speed up the factorization by a factor 2.
 	// so it is possible to compare propositions.
 	qs_sm mul = qs->caller->params->qs_multiplier ;
-	mul = (qs_sm) qs->caller->params->qs_multiplier ;
 	if (mul == 0) // like everyone, listen propositions.
 		mul = errno ? preparation_part_3_proposition(qs) : preparation_part_3_original(qs);
 	qs->knuth_schroeppel = mul ;
@@ -208,9 +208,9 @@ static inline qs_sm preparation_part_3_proposition(qs_sheet *qs) {
 				score[c] += e ? power_modulo(e, (a - 1) >> 1, a) == 1 ? 2 * intake : 0 : intake;
 			}
 		}
-	for (a = 1, c = 0; a < n_mul; ++a)
-		if (score[a] > score[0])
-			score[0] = score[c = a];
+	for (b = 1, c = 0; b < n_mul; ++b)
+		if (score[b] > score[0])
+			score[0] = score[c = b];
 	return mul[c];
 }
 
@@ -251,7 +251,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	void *mem;
 	mem = qs->mem.base = calloc(1, qs->mem.bytes_allocated);
 	assert(mem);
-
+	qs->caller->params->qs_rand_seed = 1 ;
 	if (qs->caller->params->qs_rand_seed) srand(qs->rand_seed = qs->caller->params->qs_rand_seed);
 	else qs->caller->params->qs_rand_seed = qs->rand_seed = add_rand_seed(&mem);
 
@@ -487,11 +487,11 @@ static inline void iteration_part_4(qs_sheet * qs, const cint * A, const cint * 
 }
 
 static inline qs_sm iteration_part_5(const qs_sheet * qs, const qs_sm curves, qs_sm ** corr, cint *B) {
-	qs_sm a, b, act;
+	qs_sm a, act;
 	for (a = 0; a < qs->s.values.defined && !(curves >> a & 1); ++a);
 	void (*const fn)(cint *, const cint *) = (act = curves >> a & 2) ? &cint_addi : &cint_subi;
-	for (b = 0; b < 2; ++b)
-		fn(B, &qs->s.data[a].B_terms);
+	fn(B, &qs->s.data[a].B_terms);
+	fn(B, &qs->s.data[a].B_terms);
 	*corr = qs->s.data[a].A_inv_2B;
 	return act;
 }
@@ -592,8 +592,7 @@ static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm 
 	memset(qs->others.buffer[0], 0, (walk - qs->others.buffer[0]) * sizeof(walk));
 }
 
-
-static int qs_register_factor(qs_sheet * qs) {
+static int qs_register_factor(qs_sheet * qs){
 	// returns -1 if the algorithm should stop, accept any divisor of N.
 	cint * F = &qs->variables.FACTOR ;
 	int i, res = h_cint_compare(F, &qs->constants.ONE) > 0 && h_cint_compare(F, &qs->variables.N) < 0 ;
@@ -610,8 +609,10 @@ static int qs_register_factor(qs_sheet * qs) {
 					ans->power = qs->caller->number->power * (int) cint_remove(qs->calc, &qs->variables.N, F);
 					assert(ans->power);
 					fac_push(qs->caller, ans, 1);
+					// functions can skip their task when n_bits = 1.
+					qs->n_bits = cint_count_bits(&qs->variables.N);
 					++qs->divisors.total_primes;
-					if (i || h_cint_compare(&qs->variables.N, &qs->constants.ONE) == 0)
+					if (i || qs->n_bits == 1)
 						i = 1, res = -1;
 					else cint_dup(F, &qs->variables.N);
 				} else {
@@ -655,7 +656,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 				for (; (a %= b) && (b %= a););
 				simple_int_to_cint(A, a | b);
 				cint_div(qs->calc, &qs->variables.N, A, &qs->variables.FACTOR, B);
-				if (B->mem == B->end) // found a factor of N by computing this GCD.
+				if (B->mem == B->end) // found a factor of N by computing this GCD ("sheer luck")
 					qs_register_factor(qs);
 				return; // nothing here.
 			} else
@@ -886,7 +887,7 @@ static inline void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_a
 }
 
 static inline void finalization_part_2(qs_sheet * qs) {
-	if (h_cint_compare(&qs->variables.N, &qs->constants.ONE) == 0)
+	if (qs->n_bits == 1)
 		return;
 
 	// Algorithm has finalized but N is still greater than one.
@@ -925,7 +926,7 @@ static inline void finalization_part_2(qs_sheet * qs) {
 static inline int finalization_part_3(qs_sheet * qs) {
 	// Usually do nothing, (N = 1)
 	// Otherwise push something non-trivial to the caller's routine
-	int res = h_cint_compare(&qs->variables.N, &qs->constants.ONE) == 0 ;
+	int res = qs->n_bits == 1 ;
 	if (res == 0){
 		fac_cint *ans = &qs->caller->factor;
 		ans->prime = 0 ;

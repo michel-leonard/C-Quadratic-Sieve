@@ -64,7 +64,6 @@ static inline void fac_mini_tests(fac_params *m) {
 			str = cint_to_string(&factors[i]->cint, 10);
 			// a power of the factor must be removable from number.
 			const int powers = (int) cint_remove(sheet, N, &factors[i]->cint);
-			if (powers != factors[i]->power) error_number |= 1 ;
 			switch (powers) {
 				case 0 : error_number |= 2; printf(" [%s] ", str); break;
 				case 1 : printf(factors[i + 1] ? "%s * " : "%s", str); break;
@@ -91,7 +90,6 @@ static inline void fac_mini_tests(fac_params *m) {
 	}
 
 	if (error_number == 0 && m->testing > 1) puts("Prime numbers wasn't submitted, the software has checked the answers.");
-	if (error_number & 1) puts("Answer does not begin with an exemplar of number");
 	if (error_number & 2) puts("number wasn't a multiple of the factor");
 	if (error_number & 4) puts("bit count of the factor was wrong");
 	if (error_number & 8) puts("factor of number wasn't 'prime'");
