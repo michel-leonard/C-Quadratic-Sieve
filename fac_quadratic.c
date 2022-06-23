@@ -72,7 +72,8 @@ static inline int inner_continuation_condition(qs_sheet *qs) {
 // return to sieving or stop the algorithm ? res is the answer.
 static inline int outer_continuation_condition(qs_sheet *qs) {
 	int res = qs->sieve_again_perms-- > 0; // avoid infinite loop.
-	res &= qs->divisors.total_primes <= qs->sieve_again_perms; // search prime factors.
+	res &= qs->divisors.total_primes < qs->sieve_again_perms; // search prime factors.
+	res &= qs->n_bits != 1 ; // the bit count of N isn't 1.
 	if (res) {
 		qs_sm new_needs = qs->relations.length.needs;
 		new_needs += new_needs >> (1 + qs->sieve_again_perms);
