@@ -200,9 +200,10 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 }
 
 static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const size_t quantity, const size_t size){
-	const char * memory_needs = (char*)qs->mem.now + (quantity + 1) * size * sizeof(uint64_t) ;
-	const char * memory_end = (char*)qs->mem.base + qs->mem.bytes_allocated ;
-	assert(memory_needs < memory_end);
+	// ensure it remains memory for linear algebra
+	const char * mem_needs = (char *)qs->mem.now + (quantity + 1) * size * sizeof(uint64_t);
+	const char * mem_ends = (char *)qs->mem.now + qs->mem.bytes_allocated;
+	assert(mem_needs < mem_ends);
 	for(size_t i = 0; i < quantity; ++i)
 		target[i] = qs->mem.now, qs->mem.now = mem_aligned(target[i] + size);
 }

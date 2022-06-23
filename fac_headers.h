@@ -155,7 +155,7 @@ typedef struct {
 			qs_sm sqrt;
 			qs_sm sol[2];
 		} *data;
-		size_t length;
+		qs_sm length;
 	} base;
 
 	// useful data sharing same length

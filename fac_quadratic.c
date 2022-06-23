@@ -72,11 +72,12 @@ static inline int inner_continuation_condition(qs_sheet *qs) {
 // return to sieving or stop the algorithm ? res is the answer.
 static inline int outer_continuation_condition(qs_sheet *qs) {
 	int res = qs->sieve_again_perms-- > 0; // avoid infinite loop.
-	res &= qs->divisors.total_primes < qs->sieve_again_perms; // search prime factors.
+	res &= qs->divisors.total_primes <= qs->sieve_again_perms; // search prime factors.
 	if (res) {
-		// the new parameter is to need a little more relations.
-		qs->relations.length.needs += qs->relations.length.needs >> (1 + qs->sieve_again_perms);
-		// puts("quadratic sieve steps back to register more relations");
+		qs_sm new_needs = qs->relations.length.needs;
+		new_needs += new_needs >> (1 + qs->sieve_again_perms);
+		printf("quadratic sieve steps back to register %u more relations\n", new_needs - qs->relations.length.needs);
+		qs->relations.length.needs = new_needs ;
 	}
 	return res;
 }
@@ -117,8 +118,8 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
-	qs->mem.bytes_allocated = qs->relations.length.needs << 13;
-	qs->mem.bytes_allocated += (1 << 22) - qs->mem.bytes_allocated % (1 << 22);
+	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {0} };
+	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // Megabytes
 
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
 
@@ -318,8 +319,8 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	}
 
 	// Other allocations
-	// 2 * more relations than first guessed are available, hard limit.
-	qs->relations.length.reserved = qs->relations.length.needs << 1 ;
+	qs->relations.length.reserved = qs->base.length < qs->relations.length.needs ? qs->relations.length.needs : qs->base.length;
+	qs->relations.length.reserved <<= 1 ; // 2 * more relations than first guessed are available, hard limit.
 	// Lanczos Block has its memory to take a "lite" snapshot before removing relations.
 	qs->lanczos.snapshot = mem_aligned(mem) ;
 	qs->relations.data = mem_aligned(qs->lanczos.snapshot + qs->relations.length.reserved);
@@ -400,8 +401,6 @@ static inline void get_started_iteration(qs_sheet *qs) {
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
-	// ensure it remains memory for linear algebra
-	assert((char*)qs->mem.now + (1 << 21) < (char*)qs->mem.base + qs->mem.bytes_allocated);
 }
 
 static inline void iteration_part_1(qs_sheet * qs, cint * A) {
