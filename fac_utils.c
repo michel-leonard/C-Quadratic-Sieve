@@ -35,7 +35,6 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	m.number->power = 1, m.number->prime = -1 ;
 
 	m.mem.now = mem ;
-
 	// iterates the array until it's empty, begin with the input N.
 	// functions must not push their input to the stack, they return 0 instead.
 	do {
@@ -87,31 +86,29 @@ static inline int fac_special_cases(fac_caller *m) {
 }
 
 static inline int fac_trial_division(fac_caller *m, const int level) {
-	int bits = m->number->bits ;
-	int res, low, high;
-	m->factor.prime = 1;
-
-	res = (*m->number->cint.mem & 1) == 0 ;
-	if (res) {
-		cint_reinit(&m->factor.cint, 2);
-		m->factor.power = (int)(m->number->power * cint_count_zeros(&m->number->cint)) ;
-		fac_push(m, &m->factor, 1);
-		cint_right_shifti(&m->number->cint, m->factor.power);
+	int res = (*m->number->cint.mem & 1) == 0 ; // remove power of 2.
+	m->factor.prime = 1 ;
+	if (m->trial.now == 0){
+		if (res) {
+			simple_int_to_cint(&m->factor.cint, 2);
+			m->factor.power = (int) cint_count_zeros(&m->number->cint);
+			fac_push(m, &m->factor, 1);
+			cint_right_shifti(&m->number->cint, m->factor.power);
+		}
+		m->trial.now = 1 ;
 	}
-
-	int *calc = level == 1 ? &high : &low;
-	low = 3;
-	high = 1062961;
-	if (bits < 65)
-		*calc = bits << 4;
-	else if (level == 1 && bits < 200)
-		*calc = bits < 128 ? 3600 : 5 * bits * bits - 600 * bits;
-	else if(bits > 4096)
-		high = 10000 ;
-
-	for (; low < high; low += 2) {
-		if (is_prime_4669921(low)) {
-			cint_reinit(&m->factor.cint, low);
+	int bound ;
+	if (m->number->bits <= 64) bound = 1024 ;
+	else {
+		bound = 4669921;
+		if (level == 1)
+			for(int bits = 0; bits < 250; bits += 30)
+				if (m->number->bits < bits)
+					bound >>= 1 ;
+	}
+	for (; (m->trial.now += 2) < bound;) {
+		if (is_prime_4669921(m->trial.now)) {
+			simple_int_to_cint(&m->factor.cint, m->trial.now);
 			m->factor.power = (int) cint_remove(m->calc, &m->number->cint, &m->factor.cint);
 			if (m->factor.power){
 				m->factor.power *= m->number->power ;
@@ -119,8 +116,7 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 			}
 		}
 	}
-	low -= 2;
-	if (low > m->trial.done_up_to) m->trial.done_up_to = low, cint_reinit(m->trial.cint, low) ;
+	simple_int_to_cint(m->trial.cint, m->trial.now);
 	if (res) fac_push(m, m->number, 0);
 	return res ;
 }

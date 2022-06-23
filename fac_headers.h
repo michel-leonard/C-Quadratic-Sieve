@@ -41,7 +41,7 @@ typedef struct {
 
 	struct{
 		cint * cint;
-		int done_up_to ;
+		int now ;
 	} trial;
 
 	fac_cint * number ;

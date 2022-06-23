@@ -76,7 +76,8 @@ static inline int outer_continuation_condition(qs_sheet *qs) {
 	if (res) {
 		qs_sm new_needs = qs->relations.length.needs;
 		new_needs += new_needs >> (1 + qs->sieve_again_perms);
-		printf("quadratic sieve steps back to register %u more relations\n", new_needs - qs->relations.length.needs);
+		if (qs->caller->params->silent == 0)
+			printf("quadratic sieve targets %u more relations\n", new_needs - qs->relations.length.needs);
 		qs->relations.length.needs = new_needs ;
 	}
 	return res;
@@ -109,7 +110,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {290, 25000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 100}, {0} };
+	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 120}, {0} };
 	// collecting more/fewer relations than recommended (used to verify "sieve again" feature).
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 
@@ -122,7 +123,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
-	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {0} };
+	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 140}, {0} };
 	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // Megabytes
 
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
