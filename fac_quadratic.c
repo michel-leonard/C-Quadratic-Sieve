@@ -46,7 +46,7 @@ static int quadratic_sieve(fac_caller *caller) {
 				register_relations(&qs, &qs.variables.A, &qs.variables.B, &qs.variables.C);
 			}
 		} while (inner_continuation_condition(&qs));
-		// Lanczos may "do more" than read-only to the relations.
+		// Lanczos may "do more" than read-only to the relations, in this case a snapshot will be available.
 		finalization_part_1(&qs, lanczos_block(&qs));
 		finalization_part_2(&qs);
 	} while (outer_continuation_condition(&qs));
@@ -59,7 +59,7 @@ static int quadratic_sieve(fac_caller *caller) {
 // continue to search relations or break ? res is the answer.
 static inline int inner_continuation_condition(qs_sheet *qs) {
 	int res = 1;
-	res &= qs->n_bits != 1 ; // "n_bits" is updated when algorithm registered a factor by sheer luck.
+	res &= qs->n_bits != 1 ; // the bit count of N is updated when algorithm registered a factor.
 	res &= qs->relations.length.now < qs->relations.length.needs; // the condition.
 	if (qs->caller->params->silent == 0) {
 		const double rel_begin = (double) qs->relations.length.now, rel_end = (double) qs->relations.length.needs ;
@@ -388,7 +388,6 @@ static inline void get_started_iteration(qs_sheet *qs) {
 	if (qs->lanczos.snapshot[0].relation) {
 		// the operation is fast, it shouldn't happen in average case.
 		// it restores the relations reduced by Lanczos algorithm.
-		// decreasing "laziness" parameter can trigger it.
 		qs_sm i ;
 		for(i = 0; qs->lanczos.snapshot[i].relation; ++i) {
 			qs->relations.data[i] = qs->lanczos.snapshot[i].relation;
@@ -397,7 +396,7 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		}
 		qs->relations.length.now = i ;
 	}
-	// D is generally not randomized, but it is a simplification that can avoid infinite loop due to 64-bit overflow
+	// D is generally not randomized, but a 64-bit overflow can lead to an infinite loop without it.
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
@@ -443,7 +442,7 @@ static inline void iteration_part_3(qs_sheet * qs, const cint * A, cint * B) {
 	cint_reinit(B, 0);
 	for (a = 0; a < qs->s.values.defined; ++a) {
 		*data++ = 1, *data++ = qs->s.data[a].a_ind;
-		// write A-invariants into data.
+		// write A-invariants into buffer.
 		b = qs->base.data[qs->s.data[a].a_ind].num;
 		simple_int_to_cint(D, b);
 		cint_div(qs->calc, A, D, E, F);
@@ -593,6 +592,7 @@ static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm 
 }
 
 static int qs_register_factor(qs_sheet * qs){
+	// the function have "permission" to update N.
 	// returns -1 if the algorithm should stop, accept any divisor of N.
 	cint * F = &qs->variables.FACTOR ;
 	int i, res = h_cint_compare(F, &qs->constants.ONE) > 0 && h_cint_compare(F, &qs->variables.N) < 0 ;
@@ -609,7 +609,7 @@ static int qs_register_factor(qs_sheet * qs){
 					ans->power = qs->caller->number->power * (int) cint_remove(qs->calc, &qs->variables.N, F);
 					assert(ans->power);
 					fac_push(qs->caller, ans, 1);
-					// functions can skip their task when n_bits = 1.
+					// functions will be able to skip their task when "n_bits" goes to 1.
 					qs->n_bits = cint_count_bits(&qs->variables.N);
 					++qs->divisors.total_primes;
 					if (i || qs->n_bits == 1)
@@ -762,17 +762,17 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 	for (a = 0; a < qs->m.double_value; ++a)
 		if (qs->others.sieve[a] >= qs->threshold.value) {
 			simple_int_to_cint(&qs->variables.X, a);
-			cint_subi(&qs->variables.X, &qs->constants.M); // TMP
-			cint_mul(A, &qs->variables.X, TMP); // AX
-			cint_addi(TMP, B); // AX + B
-			cint_dup(K, TMP); // copy of AX + B
-			cint_addi(TMP, B); // AX + 2B
-			cint_mul(TMP, &qs->variables.X, V); // AX^2 + 2BX
-			cint_addi(V, C); // AX^2 + 2BX + C
-			// K->nat = V->nat = 1 ; // taking the absolute value of [K and V] was an idea, it was abandoned.
+			cint_subi(&qs->variables.X, &qs->constants.M); // X = (a - M)
+			cint_mul(A, &qs->variables.X, TMP); // TMP = AX
+			cint_addi(TMP, B); // TMP = AX + B
+			cint_dup(K, TMP); // K = copy of AX + B
+			cint_addi(TMP, B); // TMP = AX + 2B
+			cint_mul(TMP, &qs->variables.X, V); // V = AX^2 + 2BX
+			cint_addi(V, C); // V = AX^2 + 2BX + C
+			V->nat = 1 ;
 			bits = (qs_sm) cint_count_bits(V) - qs->error_bits;
 			extra = 0, verification = 1;
-			data = qs->others.buffer[1]; // buffered data may be used by next function.
+			data = qs->others.buffer[1]; // prepare data into buffer for the next function.
 			for (b = 0; b < 2; ++b)
 				if (qs->base.data[b].num != 1) {
 					simple_int_to_cint(TMP, qs->base.data[b].num);
@@ -956,5 +956,5 @@ static inline int finalization_part_3(qs_sheet * qs) {
 	return res;
 }
 
-// "Pure C factorizer using self-initialising Quadratic Sieve."
+// "Pure C99 factorizer using self-initialising Quadratic Sieve."
 // compiling with "gcc -Wall -pedantic -O3 main.c -o qs" can speed up by a factor 2 or 3.

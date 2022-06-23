@@ -367,7 +367,7 @@ static inline void simple_dup_cint(cint *A, const cint *B, void **mem) {
 
 static inline void simple_int_to_cint(cint *num, qs_md value) {
 	// Pass the given 64-bit number into the given cint.
-	for (cint_reinit(num, 0); value; *num->end++ = (h_cint_t) (value & cint_mask), value >>= cint_exponent);
+	for (cint_erase(num); value; *num->end++ = (h_cint_t) (value & cint_mask), value >>= cint_exponent);
 }
 
 static inline qs_md simple_cint_to_int(const cint *num) {

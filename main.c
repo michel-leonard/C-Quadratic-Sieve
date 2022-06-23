@@ -30,6 +30,7 @@ int main(int argc, char *argv[]){
 		free(N.mem); // release number memory.
 	} else
 		fputs("usage : qs [-h] [-s] [number]", stderr);
+	return 0 ;
 }
 
 static inline void fac_display_verbose(fac_cint ** ans) {

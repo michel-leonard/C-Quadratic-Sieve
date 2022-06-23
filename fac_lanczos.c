@@ -147,7 +147,7 @@ static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t *
 }
 
 static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
-	int64_t i, j, k, bit_pos, col, col_words, num_deps ;
+	uint64_t i, j, k, bit_pos, col, col_words, num_deps ;
 	uint64_t mask, *mat_1[128], *mat_2[128], *tmp;
 	num_deps = 64 << (v && av);
 	col_words = (qs->relations.length.now + 63) / 64;
@@ -211,7 +211,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, v_size = n_cols > qs->base.length ? n_cols : qs->base.length;
 	const uint64_t safe_size = qs->lanczos.safe_length;
 	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 365 ;
-	qs->mem.now = mem_aligned((int64_t*) qs->mem.now + 1) ; // keep some padding.
+	qs->mem.now = mem_aligned((uint64_t*) qs->mem.now + 1) ; // keep some padding.
 	lanczos_build_array(qs, md, 6, safe_size);
 	lanczos_build_array(qs, sm, 13, 64);
 	lanczos_build_array(qs, xl, 2, safe_size < 2048 ? 2048 : safe_size);
@@ -266,7 +266,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 				tmp = sm[2], sm[2] = sm[1], sm[1] = sm[0], sm[0] = tmp;
 				tmp = sm[4], sm[4] = sm[3], sm[3] = tmp;
 				tmp = sm[6], sm[6] = sm[5], sm[5] = tmp;
-				memcpy(sm[12], sm[11], 64 * sizeof(int64_t));
+				memcpy(sm[12], sm[11], 64 * sizeof(uint64_t));
 				mask_1 = mask_0;
 				dim_1 = dim_0;
 			}
@@ -360,3 +360,11 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	} while (!*res && --tries);
 	return res;
 }
+
+// Kornél Lánczos (1893 - 1974) was a Hungarian-American and later Hungarian-Irish mathematician and physicist.
+
+// Reportedly, he sent his thesis copy to Albert Einstein, and Einstein wrote back, saying:
+// "I studied your paper as far as my present overload allowed. I believe I may say this much:
+// this does involve competent and original brainwork, on the basis of which a doctorate should be obtainable ...
+// I gladly accept the honorable dedication."
+

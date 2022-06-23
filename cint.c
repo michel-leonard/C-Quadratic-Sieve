@@ -74,11 +74,16 @@ static size_t cint_count_zeros(const cint * num){
 	return res + i ;
 }
 
+__attribute__((unused)) static inline int cint_compare_char(const cint * N, const h_cint_t val){
+	const h_cint_t res = *N->mem + *(N->mem + 1) - val ;
+	return (res > 0) - (res < 0);
+}
+
 static inline int h_cint_compare(const cint * lhs, const cint * rhs) {
 	h_cint_t res = (h_cint_t) ((lhs->end - lhs->mem) - (rhs->end - rhs->mem));
 	if (res == 0 && rhs->end != rhs->mem)
 		for (const h_cint_t *l = lhs->end, *r = rhs->end; !(res = *--l - *--r) && l != lhs->mem;);
-	return res > 0 ? 1 : res == 0 ? 0 : -1;
+	return (res > 0) - (res < 0);
 }
 
 static inline int cint_compare(const cint * lhs, const cint * rhs) {
@@ -102,7 +107,7 @@ static inline void cint_erase(cint * num) {
 }
 
 static void cint_reinit(cint * num, long long int value) {
-	// it's like an init, but without memory allocation
+	// it's like an initialization, but without memory allocation
 	num->end = memset(num->mem, 0, (num->end - num->mem) * sizeof(h_cint_t));
 	if ((num->nat = 1 - ((value < 0) << 1)) < 0) value = -value;
 	for (; value; *num->end = (h_cint_t)(value % cint_base), value /= cint_base, ++num->end);
@@ -251,7 +256,7 @@ static inline void cint_addi(cint *lhs, const cint *rhs) { lhs->nat == rhs->nat 
 static inline void cint_subi(cint *lhs, const cint *rhs) { lhs->nat == rhs->nat ? lhs->nat = -lhs->nat, h_cint_subi(lhs, rhs), lhs->mem == lhs->end || (lhs->nat = -lhs->nat), (void) 0 : h_cint_addi(lhs, rhs); }
 
 static void cint_left_shifti(cint *num, const size_t bits) {
-// execute a left shift immediately over the input, for any amount of bits (no verification about available memory)
+	// execute a left shift immediately over the input, for any amount of bits (no verification about available memory)
 	if (num->end != num->mem) {
 		const size_t a = bits / cint_exponent, b = bits % cint_exponent, c = cint_exponent - b;
 		if (a) {
@@ -484,7 +489,7 @@ __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const ci
 		cint_dup(tmp, rhs), tmp->nat = 1;
 		const size_t a = cint_count_zeros(lhs), b = cint_count_zeros(rhs);
 		for (size_t c = a > b ? b : a;; cint_right_shifti(tmp, cint_count_zeros(tmp))) {
-			if (cint_compare(gcd, tmp) > 0)
+			if (h_cint_compare(gcd, tmp) > 0)
 				swap = gcd, gcd = tmp, tmp = swap;
 			h_cint_subi(tmp, gcd);
 			if (tmp->mem == tmp->end) {
