@@ -83,16 +83,20 @@ static inline int outer_continuation_condition(qs_sheet *qs) {
 }
 
 // Quadratic sieve parameters : user configuration
-static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm bits) {
-	qs_sm res, i, j = 1 ;
-	for(; v[j + 1][0] && bits > v[j][0]; ++j);
-	i = j - 1 ;
-	if (v[i][0] > bits) res = (qs_sm) v[i][1] ;
-	else if (v[j][0] < bits) res = (qs_sm) v[j][1] ;
+static inline qs_sm linear_param_resolution(const double v[][2], const qs_sm point) {
+	qs_sm res, i, j ;
+	if (v[1][0] == 0)
+		res = (qs_sm) v[0][1];
 	else {
-		const double a = (v[j][1] - v[i][1]) / (v[j][0] - v[i][0]);
-		const double b = v[i][1] - a * v[i][0];
-		res = (qs_sm) (a * bits + b);
+		for (j = 1; v[j + 1][0] && point > v[j][0]; ++j);
+		i = j - 1;
+		if (v[i][0] > point) res = (qs_sm) v[i][1];
+		else if (v[j][0] < point) res = (qs_sm) v[j][1];
+		else {
+			const double a = (v[j][1] - v[i][1]) / (v[j][0] - v[i][0]);
+			const double b = v[i][1] - a * v[i][0];
+			res = (qs_sm) (a * point + b);
+		}
 	}
 	return res + (res > 512) * (16 - res % 16) ;
 }
