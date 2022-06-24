@@ -1,5 +1,6 @@
 
 
+
 # C Factorization using Quadratic Sieve
 
 Pure C factorizer using self-initialising  **Quadratic Sieve**.
@@ -7,7 +8,7 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 260 bits (270+ bits were factored in the lab)
+ - is a C99 **command line** factorizer from 0 to 290 bits (290 bits were factored in the lab)
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
@@ -26,7 +27,7 @@ This ~2500 lines project :
 This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by [William Hart](https://github.com/wbhart).
 
 # Usage
-You want to use the software, you may have to compile it :
+If you don't know how to get an executable, try to follow this fast procedure :
 - Ubuntu provide you a C compiler by the command `sudo apt install build-essential`
 - On Windows you can install [MinGW](https://winlibs.com/), it will, like as Ubuntu, provide you a C compiler
 
@@ -40,7 +41,7 @@ The software will show you its answer. To see the help use the `-h` option.
 
 # RSA factorization
 
-Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
+Factoring RSA numbers from 65 to 130 bits takes about the same time as 130 bits.
 
 |Bits| Command| Took
 |--|--|--|
@@ -52,6 +53,7 @@ Factoring RSA numbers under 130 bits takes about the same time as 130 bits.
 | 230 | `./qs 1268631359685752304166485771456206118633849920528997030903788793364933`  | 45 s
 | 250 | `./qs 1401811817899460116600945074728583412740519573015376930481203561750251051823`  | 4 min
 | 270 | `./qs 1415606447884291776606783262139201189953436249643759632827004228713595295320953939`  | 13 min
+| 290 | `./qs 1311212776762431067307390080218400290276233806447008972197996326428961782072889375956641`  | 1 h
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
 Only a few dozen RSA numbers larger than 250 bits have been tested, they have been factorized.
@@ -62,7 +64,7 @@ Only a few dozen RSA numbers larger than 250 bits have been tested, they have be
 | 7 | `340282366920938463463374607431768211457`  | 150 ms
 | 8 | `115792089237316195423570985008687907853269984665640564039457584007913129639937`  | 3 min
 
-Tests like software development were made by laptop Honor MagicBook on Windows (64-bit).\
+These tests like software development were made by laptop Honor MagicBook on Windows (64-bit).\
 One of the largest number factored during development was the 79 digits 8th Fermat Number.
 
 # Mersenne numbers factorization
@@ -97,12 +99,12 @@ I again thanks [William Hart](https://github.com/wbhart), a factor has always be
 # Testing
 
 Not needed at all for regular use, a basic ~ 100 lines testing feature is available :
-- the goal is simply to give some background
+- the goal is simply to provide inputs when users test new configurations
 - test durations are between 30 seconds (130-bit) and 3 minutes (200-bit)
 - the `./qs test=1` test offers a 2 minute crescendo up to 200+ bits
 - the `./qs test=160` test offers a minute of 160-bit random odd numbers
 
-The time measurements are indicative, not all were taken by the same device.
+The time measurements provided in this page are indicative, not all were taken by the same device.
 
 # Memory
 
@@ -134,6 +136,10 @@ You have access to the source code of **AVL**, a fast self-balancing binary sear
 
 **cint** and **AVL** are initially separate projects from the quadratic sieve.
 
+# Improvements
+
+Developers can for example replace **cint** with GMP, **AVL** with a hashmap and better reconfigure the software.
+
 # The file main.c
 
 This file has just some lines, so you can easily perform a refactoring.
@@ -142,11 +148,12 @@ This file has just some lines, so you can easily perform a refactoring.
 
 The file contains utilities that are not specifically intended for a quadratic sieve :
 - `c_factor`, the front-end factorizer that format the solution
-- `is_prime_1062961`, a fast small primes generator
+- `pollard_rho` 
+- `is_prime_1062961`
 - `log_computation` 
 - `multiplication_modulo` 
 - `power_modulo` 
-- `kronecker` symbol
+- `kronecker_symbol`
 - `tonelli_shanks`
 - `modular_inverse` 
 - `mem_aligned` 
@@ -170,9 +177,9 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 | N | Prime factors are removed from **N** and **N** is updated until `N = 1`  |
 | kN | Algorithm computes with **kN** which always remains a constant |
 
-*There is multiple interesting discussion/analysis on the **Knuth-Schroeppel** multiplier. On average I think that the algorithm completes 1.45 times faster with it.*
+*A **Knuth-Schroeppel** multiplier make the algorithm completes up to 2.5 times faster, 1.45 times on average.*
 
-*The quadratic sieve is able to factor number fewer than 120-bit without using two multipliers. This maybe interesting challenge is left to the enthusiastic developers. Thanks.*
+*The quadratic sieve could factor number fewer than 120-bit without using two multipliers, this possibly interesting challenge is left to any keen developer.*
 
 ### qs_parametrize, preparation_part_4
 
@@ -183,7 +190,7 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 - prepare constants, variables, buffers, data arrays ...
 
 There is a struct inside the **qs_sheet** (or manager) called **mem** :
-- it holds the  **base** entry point of the malloced memory
+- it holds the  **base** entry point of the allocated memory
 - it holds a **now** void* pointer which represent the current available memory
 
 **qs_sheet** holds 3 AVL tree manager :
@@ -202,11 +209,11 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 
 ### get_started_iteration
 - can restore the relations previously saved by Lanczos algorithm
-- can be used to perform analysis (the function is called periodically)
+- can be used to perform analysis, save/restore factorization to file or other periodic actions
 
 ### Polynomial `AX^2 + 2BX + C` coefficients : 
 
-| coefficient | qualified as constant after  | qualified as constant until|
+| coefficient | is a constant after  | is a constant until|
 |--|--|--|
 | A | `iteration_part_2` |`inner_continuation_condition` completion
 | B | `iteration_part_5` |for loop final expression
@@ -215,10 +222,11 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 What is a for loop final expression ? `for ([initialization]; [condition]; [final-expression])`.
 
 Polynomial and related data are computed until `iteration_part_7` complete.\
+The algorithm prepares data that will help generate polynomial values that will be multiples of the factor base.\
 `iteration_part_8` and `iteration_part_9` are used for sieving.
 
 ### Search sieve for relations
-`register_relations` searches sieve for relations, it reads the sieve. When the function finds interesting to define the variable **X** , calculates the value of the polynomial in **X** then divides the value with the factorial base, it thus tries to establish relations.
+`register_relations` searches sieve for relations, it reads the sieve. When the function finds interesting to define the variable **X** , calculates the value of the polynomial in **X** then divides the value with the factor base, it thus tries to establish relations.
 
 Buffered knowledge is structured by `register_relation_kind_1` and `register_relation_kind_2` :
 - informations potentially useful are saved into a struct **qs_relation***
@@ -260,3 +268,4 @@ There are many people to thank, the following list is not exhaustive :
 - Carl Pomerance
 - William Hart
 - Jason Papadopoulos
+- the professors at "University of Franche-Comté" who taught me programming
