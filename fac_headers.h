@@ -141,10 +141,12 @@ typedef struct {
 	struct{
 		qs_sm value ;
 	}threshold;
-	qs_sm poly_max;
 	qs_sm rand_seed;
-	qs_sm curves;
 	qs_sm sieve_again_perms;
+	struct{
+		qs_sm now ;
+		qs_sm max ;
+	} curves;
 
 	// useful data sharing same length
 	struct {
