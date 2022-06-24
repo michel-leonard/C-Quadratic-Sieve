@@ -118,8 +118,7 @@ static void lanczos_mul_Nx64_64x64_acc(qs_sheet *qs, const uint64_t *X, const ui
 	for (a = 0; a < 8; Y += 8, Z += 256, ++a)
 		for (b = 0; b < 256; ++b)
 			for (c = Z[b] = 0, d = b; d; d >>= 1, ++c)
-				if (d & 1)
-					Z[b] ^= Y[c];
+					Z[b] ^= (d & 1) * Y[c];
 	for (a = 0, Z -= 2048; a < qs->relations.length.now; ++a)
 		for(b = c = 0; b < 64; b += 8, c += 256) {
 			const uint64_t w = X[a];
@@ -131,8 +130,7 @@ static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64
 	uint64_t a, b, c, d, tmp[64];
 	for (a = 0; a < 64; tmp[a++] = c) {
 		for (b = 0, c = 0, d = X[a]; d; d >>= 1, ++b)
-			if (d & 1)
-				c ^= Y[b];
+				c ^= (d & 1) * Y[b];
 	}
 	memcpy(Z, tmp, sizeof(tmp));
 }
@@ -142,8 +140,7 @@ static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t *
 	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
 	for (a = 0; a < qs->relations.length.now; ++a)
 		for (b = 0, c = a >> 6, d = 1LLU << (a % 64); Z[a]; Z[a] >>= 1, ++b)
-			if (Z[a] & 1)
-				Y[b][c] |= d;
+				Y[b][c] |= (Z[a] & 1) * d;
 }
 
 static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
@@ -340,15 +337,16 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 
 static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	// the worker algorithm is probabilistic with high success rate
-	// it receives as input the raw matrix then the reduced matrix
+	// it is interested in the Y field of the relations (to build its matrix)
+	// it receives as input the raw relations then the reduced relations
 	if (qs->n_bits == 1)
-		return (uint64_t *) qs->others.buffer[0] ; // no answer when N = 1, return any zeroed array.
+		return (uint64_t *) qs->mem.now ; // nothing to solve when N = 1, return any zeroed buffer.
 
 	uint64_t *res;
 	qs_sm tries = 4, reduce_at;
 	//
 	if (qs->sieve_again_perms < 3) tries <<= 1 ; // 8
-	if (qs->sieve_again_perms < 2) tries <<= 1 ; // 16
+	if (qs->sieve_again_perms < 2) tries <<= 1 ; // 16 tries in desperation.
 	reduce_at = tries >> 1 ;
 	//
 	if (qs->lanczos.safe_length < qs->relations.length.now) qs->lanczos.safe_length = qs->relations.length.now ;
@@ -356,7 +354,7 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 	qs->lanczos.safe_length += 64 - qs->lanczos.safe_length % 64 ;
 	//
 	do {
-		if (tries == reduce_at) // 230-bit need reduce
+		if (tries == reduce_at) // 230-bit can need reduce
 			lanczos_reduce_matrix(qs);
 		res = lanczos_block_worker(qs);
 	} while (!*res && --tries);
@@ -369,4 +367,3 @@ static inline uint64_t *lanczos_block(qs_sheet *qs) {
 // "I studied your paper as far as my present overload allowed. I believe I may say this much:
 // this does involve competent and original brainwork, on the basis of which a doctorate should be obtainable ...
 // I gladly accept the honorable dedication."
-

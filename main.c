@@ -49,7 +49,7 @@ static inline void fac_display_help(char *name) {
 	puts("=== [ Welcome to the factor function help ] === \n");
 	printf(" - use     ./%s 123     to see the factors of 123\n", str);
 	printf(" - use     ./%s -test=130     to see a 130-bit factorization test (30 seconds)\n", str);
-	printf(" - use     ./%s -limit=150     to define a limit of bit for the quadratic sieve\n", str);
+	printf(" - use     ./%s -qs_limit=150     to define a qs_limit of bit for the quadratic sieve\n", str);
 	printf(" - use     ./%s -s [number]    to not see the progress of quadratic sieve\n", str);
 	printf(" - numbers around quotes are identified not to be prime\n");
 	printf(" - numbers shown have passed some tests like perfect square, perfect cube, primality, trial divisions\n");

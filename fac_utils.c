@@ -50,7 +50,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 
 	// answer goes into an appropriately sized memory allocation.
 	size_t bytes = 0 ;
-	for(int i = 0; i < m.answers.index; ++i)
+	for(unsigned i = 0; i < m.answers.index; ++i)
 		bytes += m.answers.data[i].cint.end - m.answers.data[i].cint.mem + 1 ;
 	bytes *= sizeof(h_cint_t);
 	bytes += (sizeof(fac_cint) + sizeof(fac_cint*)) * (m.answers.index + 1) ;
@@ -60,7 +60,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	qsort(m.answers.data, m.answers.index, sizeof(fac_cint), &fac_sort_result);
 
 	mem = res + m.answers.index + 1 ;
-	for(int i = 0; i < m.answers.index; ++i) {
+	for(unsigned i = 0; i < m.answers.index; ++i) {
 		fac_cint * factor = &m.answers.data[i] ;
 		res[i] = mem, mem = res[i] + 1 ;
 		res[i]->power = factor->power ;
@@ -95,15 +95,12 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 		}
 		m->trial.done_up_to = 1 ;
 	}
-	int bound ;
-	if (m->number->bits <= 64) bound = 1024 ;
-	else {
-		bound = 4669921;
-		if (level == 1)
-			for(int bits = 0; bits < 250; bits += 30)
-				if (m->number->bits < bits)
-					bound >>= 1 ;
-	}
+
+	unsigned bound;
+	if (m->number->bits <= 64) bound = 1024;
+	else if (bound = 4669921, level == 1)
+		for (int i = 0; i < 250; bound >>= (m->number->bits < i) * 1, i += 30);
+
 	for (; (m->trial.done_up_to += 2) < bound;) {
 		if (is_prime_4669921(m->trial.done_up_to)) {
 			simple_int_to_cint(F, m->trial.done_up_to);
@@ -405,7 +402,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 		for (; *s && !(*s >= '1' && *s <= '9') && !(*s >= 'a' && *s <= 'z'); ++s);
 		if (*s >= 'a' && *s <= 'z') {
 			int a =
-					fac_apply_custom_param("limit=", s, 1, &params->limit) // add command line parameters...
+					fac_apply_custom_param("qs_limit=", s, 1, &params->qs_limit) // add command line parameters...
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)

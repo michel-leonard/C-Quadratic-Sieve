@@ -21,10 +21,10 @@ typedef struct {
 } fac_cint;
 
 typedef struct{
-	unsigned limit ;
 	unsigned testing ;
 	unsigned silent ;
 	unsigned help ;
+	unsigned qs_limit ;
 	unsigned qs_multiplier ;
 	unsigned qs_rand_seed ;
 } fac_params;
@@ -40,7 +40,7 @@ typedef struct {
 
 	struct{
 		cint cint;
-		int done_up_to ;
+		unsigned done_up_to ;
 	} trial;
 
 	fac_cint * number ; // the number to factor
@@ -50,12 +50,12 @@ typedef struct {
 
 	struct {
 		fac_cint * data ;
-		int index ;
+		unsigned index ;
 	} questions;
 
 	struct {
 		fac_cint * data ;
-		int index ;
+		unsigned index ;
 	} answers;
 
 } fac_caller;

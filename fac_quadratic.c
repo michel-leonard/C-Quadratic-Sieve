@@ -17,8 +17,8 @@ static int quadratic_sieve(fac_caller *caller) {
 	// - can use caller's resources (variables + configurations)
 	// - resources are enough to copy 400-bit into variables
 
-	int limit = (int) caller->params->limit;
-	if (limit == 0) limit = 220; // the default limit is such that the QS answer in seconds.
+	int limit = (int) caller->params->qs_limit;
+	if (limit == 0) limit = 220; // the default qs_limit is such that the QS answer in seconds.
 	if (caller->number->bits < 65 || caller->number->bits > limit) return 0;
 
 	qs_sheet qs = {0};
@@ -202,7 +202,7 @@ static inline qs_sm preparation_part_3_proposition(qs_sheet *qs) {
 		const int mod = b * mul[a] & 7;
 		score[a] = -.5 * log_computation(mul[a]) + (mod & 1) * 0.3465736 * (mod == 1 ? 4 : mod == 5 ? 2 : 1);
 	}
-	// scan primes contributions until they are greater than a convenient limit.
+	// scan primes contributions until they are greater than a convenient qs_limit.
 	b = 2048 ;
 	for (a = 3; a < b; a += 2)
 		if (is_prime_4669921(a)) {
@@ -326,7 +326,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 
 	// Other allocations
 	qs->relations.length.reserved = qs->base.length < qs->relations.length.needs ? qs->relations.length.needs : qs->base.length;
-	qs->relations.length.reserved <<= 1 ; // 2 * more relations than first guessed are available, hard limit.
+	qs->relations.length.reserved <<= 1 ; // 2 * more relations than first guessed are available, hard qs_limit.
 	// Lanczos Block has its memory to take a "lite" snapshot before removing relations.
 	qs->lanczos.snapshot = mem_aligned(mem) ;
 	qs->relations.data = mem_aligned(qs->lanczos.snapshot + qs->relations.length.reserved);
@@ -855,7 +855,7 @@ static inline void process_column_array(struct qs_relation * rel, const qs_sm * 
 
 static inline void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_answer) {
 	const uint64_t mask = *lanczos_answer, * null_rows = lanczos_answer + 1;
-	// Lanczos "linear algebra" answer isn't a struct, it's simply "mask followed by null_rows".
+	// Lanczos "linear algebra" answer is simply "mask followed by null_rows", with read-only.
 	if (mask == 0 || null_rows == 0)
 		return;
 	cint *A = qs->variables.TEMP, *B = A + 1, *C = A + 2, *D = A + 3;
