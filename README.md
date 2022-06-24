@@ -8,7 +8,7 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 290 bits (290 bits were factored in the lab)
+ - is a C99 **command line** factorizer from 0 to 300 bits
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
@@ -56,7 +56,8 @@ Factoring RSA numbers from 65 to 130 bits takes about the same time as 130 bits.
 | 290 | `./qs 1311212776762431067307390080218400290276233806447008972197996326428961782072889375956641`  | 1 h
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 250 bits have been tested, they have been factorized.
+Only a few dozen RSA numbers larger than 250 bits have been tested, they have been factorized.\
+During a "stress test" that lasted 2 hours, the software factored a **300-bit RSA** number.
 
 # Fermat numbers factorization
 |F| Value | Took  |
@@ -243,7 +244,7 @@ This algorithm is supposed to find matrix eigenvalues.
 
 - the process need memory, **fac_lanczos.c** have its own array builder
 - all memory taken in **mem.now** is zeroed and reusable after calculations
-- the process is usually fast with small numbers, it can take over 100 iterations
+- the process is usually fast with small numbers, it can take many iterations with 300-bit numbers
 - a **reduce_matrix** function is used before giving up
 
 ### finalization_part_1 .. 2 .. 3
