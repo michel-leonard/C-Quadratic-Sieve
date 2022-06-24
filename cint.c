@@ -639,35 +639,35 @@ static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cin
 }
 
 int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
-	// Perform a Miller-Rabin test, returns a truthy value describing the "primality" of N.
-	int res, i;
-		if (N->mem + 1 >= N->end && *N->mem < 119) {
-			const int n = (int) *N->mem; // returns hardcoded if number < 7 bits.
-			res = n < 6 ? n > 1 && n != 4 : 1 & 0x208A2882 >> n % 30 && n != 49 && n != 77 && n != 91;
-		} else if(res = (*N->mem & 1) != 0, res) {
-			cint *A = h_cint_tmp(sheet, 5, N),
-					*B = h_cint_tmp(sheet, 6, N),
-					*C = h_cint_tmp(sheet, 7, N);
-			size_t a, b, bits = cint_count_bits(N), rand_mod = bits - 3;
-			if (iterations < 0)
-				iterations = bits < 128 ? 16 : bits < 256 ? 8 : bits < 1024 ? 4 : bits < 2048 ? 2 : 1;
-			cint_dup(A, N);
-			cint_erase(B), *B->end++ = 1;
-			cint_subi(A, B);
-			cint_dup(C, A);
-			a = cint_count_zeros(C); // trailing zeros...
-			cint_right_shifti(C, a);
-			for (bits = 2, i = 0; i < iterations && res; ++i) {
-				cint_random_bits(B, bits);
-				bits = 3 + *B->mem % rand_mod ;
-				cint_pow_modi(sheet, B, C, N);
-				if (*B->mem != 1 || B->end != B->mem + 1) {
-					for (b = a; b-- && (res = h_cint_compare(A, B));)
-						cint_mul_modi(sheet, B, B, N);
-					res = !res;
-				}
+	// is N is considered as a prime number ? the function returns 0 or 1.
+	// if the number of Miller-Rabin iteration is negative, the function decides for the caller.
+	int res;
+	if (*N->mem < 961 && N->mem + 1 >= N->end) {
+		int n = (int) *N->mem; // Small numbers for which Miller-Rabin is not used: returns either 1 or 0.
+		res = (n > 1) & ((n < 6) * 42 + 0x208A2882) >> n % 30 && (n < 49 || (n % 7 && n % 11 && n % 13 && n % 17 && n % 19 && n % 23 && n % 29));
+	} else if(res = (*N->mem & 1) != 0, res && iterations) {
+		cint *A = h_cint_tmp(sheet, 5, N),
+				*B = h_cint_tmp(sheet, 6, N),
+				*C = h_cint_tmp(sheet, 7, N);
+		size_t a, b, bits = cint_count_bits(N), rand_mod = bits - 3;
+		if (iterations < 0) // decides for the caller ... 16 ... 8 ... 4 ... 2 ...
+			iterations = 2 << ((bits < 128) + (bits < 256) + (bits < 1024));
+		cint_dup(A, N);
+		cint_erase(B), *B->end++ = 1;
+		cint_subi(A, B);
+		cint_dup(C, A); // C = N - 1
+		a = cint_count_zeros(C);
+		cint_right_shifti(C, a); // divides C by 2 until C is odd
+		for (bits = 2; iterations-- && res;) {
+			cint_random_bits(B, bits); // take any appropriate number
+			bits = 3 + *B->mem % rand_mod ;
+			cint_pow_modi(sheet, B, C, N); // raise to the power C mod N
+			if (*B->mem != 1 || B->end != B->mem + 1) {
+				for (b = a; b-- && (res = h_cint_compare(A, B));)
+					cint_mul_modi(sheet, B, B, N);
+				res = !res;
 			}
-			res = i * (res != 0);
+		}
 	}
 	return res;
 }

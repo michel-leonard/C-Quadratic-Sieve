@@ -151,7 +151,6 @@ typedef struct {
 		struct {
 			qs_sm num;
 			qs_sm size;
-			qs_sm A_inv;
 			qs_sm sqrt;
 			qs_sm sol[2];
 		} *data;

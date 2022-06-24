@@ -152,7 +152,7 @@ static inline int fac_perfect_checker(fac_caller *m) {
 }
 
 static inline int fac_primality_checker(fac_caller *m) {
-	m->number->prime = cint_is_prime(m->calc, &m->number->cint, 0 - (m->number->bits <= 4096));
+	m->number->prime = cint_is_prime(m->calc, &m->number->cint, m->number->bits > 2048 ? 1 : -1);
 	if (m->number->prime)
 		fac_push(m, m->number, 1);
 	return m->number->prime;
@@ -309,14 +309,13 @@ static qs_md modular_inverse(qs_md ra, qs_md rb) {
 	// Return 0 if the linear congruence has no solutions.
 	// The answer is also called "u1" in the context of extended Euclidean algorithm.
 	qs_md rc, sa = 1, sb = 0, sc, i = 0;
-	if (rb > 1) {
+	if (rb > 1)
 		do {
 			rc = ra % rb;
 			sc = sa - (ra / rb) * sb;
 			sa = sb, sb = sc;
 			ra = rb, rb = rc;
 		} while (++i, rc);
-	}
 	sa *= (i *= ra == 1) != 0;
 	sa += (i & 1) * sb;
 	return sa;

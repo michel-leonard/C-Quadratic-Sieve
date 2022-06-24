@@ -413,7 +413,7 @@ static inline void iteration_part_1(qs_sheet * qs, cint * A) {
 	cint *B = qs->variables.TEMP, *C = B + 1, *D;
 	qs_sm a, b = 0, c, d = qs->the.span_half, f = qs->the.min + d;
 	if (qs->s.values.defined & 1) D = B, B = A, A = D;
-	cint_reinit(B, 1);
+	simple_int_to_cint(B, 1);
 	for (f *= f, a = 0; a < qs->s.values.defined; D = B, B = A, A = D, ++a) {
 		if (a & 1)
 			b = f / (b + qs->the.min) - (qs_sm) rand_upto(10) - qs->the.min;
@@ -470,21 +470,21 @@ static inline void iteration_part_4(qs_sheet * qs, const cint * A, const cint * 
 		const qs_sm c = qs->base.data[a].num;
 		simple_int_to_cint(C, c);
 		cint_div(qs->calc, A, C, D, E);
-		qs->base.data[a].A_inv = modular_inverse(simple_cint_to_int(E), c);
+		const qs_sm d = modular_inverse(simple_cint_to_int(E), c) << 1 ;
 		for (b = 0; b < qs->s.values.defined; ++b) {
 			cint_div(qs->calc, &qs->s.data[b].B_terms, C, E, F);
-			qs->s.data[b].A_inv_2B[a] = multiplication_modulo(simple_cint_to_int(F), qs->base.data[a].A_inv << 1, c);
+			qs->s.data[b].A_inv_2B[a] = multiplication_modulo(simple_cint_to_int(F), d, c);
 		}
 		cint_div(qs->calc, B, C, D, E);
 		s = c;
 		s += qs->base.data[a].sqrt;
 		s -= (qs_md_tmp_si) simple_cint_to_int(E);
-		s *= qs->base.data[a].A_inv;
+		s *= d >> 1;
 		s += (qs_md_tmp_si) qs->m.value;
 		qs->base.data[a].sol[0] = (qs_sm) (s % c);
 		s = qs->base.data[a].sqrt;
 		s -= c;
-		s *= qs->base.data[a].A_inv << 1;
+		s *= d;
 		s = -s % c;
 		qs->base.data[a].sol[1] = (qs_sm) (s + qs->base.data[a].sol[0]);
 	}
@@ -513,7 +513,7 @@ static inline void iteration_part_6(qs_sheet *  qs, const cint * KN, const cint 
 		s = (qs_md_tmp_si) simple_cint_to_int(D);
 		c = simple_cint_to_int(E);
 		b = multiplication_modulo(c, qs->s.data[a].a_mod_p, p);
-		b = modular_inverse(E->nat > 0 ? b : p - b, p) % p;
+		b = modular_inverse(E->nat > 0 ? b : p - b, p) % p ;
 		s = (qs_md_tmp_si) (c * c - s) / p;
 		c = s > 0;
 		s = (qs_md_tmp_si) multiplication_modulo(c ? s : -s, b, p);
@@ -614,16 +614,14 @@ static int qs_register_factor(qs_sheet * qs){
 					ans->power = qs->caller->number->power * (int) cint_remove(qs->calc, &qs->variables.N, F);
 					assert(ans->power);
 					fac_push(qs->caller, ans, 1);
-					// functions will be able to skip their task when "n_bits" goes to 1.
-					qs->n_bits = cint_count_bits(&qs->variables.N);
 					++qs->divisors.total_primes;
-					if (i || qs->n_bits == 1)
-						i = 1, res = -1;
+					// functions are able to skip their task when "n_bits" goes to 1.
+					qs->n_bits = cint_count_bits(&qs->variables.N);
+					if (qs->n_bits == 1)
+						res = -1;
 					else cint_dup(F, &qs->variables.N);
-				} else {
-					if (i == 0) qs->divisors.data[qs->divisors.length++] = node->key;
-					break;
-				}
+				} else if (i++ == 0)
+						qs->divisors.data[qs->divisors.length++] = node->key;
 			}
 		}
 	}
