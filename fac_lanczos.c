@@ -211,7 +211,7 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const s
 static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const uint64_t n_cols = qs->relations.length.now, v_size = n_cols > qs->base.length ? n_cols : qs->base.length;
 	const uint64_t safe_size = qs->lanczos.safe_length;
-	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 365 ;
+	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, i, dim_0, dim_1, mask_0, mask_1, endless_guard = 1 << 10 ;
 	qs->mem.now = mem_aligned((uint64_t*) qs->mem.now + 1) ; // keep some padding.
 	lanczos_build_array(qs, md, 6, safe_size);
 	lanczos_build_array(qs, sm, 13, 64);
@@ -272,9 +272,10 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 				dim_1 = dim_0;
 			}
 		}
-	} while(--endless_guard && dim_0 && i != 64);
+	} while(dim_0 && i != 64 && --endless_guard);
 
-	assert(endless_guard); // it sometimes succeeds at 100+ iterations during software testing.
+	// it sometimes succeeds at 400+ iterations during software testing.
+	dim_0 *= endless_guard != 0 ;
 
 	// ===== answer finalization =====
 	// result will be a simple array of the form [mask, null_rows...]

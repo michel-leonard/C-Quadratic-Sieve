@@ -266,7 +266,7 @@ static inline int kronecker_symbol(qs_md a, qs_md b) {
 static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	// return root such that (root * root) % mod congruent to n % mod.
 	// return 0 if no solution to the congruence exists.
-	// mod is assumed odd prime.
+	// mod is assumed odd prime, if mod = 2 then res is (n & 7 == 1 || n & 7 == 7).
 	const qs_sm a = n % mod;
 	qs_md res = kronecker_symbol(a, mod) == 1, b, c, d, e, f, g, h;
 	if (res)

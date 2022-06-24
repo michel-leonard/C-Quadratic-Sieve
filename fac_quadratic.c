@@ -125,7 +125,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
 	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 140}, {0} };
-	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // Megabytes
+	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // { Base size, Megabytes }
 
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
 
@@ -176,7 +176,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 }
 
 static inline void preparation_part_3(qs_sheet *qs) {
-	// the following part can speed up the factorization by a factor 2.
+	// the following part can speed up the factorization by a factor 2.5.
 	// so it is possible to compare propositions.
 	qs_sm mul = qs->caller->params->qs_multiplier ;
 	if (mul == 0) // like everyone, listen propositions.
