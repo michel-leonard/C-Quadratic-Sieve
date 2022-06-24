@@ -108,7 +108,7 @@ static inline void h_avl_rebalance(struct avl_node **root, struct avl_node *top)
 	struct avl_node *middle, *bottom;
 	char op[3];
 	int i;
-	// Maybe "top" is now too tall.
+	// Maybe "top" is done_up_to too tall.
 	while (top) {
 		i = top->height;
 		top->height = h_avl_height(top);

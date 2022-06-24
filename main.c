@@ -61,7 +61,7 @@ static inline void fac_display_help(char *name) {
 
 // Development (Linux) done with gcc version 8.3.0 (Debian 8.3.0-6)
 // Development (Microsoft Windows) done with gcc version 11.2.0 (MinGW-W64 x86_64-ucrt-posix-seh)
-// In 2022, the common software speed is 1s for 170-bit RSA, 1 min for 230-bit, 10 min for 260-bit.
+// In 2022, the common software speed is 1s for 170-bit RSA, 1 min for 230-bit, 10 min for 260-bit, 2 hours for 300-bit.
 
 // ================================================================================================
 

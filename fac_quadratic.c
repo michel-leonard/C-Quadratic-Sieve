@@ -15,10 +15,10 @@ static int quadratic_sieve(fac_caller *caller) {
 	// - must factor the caller's "number"
 	// - must register answers to the caller's routines
 	// - can use caller's resources (variables + configurations)
-	// - resources are enough to copy 300-bit into variables
+	// - resources are enough to copy 400-bit into variables
 
 	int limit = (int) caller->params->limit;
-	if (limit == 0) limit = 220;
+	if (limit == 0) limit = 220; // the default limit is such that the QS answer in seconds.
 	if (caller->number->bits < 65 || caller->number->bits > limit) return 0;
 
 	qs_sheet qs = {0};
@@ -262,7 +262,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	if (qs->caller->params->qs_rand_seed) srand(qs->rand_seed = qs->caller->params->qs_rand_seed);
 	else qs->caller->params->qs_rand_seed = qs->rand_seed = add_rand_seed(&mem);
 
-	// kN was computed into the caller's courtesy memory, now QS has parametrized and "allocated"
+	// kN was computed into the caller's courtesy memory, now the QS has parametrized and "allocated"
 	const size_t kn_size = qs->caller->vars[0].end - qs->caller->vars[0].mem + 1 ;
 	// the quadratic sieve variables are able to temporarily hold at most kN ^ 2
 	const size_t vars_size = kn_size << 1 ;
@@ -403,7 +403,7 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		}
 		qs->relations.length.now = i ;
 	}
-	// D is generally not randomized, but a 64-bit overflow can lead to an infinite loop without it.
+	// D is randomized if algorithm remarks that no relation accumulates (the tester didn't remove it)
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves.now)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
@@ -515,7 +515,7 @@ static inline void iteration_part_6(qs_sheet *  qs, const cint * KN, const cint 
 		c = simple_cint_to_int(E);
 		b = multiplication_modulo(c, qs->s.data[a].a_mod_p, p);
 		b = modular_inverse(E->nat > 0 ? b : p - b, p) % p ;
-		s = (qs_md_tmp_si) (c * c - s) / p; // critical 64-bit operation
+		s = (qs_md_tmp_si) (c * c - s) / p;
 		c = s > 0;
 		s = (qs_md_tmp_si) multiplication_modulo(c ? s : -s, b, p);
 		s = (qs_md_tmp_si) (c ? -s + qs->m.value : s + qs->m.value);
@@ -559,7 +559,7 @@ static inline void iteration_part_8(qs_sheet * qs, const qs_sm add, const qs_sm 
 }
 
 static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm *  corr) {
-	// this operation isn't "instantly" completed, it takes time.
+	// this operation takes time.
 	uint8_t * chunk_open = qs->others.sieve, * chunk_close = chunk_open;
 	uint8_t * sieve_close = chunk_open + qs->m.double_value ;
 	qs_sm *buffer = qs->others.buffer[0], walk_idx, * walk = buffer;
@@ -574,11 +574,11 @@ static inline void iteration_part_9(qs_sheet * qs, const qs_sm add, const qs_sm 
 			qs->others.pos[1][i] = chunk_open + qs->base.data[i].sol[1];
 		}
 	for(walk_idx = 0; buffer[walk_idx] < qs->iterative_list[1]; ++walk_idx);
-	// iterates until the next chunk "begin" where sieve "ends".
+	// iterates until the next chunk "begin" where the sieve "ends".
 	do{
 		walk = buffer + walk_idx ;
 		chunk_close = sieve_close;
-		// it was initially advancing by chunks using the following :
+		// initially, the process was advancing by chunks using the following :
 		// chunk_close = chunk_close + CACHE_SIZE < sieve_close ? chunk_close + CACHE_SIZE : sieve_close;
 		do{
 			const qs_sm size = qs->base.data[*walk].size, prime = qs->base.data[*walk].num, times = 4 >> (*walk > qs->iterative_list[2]) ;
@@ -606,17 +606,16 @@ static int qs_register_factor(qs_sheet * qs){
 		F->nat = 1 ; // absolute value of the factor.
 		const struct avl_node *node = avl_at(&qs->uniqueness[2], F);
 		if (qs->uniqueness[2].affected) {
-			fac_cint *ans = &qs->caller->factor;
 			for (i = 0; i < 2 && qs->n_bits != 1; ++i) {
-				ans->prime = cint_is_prime(qs->calc, F, -1);
-				if (ans->prime) {
-					cint_dup(&ans->cint, F);
-					// 200-bit RSA take about 10,000,000+ "duplications", so perform the last.
-					ans->power = qs->caller->number->power * (int) cint_remove(qs->calc, &qs->variables.N, F);
-					assert(ans->power);
-					fac_push(qs->caller, ans, 1);
+				const int prime = cint_is_prime(qs->calc, F, -1);
+				if (prime) {
+					const int power = (int) cint_remove(qs->calc, &qs->variables.N, F);
+					assert(power);
+					// 200-bit RSA take about 10,000,000+ "duplications", so it will perform the last.
+					fac_push(qs->caller, F, 1, power, 0);
 					++qs->divisors.total_primes;
-					// functions are able to skip their task when "n_bits" goes to 1.
+					// functions can check if "n_bits" is greater than one
+					// if they believe the information has not yet been given above.
 					qs->n_bits = cint_count_bits(&qs->variables.N);
 					if (qs->n_bits == 1)
 						res = -1;
@@ -642,8 +641,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 	if (old) {
 		if (old->id) return; // normally there is no collision.
 		if (old->X == 0) return; // modular inverse (p, number) already failed.
-		if (old->axis.next) return; // lanczos may not be able to produce an answer if all "next" are accepted without caring.
-			// occurrence of linearly dependent rows in the matrix would reduce the chance to find a nontrivial solution.
+		if (old->axis.next) return; // accepting all "next" without caring would reduce the chance to find a nontrivial Lanczos solution.
 		for (; old; old = old->axis.next)
 			if (h_cint_compare(KEY, old->X) == 0) return; // same KEY already registered.
 		old = node->value;
@@ -662,7 +660,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 				cint_div(qs->calc, &qs->variables.N, A, &qs->variables.FACTOR, B);
 				if (B->mem == B->end) // found a factor of N by computing this GCD ("sheer luck")
 					qs_register_factor(qs);
-				return; // nothing here.
+				return; // nothing.
 			} else
 				BEZOUT = A;
 		}
@@ -695,9 +693,10 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 	memcpy(data, qs->others.buffer[1], a * sizeof(*data));
 	new->Y.length = data + a - new->Y.data;
 	qs->mem.now = new->Y.data + new->Y.length;
+
 	if (old) {
 		int n_new_relations = 0 ;
-		BEZOUT = old->X + 1 ; // the modular inverse was previously stored here.
+		BEZOUT = old->X + 1 ; // the modular inverse was stored here.
 		cint_mul_mod(qs->calc, new->X, BEZOUT, &qs->constants.kN, &qs->variables.CYCLE);
 		do {
 			if (old != new) {
@@ -717,7 +716,7 @@ static inline void register_relation_kind_2(qs_sheet * qs, const qs_sm * data_en
 				memset(open, 0, (char *) close - (char *) open); // zeroed.
 			}
 		} while ((old = old->axis.next));
-		// the linked list can handle more than one entry, but their combinations isn't implemented.
+		// the linked list can handle many entries, but their combinations isn't implemented.
 		assert(n_new_relations == 1);
 	}
 }
@@ -734,7 +733,7 @@ static inline void register_relation_kind_1(qs_sheet * qs, const cint * KEY, qs_
 	rel->axis.Z.data = rel->Y.data + (p_2 - p_1) + (p_4 - p_3); // writes Z ahead.
 	for (; p_1 < p_2; p_1 += 2) process_column_array(rel, p_1);
 	for (; p_3 < p_4; p_3 += 2) process_column_array(rel, p_3);
-	// Z length is known
+	// Z length is known.
 	qs->mem.now = rel->axis.Z.data + rel->axis.Z.length;
 	int verified = 0 ;
 	if (verified == 0){
@@ -932,9 +931,7 @@ static inline int finalization_part_3(qs_sheet * qs) {
 	// Otherwise push something non-trivial to the caller's routine
 	int res = qs->n_bits == 1 ;
 	if (res == 0){
-		fac_cint *ans = &qs->caller->factor;
-		ans->prime = 0 ;
-		ans->power = qs->caller->number->power ;
+		cint * F = &qs->variables.FACTOR;
 		for(qs_sm i = 0; i < qs->divisors.length; ++i) {
 			if (qs->caller->params->silent == 0) {
 				char *str = cint_to_string(qs->divisors.data[i], 10);
@@ -945,17 +942,14 @@ static inline int finalization_part_3(qs_sheet * qs) {
 				const int power = (int) cint_remove(qs->calc, &qs->variables.N, qs->divisors.data[i]);
 				if (power) {
 					assert(power == 1);
-					cint_dup(&ans->cint, qs->divisors.data[i]);
-					fac_push(qs->caller, ans, 0);
+					fac_push(qs->caller, F, 0, 1, 1);
 				}
 			}
 		}
 		res = h_cint_compare(&qs->variables.N, &qs->caller->number->cint) ;
 		if (res) // res is true if QS was able to decompose N.
-			if (h_cint_compare(&qs->variables.N, &qs->constants.ONE)){
-				cint_dup(&ans->cint, &qs->variables.N);
-				fac_push(qs->caller, ans, 0);
-			}
+			if (h_cint_compare(&qs->variables.N, &qs->constants.ONE))
+				fac_push(qs->caller, &qs->variables.N, -1, 1, 1);
 	}
 	return res;
 }

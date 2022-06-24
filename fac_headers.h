@@ -34,18 +34,16 @@ typedef struct {
 	struct {
 		void * base ;
 		void * now ;
-		void * end ;
 	} mem;
 
 	fac_params * params ;
 
 	struct{
-		cint * cint;
-		int now ;
+		cint cint;
+		int done_up_to ;
 	} trial;
 
-	fac_cint * number ;
-	fac_cint factor ;
+	fac_cint * number ; // the number to factor
 
 	cint vars[10];
 	cint_sheet * calc ;
@@ -223,7 +221,7 @@ static inline int fac_trial_division(fac_caller *, int);
 static inline int fac_perfect_checker(fac_caller *);
 static inline int fac_primality_checker(fac_caller *);
 static inline int fac_pollard_rho_64_bits(fac_caller *);
-static inline void fac_push(fac_caller *, const fac_cint *, int);
+static inline void fac_push(fac_caller *, const cint *, int, int, int);
 
 // Math
 static inline int is_prime_4669921(qs_sm);

@@ -63,7 +63,7 @@ static inline void fac_mini_tests(fac_params *m) {
 		for (int i = 0; factors[i]; ++i) {
 			str = cint_to_string(&factors[i]->cint, 10);
 			// a power of the factor must be removable from number.
-			const int powers = (int) cint_remove(sheet, N, &factors[i]->cint);
+			const unsigned powers = cint_remove(sheet, N, &factors[i]->cint);
 			switch (powers) {
 				case 0 : error_number |= 2; printf(" [%s] ", str); break;
 				case 1 : printf(factors[i + 1] ? "%s * " : "%s", str); break;

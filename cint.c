@@ -502,7 +502,7 @@ __attribute__((unused)) static void cint_binary_gcd(cint_sheet * sheet, const ci
 	}
 }
 
-static size_t cint_remove(cint_sheet * sheet, cint *N, const cint *F) {
+static unsigned cint_remove(cint_sheet * sheet, cint *N, const cint *F) {
 	// remove all occurrences of the factor from the input, and return the count.
 	size_t res = 0;
 	if (N->end != N->mem && F->end != F->mem)

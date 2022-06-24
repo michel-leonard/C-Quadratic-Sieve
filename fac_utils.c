@@ -3,13 +3,11 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	void *mem;
 	fac_caller m = {0};
 	const int input_bits = (int) cint_count_bits(N);
-	int alloc_bits = 1 + input_bits / 300;
-	alloc_bits *= 1 << 20;
-	// initially allocates 1 Mb for each 300-bit chunk.
+	int alloc_bits = (1 + (input_bits >> 9)) << 13;
+	// initially allocates 8 Kb for each 512-bit chunk.
 	mem = m.mem.base = calloc(1, alloc_bits);
 	assert(mem);
 	add_rand_seed(&mem);
-	m.mem.end = (char *) mem + alloc_bits;
 	if (config) m.params = config;
 	else m.params = mem, mem = m.params + 1;
 	m.calc = cint_new_sheet((1 + (input_bits >> 10)) << 10);
@@ -20,9 +18,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	for (int i = 0; i < 5; ++i)
 		simple_inline_cint(&m.vars[i], vars_size, &mem);
 
-	m.trial.cint = mem, mem = m.trial.cint + 1 ;
-	simple_inline_cint(m.trial.cint, vars_size, &mem);
-	simple_inline_cint(&m.factor.cint, vars_size, &mem);
+	simple_inline_cint(&m.trial.cint, vars_size, &mem);
 
 	// prepare a working array.
 	const int max_factors = input_bits / 10 + 32;
@@ -45,10 +41,12 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 		            || fac_primality_checker(&m)
 		            || fac_pollard_rho_64_bits(&m)
 		            || quadratic_sieve(&m)
-		            || fac_trial_division(&m, 2) ;
+		            || fac_trial_division(&m, 2);
 		if (res == 0)
-			m.number->prime = -1, fac_push(&m, m.number, 1);
+			fac_push(&m, &m.number->cint, 0, 1, 0);
 	} while (m.questions.index);
+
+
 
 	// answer goes into an appropriately sized memory allocation.
 	size_t bytes = 0 ;
@@ -79,23 +77,23 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 static inline int fac_special_cases(fac_caller *m) {
 	int res = m->number->bits < 3 ;
 	if (res && m->answers.index == 0) {
-		m->number->prime = m->number->bits > 1;
-		fac_push(m, m->number, 1);
+		const int prime = m->number->bits > 1;
+		fac_push(m, &m->number->cint, prime, 1, 0);
 	}
 	return res ;
 }
 
 static inline int fac_trial_division(fac_caller *m, const int level) {
+	cint * F = m->vars ;
 	int res = (*m->number->cint.mem & 1) == 0 ; // remove power of 2.
-	m->factor.prime = 1 ;
-	if (m->trial.now == 0){
+	if (m->trial.done_up_to == 0){
 		if (res) {
-			simple_int_to_cint(&m->factor.cint, 2);
-			m->factor.power = (int) cint_count_zeros(&m->number->cint);
-			fac_push(m, &m->factor, 1);
-			cint_right_shifti(&m->number->cint, m->factor.power);
+			simple_int_to_cint(F, 2);
+			const int power = (int) cint_count_zeros(&m->number->cint);
+			fac_push(m, F, 1, power, 0);
+			cint_right_shifti(&m->number->cint, power);
 		}
-		m->trial.now = 1 ;
+		m->trial.done_up_to = 1 ;
 	}
 	int bound ;
 	if (m->number->bits <= 64) bound = 1024 ;
@@ -106,18 +104,18 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 				if (m->number->bits < bits)
 					bound >>= 1 ;
 	}
-	for (; (m->trial.now += 2) < bound;) {
-		if (is_prime_4669921(m->trial.now)) {
-			simple_int_to_cint(&m->factor.cint, m->trial.now);
-			m->factor.power = (int) cint_remove(m->calc, &m->number->cint, &m->factor.cint);
-			if (m->factor.power){
-				m->factor.power *= m->number->power ;
-				++res, fac_push(m, &m->factor, 1);
+	for (; (m->trial.done_up_to += 2) < bound;) {
+		if (is_prime_4669921(m->trial.done_up_to)) {
+			simple_int_to_cint(F, m->trial.done_up_to);
+			const unsigned power = cint_remove(m->calc, &m->number->cint, F);
+			if (power){
+				fac_push(m, F, 1, (int) power, 0);
+				++res;
 			}
 		}
 	}
-	simple_int_to_cint(m->trial.cint, m->trial.now);
-	if (res) fac_push(m, m->number, 0);
+	simple_int_to_cint(&m->trial.cint, m->trial.done_up_to);
+	if (res) fac_push(m, &m->number->cint, -1, 1, 1);
 	return res ;
 }
 
@@ -126,14 +124,14 @@ static inline int fac_any_root_check(fac_caller * m, const cint *N, cint *Q, cin
 	// It takes in account the trial divisions initially done.
 	int res = 0 ;
 	const int max_root = 30 ;
-	for(int i = 2; i < max_root ; ++i)
-		if (is_prime_4669921(i)) {
-			cint_nth_root_remainder(m->calc, N, i, Q, R);
+	for(int nth = 2; nth < max_root ; ++nth)
+		if (is_prime_4669921(nth)) {
+			cint_nth_root_remainder(m->calc, N, nth, Q, R);
 			if (R->mem == R->end){
-				res = i ;
+				res = nth ;
 				break;
 			}
-			if (h_cint_compare(Q, m->trial.cint) <= 0)
+			if (h_cint_compare(Q, &m->trial.cint) <= 0)
 				break;
 		}
 	return res ;
@@ -142,19 +140,16 @@ static inline int fac_any_root_check(fac_caller * m, const cint *N, cint *Q, cin
 static inline int fac_perfect_checker(fac_caller *m) {
 	assert(m->number->bits > 2);
 	cint *Q = m->vars, *R = Q + 1;
-	int res = fac_any_root_check(m, &m->number->cint, Q, R);
-	if (res) {
-		cint_dup(&m->number->cint, Q);
-		m->number->power *= res;
-		fac_push(m, m->number, 0);
-	}
-	return res;
+	int power = fac_any_root_check(m, &m->number->cint, Q, R);
+	if (power)
+		fac_push(m, Q, -1, power, 1);
+	return power;
 }
 
 static inline int fac_primality_checker(fac_caller *m) {
 	m->number->prime = cint_is_prime(m->calc, &m->number->cint, m->number->bits > 2048 ? 1 : -1);
 	if (m->number->prime)
-		fac_push(m, m->number, 1);
+		fac_push(m, &m->number->cint, 1, 1, 0);
 	return m->number->prime;
 }
 
@@ -176,35 +171,33 @@ static inline int fac_pollard_rho_64_bits(fac_caller *m) {
 			}
 		}
 		n[0] /= n[1];
+		cint * F = m->vars ;
 		for (int i = 0; i < 2; ++i) {
-			assert(n[i] > 1);
-			m->factor.power = m->number->power ;
-			m->factor.prime = -1 ;
-			simple_int_to_cint(&m->factor.cint, n[i]);
-			fac_push(m, &m->factor, 0);
+			simple_int_to_cint(F, n[i]);
+			fac_push(m, F, -1, 1, 1);
 		}
 	}
 	return res;
 }
 
-static void fac_push(fac_caller *m, const fac_cint *data, const int last) {
+// functions submit factors of N, they don't push N itself with "forward".
+static void fac_push(fac_caller *m, const cint * num, const int prime, const int power, const int forward) {
 	// the product of "stack last" and "stack next" must remain N.
-	const cint * num = &data->cint;
 	fac_cint * row ;
-	if (last) {
-		row = &m->answers.data[m->answers.index++] ;
-		simple_inline_cint(&row->cint, num->end - num->mem + 1, &m->mem.now);
-	}
-	else {
+	if (forward){
 		row = &m->questions.data[m->questions.index++];
 		const size_t needed_size = num->end - num->mem + 1;
 		if (row->cint.size < needed_size)
 			simple_inline_cint(&row->cint, needed_size, &m->mem.now);
-		row->bits = (int) cint_count_bits(&data->cint);
+		row->bits = (int) cint_count_bits(num);
+	} else {
+		row = &m->answers.data[m->answers.index++] ;
+		simple_inline_cint(&row->cint, num->end - num->mem + 1, &m->mem.now);
 	}
-	row->power = data->power;
-	row->prime = data->prime;
 	cint_dup(&row->cint, num);
+	row->prime = prime;
+	row->power = power * m->number->power;
+	assert(row->power);
 }
 
 // Math
