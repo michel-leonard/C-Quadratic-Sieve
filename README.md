@@ -1,6 +1,4 @@
 
-
-
 # C Factorization using Quadratic Sieve
 
 Pure C factorizer using self-initialising  **Quadratic Sieve**.
@@ -13,7 +11,7 @@ This ~2500 lines project :
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
  - use **[Lanczos Block](https://en.wikipedia.org/wiki/Lanczos_algorithm)**, a pure C iterative matrix eigenvalues finder algorithm
- - use **[Pollard's Rho](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm)** algorithm to answer under 65 bits
+ - use **[Pollard's Rho](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm)** algorithm to answer under 64 bits
 
 # GNU General Public License
 
@@ -55,9 +53,11 @@ Factoring RSA numbers from 65 to 130 bits takes about the same time as 130 bits.
 | 270 | `./qs 1415606447884291776606783262139201189953436249643759632827004228713595295320953939`  | 13 min
 | 290 | `./qs 1311212776762431067307390080218400290276233806447008972197996326428961782072889375956641`  | 1 h
 
-The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.\
-Only a few dozen RSA numbers larger than 250 bits have been tested, they have been factorized.\
-During a "stress test" that lasted 2 hours, the software factored a **300-bit RSA** number.
+The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.
+- Some RSA numbers larger than 250 bits have been tested, they have been factorized.
+- During a stress test that lasted 2 hours, the software factored a **300-bit RSA** number.
+
+The software factored the **321-bit** RSA number relating to the "bank card case" during a technical test that laster 12 hours. Quadratic sieve parameters were 25,000 prime numbers in factor base and 256 megabytes of memory allocated.
 
 # Fermat numbers factorization
 |F| Value | Took  |
@@ -80,6 +80,8 @@ One of the largest number factored during development was the 79 digits 8th Ferm
 - the quadratic sieve for conveinance reject inputs greater than 220-bit, so the option `-limit=230` was used
 
 # Other factorizations
+
+
 
 The software is intended as a generalist factorization solution.
 
@@ -216,15 +218,15 @@ Fill the manager's **base** array with prime numbers provided [by](https://stack
 
 | coefficient | is a constant after  | is a constant until|
 |--|--|--|
-| A | `iteration_part_2` |`inner_continuation_condition` completion
-| B | `iteration_part_5` |for loop final expression
-| C | `iteration_part_7` |for loop final expression
+| A | `iteration_part_1` |`inner_continuation_condition` completion
+| B | `iteration_part_4` |for loop final expression
+| C | `iteration_part_6` |for loop final expression
 
 What is a for loop final expression ? `for ([initialization]; [condition]; [final-expression])`.
 
-Polynomial and related data are computed until `iteration_part_7` complete.\
+Polynomial and related data are computed until `iteration_part_6` complete.\
 The algorithm prepares data that will help generate polynomial values that will be multiples of the factor base.\
-`iteration_part_8` and `iteration_part_9` are used for sieving.
+`iteration_part_7` and `iteration_part_8` are used for sieving.
 
 ### Search sieve for relations
 `register_relations` searches sieve for relations, it reads the sieve. When the function finds interesting to define the variable **X** , calculates the value of the polynomial in **X** then divides the value with the factor base, it thus tries to establish relations.

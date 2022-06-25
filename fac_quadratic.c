@@ -110,7 +110,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {290, 25000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
-	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 120}, {0} };
+	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 110}, {0} };
 	// collecting more/fewer relations than recommended (used to verify "sieve again" feature).
 	qs->relations.length.needs = qs->base.length * linear_param_resolution(param_laziness, bits) / 100 ;
 
@@ -120,7 +120,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_error [][2]= { {110, 13}, {300, 33}, {0} };
 	qs->error_bits = linear_param_resolution(param_error, bits);
 
-	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 102}, {0} };
+	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 99}, {0} };
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
 	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 140}, {0} };
@@ -518,15 +518,15 @@ static inline void iteration_part_5(qs_sheet *  qs, const cint * KN, const cint 
 		b = (qs_sm) modular_inverse(E->nat < 0 ? p - b : b, p) ;
 		s = (qs_tmp) simple_cint_to_int(D);
 		if ((s | c) >> 31){
-			// "cint" is slower but the value may be greater than 64-bit
+			// "cint" is slower but the value may be greater than 63-bit
 			cint_mul(E, E, C);
 			cint_subi(C, D);
 			simple_int_to_cint(A, (qs_md) p);
 			cint_div(qs->calc, C, A, D, E);
-			s = (qs_tmp) simple_cint_to_int(D) ;
-			c = D->nat < 0;
+			s = (qs_tmp) simple_cint_to_int(D);
+			if (c = D->nat < 0, c) s = -s ;
 		} else {
-			// the value can often fit in 64-bit
+			// the value can often fit in 63-bit
 			s = (qs_tmp) c * (qs_tmp) c - s;
 			s /= p;
 			c = s < 0;

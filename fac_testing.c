@@ -27,6 +27,7 @@ static inline void fac_mini_tests(fac_params *m) {
 	for ( nth = 1; chronometer < timeout && !error_number && nth <= 1000; ++nth) {
 		if (m->testing < 3) bits = nth > 2 ? nth : 3 ;
 		params.silent = bits < 150 ;
+		params.qs_limit = bits ;
 
 		if (bits < 40) trial_max = 0 ;
 		else if (bits <= 64) trial_max = 1024;
