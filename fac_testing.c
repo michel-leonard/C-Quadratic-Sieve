@@ -16,8 +16,8 @@ static inline void fac_mini_tests(fac_params *m) {
 	unsigned sr = add_rand_seed(sheet);
 	sr ^= time(0);
 
-	unsigned error_number = 0, nth, bits = m->testing >= 3 && m->testing <= 300 ? m->testing : 1;
-	unsigned seconds = bits < 140 ? 30 : bits < 160 ? 60 : bits < 180 ? 120 : 180, trial_max;
+	qs_sm error_number = 0, nth, bits = m->testing >= 3 && m->testing <= 300 ? (qs_sm) m->testing : 1;
+	qs_sm seconds = bits < 140 ? 30 : bits < 160 ? 60 : bits < 180 ? 120 : 180, trial_max;
 	const char *seconds_str = bits < 140 ? "30 seconds" : bits < 160 ? "minute" : bits < 180 ? "2 minutes" : "3 minutes";
 	if (m->testing >= 3)  printf("-- %3d-bit : your %s factorization test -- \n\n", bits, seconds_str);
 	else printf("-- crescendo : your %s factorization test -- \n\n", seconds_str);
@@ -32,7 +32,7 @@ static inline void fac_mini_tests(fac_params *m) {
 		else if (bits <= 64) trial_max = 1024;
 		else {
 			trial_max = 4669921;
-			for (unsigned i = 0; i < 250; trial_max >>= (bits < i) * 1, i += 30);
+			for (qs_sm i = 0; i < 250; trial_max >>= (bits < i) * 1, i += 30);
 		}
 
 		retry :
@@ -40,7 +40,7 @@ static inline void fac_mini_tests(fac_params *m) {
 		if (cint_is_prime(sheet, N, 2))
 			goto retry; // a prime number isn't submitted
 
-		for (unsigned n = 3; n < trial_max; n += 2)
+		for (qs_sm n = 3; n < trial_max; n += 2)
 			if (is_prime_4669921(n))
 				if (simple_int_to_cint(FACTOR, n), cint_remove(sheet, N, FACTOR))
 					goto retry; // a trial divisible number isn't submitted

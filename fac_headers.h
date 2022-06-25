@@ -6,12 +6,12 @@
 
 // Quadratic sieve integers, used by all functions needing "large enough" unsigned integers.
 
-typedef uint32_t qs_sm; // small size (32-bit),   the normal native integer used in this implementation.
-typedef uint64_t qs_md; // medium size (64-bit),  the large native integer used in this implementation.
-typedef int64_t qs_md_tmp_si; // medium size,  signed for intermediates computations.
+typedef int32_t qs_sm; // small size (32-bit)
+typedef int64_t qs_md; // medium size (64-bit)
+typedef int64_t qs_tmp; // signed type to perform intermediates computations.
 
 // The factorization manager calls the quadratic sieve with an appropriated input
-// Quadratic sieve can assume N is 64+ bits, isn't trial divisible, isn't a perfect power
+// Quadratic sieve can assume N is 63+ bits, isn't trial divisible, isn't a perfect power
 
 typedef struct {
 	cint cint ;
@@ -40,7 +40,7 @@ typedef struct {
 
 	struct{
 		cint cint;
-		unsigned done_up_to ;
+		qs_sm done_up_to ;
 	} trial;
 
 	fac_cint * number ; // the number to factor
@@ -139,7 +139,7 @@ typedef struct {
 	struct{
 		qs_sm value ;
 	}threshold;
-	qs_sm rand_seed;
+	unsigned rand_seed;
 	qs_sm sieve_again_perms;
 	struct{
 		qs_sm now ;
@@ -167,7 +167,7 @@ typedef struct {
 		struct {
 			cint B_terms;
 			qs_sm *A_inv_2B;
-			qs_sm a_over_divisor_mod_divisor;
+			qs_sm a_mod_prime;
 			qs_sm a_divisor_idx;
 		} *data;
 	} s;
@@ -182,7 +182,7 @@ typedef struct {
 	} others;
 
 	// uniqueness trees : [ relations, cycle finder, divisors of N, ]
-	struct avl_manager uniqueness[4];
+	struct avl_manager uniqueness[3];
 
 	// data collection made by algorithm
 	struct {
@@ -220,16 +220,16 @@ static inline int fac_special_cases(fac_caller *);
 static inline int fac_trial_division(fac_caller *, int);
 static inline int fac_perfect_checker(fac_caller *);
 static inline int fac_primality_checker(fac_caller *);
-static inline int fac_pollard_rho_64_bits(fac_caller *);
+static inline int fac_pollard_rho_63_bits(fac_caller *);
 static inline void fac_push(fac_caller *, const cint *, int, int, int);
 
 // Math
 static inline int is_prime_4669921(qs_sm);
 static double log_computation(double);
-static inline qs_md multiplication_modulo(qs_md, qs_md, qs_md);
-static inline qs_md power_modulo(qs_md, qs_md, qs_md);
-static qs_md tonelli_shanks(qs_md, unsigned);
-static qs_md modular_inverse(qs_md, qs_md);
+static inline qs_sm multiplication_modulo(qs_md, qs_md, qs_sm);
+static inline qs_sm power_modulo(qs_md, qs_md, qs_sm);
+static qs_sm tonelli_shanks(qs_sm, qs_sm);
+static qs_sm modular_inverse(qs_sm, qs_sm);
 static inline qs_md rand_64();
 static inline qs_md rand_upto(qs_md );
 static inline unsigned add_rand_seed(void *);
@@ -271,13 +271,13 @@ static inline void preparation_part_5(qs_sheet *);
 static inline qs_sm preparation_part_6(qs_sheet *, cint *);
 static inline void get_started_iteration(qs_sheet *);
 static inline void iteration_part_1(qs_sheet *, const cint *, cint *);
-static inline void iteration_part_2(qs_sheet *qs, const cint *A, cint *B);
-static inline void iteration_part_3(qs_sheet *qs, const cint *A, const cint *B);
-static inline qs_sm iteration_part_4(const qs_sheet *qs, const qs_sm curves, qs_sm **corr, cint *B);
-static inline void iteration_part_5(qs_sheet *qs, const cint *KN, const cint *B);
-static inline void iteration_part_6(qs_sheet *qs, const cint *N, const cint *A, const cint *B, cint *C);
-static inline void iteration_part_7(qs_sheet *qs, const qs_sm add, const qs_sm *corr);
-static inline void iteration_part_8(qs_sheet *qs, const qs_sm add, const qs_sm *corr);
+static inline void iteration_part_2(qs_sheet *, const cint *, cint *);
+static inline void iteration_part_3(qs_sheet *, const cint *, const cint *);
+static inline qs_sm iteration_part_4(const qs_sheet *, qs_sm curves, qs_sm **, cint *);
+static inline void iteration_part_5(qs_sheet *, const cint *, const cint *);
+static inline void iteration_part_6(qs_sheet *, const cint *, const cint *, const cint *, cint *);
+static inline void iteration_part_7(qs_sheet *, qs_sm, const qs_sm *);
+static inline void iteration_part_8(qs_sheet *, qs_sm, const qs_sm *);
 static inline int qs_register_factor(qs_sheet *);
 static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm *[4]);
 static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm *[4]);

@@ -39,7 +39,7 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 		            || fac_trial_division(&m, 1)
 		            || fac_perfect_checker(&m)
 		            || fac_primality_checker(&m)
-		            || fac_pollard_rho_64_bits(&m)
+		            || fac_pollard_rho_63_bits(&m)
 		            || quadratic_sieve(&m)
 		            || fac_trial_division(&m, 2);
 		if (res == 0)
@@ -96,7 +96,7 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 		m->trial.done_up_to = 1 ;
 	}
 
-	unsigned bound;
+	qs_sm bound;
 	if (m->number->bits <= 64) bound = 1024;
 	else if (bound = 4669921, level == 1)
 		for (int i = 0; i < 250; bound >>= (m->number->bits < i) * 1, i += 30);
@@ -150,8 +150,8 @@ static inline int fac_primality_checker(fac_caller *m) {
 	return m->number->prime;
 }
 
-static inline int fac_pollard_rho_64_bits(fac_caller *m) {
-	int res = m->number->bits > 0 && m->number->bits < 65;
+static inline int fac_pollard_rho_63_bits(fac_caller *m) {
+	int res = m->number->bits > 0 && m->number->bits < 64;
 	if (res) {
 		// Perform a Pollard's Rho test, this function can't complete with a prime number.
 		qs_md n[2] = {simple_cint_to_int(&m->number->cint), 1,}; // number and its factor.
@@ -159,11 +159,12 @@ static inline int fac_pollard_rho_64_bits(fac_caller *m) {
 			if (m->params->silent == 0)
 				fac_display_progress("Pollard Rho", 100. * (double) limit / 21);
 			size_t a = -1, b = 2, c = limit;
-			qs_md d, e = rand_64(), f = 1;
+			qs_md d, e = rand(), f = 1;
 			for (n[1] = 1, d = e %= n[0]; n[1] == 1 && --c; e = d, b <<= 1, a = -1) {
 				for (; n[1] |= f, n[1] == 1 && ++a != b;) {
-					d = multiplication_modulo(d, d, n[0]);
-					for (++d, d *= d != n[0], f = n[0], n[1] = d > e ? d - e : e - d; (n[1] %= f) && (f %= n[1]););
+					qs_md lhs = d % n[0], rhs = lhs, tmp;
+					for (d = 0; lhs; lhs & 1 ? rhs >= n[0] - d ? d -= n[0] : 0, d += rhs : 0, lhs >>= 1, (tmp = rhs) >= n[0] - rhs ? tmp -= n[0] : 0, rhs += tmp);
+					for (d %= n[0], ++d, d *= d != n[0], f = n[0], n[1] = d > e ? d - e : e - d; (n[1] %= f) && (f %= n[1]););
 				}
 			}
 		}
@@ -218,27 +219,27 @@ static double log_computation(const double n) {
 	return n < 1 ? -(a + b) : a + b;
 }
 
-static inline qs_md multiplication_modulo(qs_md a, qs_md b, const qs_md mod) {
+static inline qs_sm multiplication_modulo(qs_md a, qs_md b, const qs_sm mod) {
 #ifdef __SIZEOF_INT128__
-	return (__uint128_t) a * (__uint128_t) b % (__uint128_t) mod ;
+	return (qs_sm)((__int128_t) a * (__int128_t) b % (__int128_t) mod) ;
 #else
 	// Return (a * b) % mod, avoiding overflow errors while doing modular multiplication.
 	qs_md res = 0, tmp;
 	for (b %= mod; a; a & 1 ? b >= mod - res ? res -= mod : 0, res += b : 0, a >>= 1, (tmp = b) >= mod - b ? tmp -= mod : 0, b += tmp);
-	return res % mod;
+	return (qs_sm)(res % mod);
 #endif
 }
 
-static inline qs_md power_modulo(qs_md n, qs_md exp, const qs_md mod) {
+static inline qs_sm power_modulo(qs_md n, qs_md exp, const qs_sm mod) {
 	// Return (n ^ exp) % mod
-	qs_md res = 1;
+	qs_sm res = 1;
 	for (n %= mod; exp; exp & 1 ? res = multiplication_modulo(res, n, mod) : 0, n = multiplication_modulo(n, n, mod), exp >>= 1);
 	return res;
 }
 
-static inline int kronecker_symbol(qs_md a, qs_md b) {
+static inline int kronecker_symbol(qs_sm a, qs_sm b) {
 	static const int s[8] = {0, 1, 0, -1, 0, -1, 0, 1};
-	qs_md c;
+	qs_sm c;
 	int res = (int) (a | b);
 	if (a && b)
 		if (res & 1) {
@@ -253,12 +254,12 @@ static inline int kronecker_symbol(qs_md a, qs_md b) {
 	return res;
 }
 
-static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
+static qs_sm tonelli_shanks(const qs_sm n, const qs_sm mod) {
 	// return root such that (root * root) % mod congruent to n % mod.
 	// return 0 if no solution to the congruence exists.
 	// mod is assumed odd prime, if mod = 2 then res is (n & 7 == 1 || n & 7 == 7).
-	const qs_sm a = n % mod;
-	qs_md res = kronecker_symbol(a, mod) == 1, b, c, d, e, f, g, h;
+	const qs_sm a = (qs_sm) (n % mod);
+	qs_sm res = kronecker_symbol(a, mod) == 1, b, c, d, e, f, g, h;
 	if (res)
 		switch (mod & 7) {
 			case 3 : case 7 :
@@ -294,11 +295,11 @@ static qs_md tonelli_shanks(const qs_md n, const unsigned mod) {
 	return res;
 }
 
-static qs_md modular_inverse(qs_md ra, qs_md rb) {
+static qs_sm modular_inverse(qs_sm ra, qs_sm rb) {
 	// Return a modular multiplicative inverse of n with respect to the modulus.
 	// Return 0 if the linear congruence has no solutions.
 	// The answer is also called "u1" in the context of extended Euclidean algorithm.
-	qs_md rc, sa = 1, sb = 0, sc, i = 0;
+	qs_sm rc, sa = 1, sb = 0, sc, i = 0;
 	if (rb > 1)
 		do {
 			rc = ra % rb;
@@ -351,12 +352,12 @@ static inline void simple_dup_cint(cint *A, const cint *B, void **mem) {
 }
 
 static inline void simple_int_to_cint(cint *num, qs_md value) {
-	// Pass the given 64-bit number into the given cint.
+	// Pass the given 64-bit number into the given cint (positive only).
 	for (cint_erase(num); value; *num->end++ = (h_cint_t) (value & cint_mask), value >>= cint_exponent);
 }
 
 static inline qs_md simple_cint_to_int(const cint *num) {
-	// Return the value of a cint as a 64-bit integer.
+	// Return the value of a cint as a 64-bit integer (sign is ignored).
 	qs_md res = 0;
 	for (h_cint_t *ptr = num->end; ptr > num->mem; res = (qs_md) (res * cint_base + *--ptr));
 	return res;
@@ -402,7 +403,7 @@ static inline char *fac_fill_params(fac_params *params, int argc, char **args) {
 		for (; *s && !(*s >= '1' && *s <= '9') && !(*s >= 'a' && *s <= 'z'); ++s);
 		if (*s >= 'a' && *s <= 'z') {
 			int a =
-					fac_apply_custom_param("qs_limit=", s, 1, &params->qs_limit) // add command line parameters...
+					fac_apply_custom_param("limit=", s, 1, &params->qs_limit) // add command line parameters...
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)

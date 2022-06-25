@@ -19,7 +19,7 @@ static int quadratic_sieve(fac_caller *caller) {
 
 	int limit = (int) caller->params->qs_limit;
 	if (limit == 0) limit = 220; // the default qs_limit is such that the QS answer in seconds.
-	if (caller->number->bits < 65 || caller->number->bits > limit) return 0;
+	if (caller->number->bits < 64 || caller->number->bits > limit) return 0;
 
 	qs_sheet qs = {0};
 	preparation_part_1(&qs, caller);
@@ -36,12 +36,12 @@ static int quadratic_sieve(fac_caller *caller) {
 			iteration_part_1(&qs, &qs.variables.D, &qs.variables.A);
 			iteration_part_2(&qs, &qs.variables.A, &qs.variables.B);
 			iteration_part_3(&qs, &qs.variables.A, &qs.variables.B);
-			for (qs_sm i = 0, add, *corr; i < qs.curves.max && qs.n_bits != 1; ++i, ++qs.curves.now) {
-				add = iteration_part_4(&qs, i, &corr, &qs.variables.B);
+			for (qs_sm i = 0, addi, *corr; i < qs.curves.max && qs.n_bits != 1; ++i, ++qs.curves.now) {
+				addi = iteration_part_4(&qs, i, &corr, &qs.variables.B);
 				iteration_part_5(&qs, &qs.constants.kN, &qs.variables.B);
 				iteration_part_6(&qs, &qs.constants.kN, &qs.variables.A, &qs.variables.B, &qs.variables.C);
-				iteration_part_7(&qs, add, corr);
-				iteration_part_8(&qs, add, corr);
+				iteration_part_7(&qs, addi, corr);
+				iteration_part_8(&qs, addi, corr);
 				register_relations(&qs, &qs.variables.A, &qs.variables.B, &qs.variables.C);
 			}
 		} while (inner_continuation_condition(&qs));
@@ -137,7 +137,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 		qs->iterative_list[0] = 1; // one
 		static const double param_first_prime [][2]= { {170, 8}, {210, 12}, {300, 30}, {0} };
 		qs->iterative_list[1] = linear_param_resolution(param_first_prime, bits); // first
-		const size_t large_base = qs->base.length > 5000 ? 5000 : qs->base.length;
+		const qs_sm large_base = qs->base.length > 5000 ? 5000 : qs->base.length;
 		qs->iterative_list[2] = large_base >> 2; // medium
 		qs->iterative_list[3] = large_base >> 1; // mid
 		qs->iterative_list[4] = large_base; // sec
@@ -164,10 +164,10 @@ static inline void preparation_part_2(qs_sheet *qs) {
 			9, 7, 5, 3, 17, 27, 3, 1, 29, 3, 21, 7, 17, 15,
 			9, 43, 35, 15, 29, 3, 11, 3, 11, 15, 17, 25, 53,
 			31, 9, 7, 23, 15, 27, 15, 29, 7, 59, 15, 5, 21,
-			69, 55, 21, 21, 5, 159, 3, 81, 9, 69, 131, 33, };
+			69, 55, 21, 21, 5, 159, 3, 81, 9, 69, 131, 33, 15 };
 	const qs_sm bits = qs->n_bits;
 	if (bits < 115) {
-		const qs_md adjustor = bits < 115 ? (1LLU << (124 - bits)) + prime_generator[115 - bits] : 1;
+		const qs_md adjustor = bits < 115 ? ((qs_md)1 << (124 - bits)) + prime_generator[115 - bits] : 1;
 		simple_int_to_cint(ADJUSTOR, adjustor);
 		cint_mul(N, ADJUSTOR, kN);
 	} else
@@ -177,7 +177,7 @@ static inline void preparation_part_2(qs_sheet *qs) {
 static inline void preparation_part_3(qs_sheet *qs) {
 	// the following part can speed up the factorization by a factor 2.5.
 	// so it is possible to compare propositions.
-	qs_sm mul = qs->caller->params->qs_multiplier ;
+	qs_sm mul = (qs_sm) qs->caller->params->qs_multiplier ;
 	if (mul == 0) // like everyone, listen propositions.
 		mul = errno ? preparation_part_3_proposition(qs) : preparation_part_3_original(qs);
 	qs->knuth_schroeppel = mul ;
@@ -208,7 +208,7 @@ static inline qs_sm preparation_part_3_proposition(qs_sheet *qs) {
 			simple_int_to_cint(A, a);
 			intake = log_computation(a) / (a - 1);
 			cint_div(qs->calc, kN, A, B, C);
-			const qs_sm d = simple_cint_to_int(C); // kN mod prime
+			const qs_sm d = (qs_sm) simple_cint_to_int(C); // kN mod prime
 			for (c = 0; c < n_mul; ++c) {
 				const qs_sm e = mul[c] * d % a ;
 				score[c] += e ? power_modulo(e, (a - 1) >> 1, a) == 1 ? 2 * intake : 0 : intake;
@@ -222,7 +222,7 @@ static inline qs_sm preparation_part_3_proposition(qs_sheet *qs) {
 
 static inline qs_sm preparation_part_3_original(qs_sheet *qs) {
 	// The function propose a Knuth-Schroeppel multiplier for N, intended to optimize QS runtime.
-	static const qs_md mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = sizeof(mul) / sizeof(qs_md);
+	static const qs_sm mul[] = {1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43}, n_mul = (qs_sm)(sizeof(mul) / sizeof(qs_sm));
 	cint *kN = qs->caller->vars, *A = kN + 1, *B = kN + 2, *C = kN + 3;
 	qs_sm a, b, c;
 	double score[n_mul];
@@ -243,7 +243,7 @@ static inline qs_sm preparation_part_3_original(qs_sheet *qs) {
 			const double intake = log_computation((double) a) / a;
 			simple_int_to_cint(A, a);
 			cint_div(qs->calc, kN, A, B, C);
-			const int kronecker = kronecker_symbol(simple_cint_to_int(C), a);
+			const int kronecker = kronecker_symbol((qs_sm) simple_cint_to_int(C), a);
 			for (c = 0; c < n_mul; ++c)
 				score[c] += intake + intake * kronecker * kronecker_symbol(mul[c], a);
 		}
@@ -317,7 +317,7 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	// Allocates "s" rows
 	qs->s.data = mem_aligned(qs->base.data + qs->base.length);
 	mem = mem_aligned(qs->s.data + qs->s.values.defined);
-	for (size_t i = 0; i < qs->s.values.defined; ++i) {
+	for (qs_sm i = 0; i < qs->s.values.defined; ++i) {
 		simple_inline_cint(&qs->s.data[i].B_terms, kn_size, &mem); // also "s" more cint
 		qs->s.data[i].A_inv_2B = mem;
 		mem = mem_aligned(qs->s.data[i].A_inv_2B + qs->base.length);
@@ -341,7 +341,8 @@ static inline void preparation_part_4(qs_sheet *qs) {
 	qs->divisors.data = mem_aligned(qs->others.sieve + qs->m.double_value + 4);
 	qs->mem.now = mem_aligned(qs->divisors.data + 512);
 
-	for (qs_sm i = 0; i < sizeof(qs->uniqueness) / sizeof(struct avl_manager); ++i) {
+	const qs_sm n_trees = (qs_sm) (sizeof(qs->uniqueness) / sizeof(struct avl_manager));
+	for (qs_sm i = 0; i < n_trees; ++i) {
 		// the trees are used to identify duplicates (relations, partials, factors of N)
 		qs->uniqueness[i].inserter_argument = &qs->mem.now;
 		qs->uniqueness[i].inserter = &avl_cint_inserter;
@@ -366,7 +367,7 @@ static inline void preparation_part_5(qs_sheet *qs) {
 		if (is_prime_4669921(prime)) {
 			simple_int_to_cint(A, prime);
 			cint_div(qs->calc, &qs->constants.kN, A, B, C);
-			qs->base.data[i].sqrt = tonelli_shanks(simple_cint_to_int(C), prime);
+			qs->base.data[i].sqrt = tonelli_shanks((qs_sm) simple_cint_to_int(C), prime);
 			if (qs->base.data[i].sqrt) {
 				qs->base.data[i].num = prime; // Solution to the congruence exists.
 				qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(prime));
@@ -382,7 +383,7 @@ static inline qs_sm preparation_part_6(qs_sheet *qs, cint *D) {
 	cint_left_shifti(A, 1);
 	cint_sqrt(qs->calc, A, B, C);
 	cint_div(qs->calc, B, &qs->constants.M, D, E);
-	qs->d_bits = cint_count_bits(D);
+	qs->d_bits = (qs_sm) cint_count_bits(D);
 	cint_nth_root(qs->calc, D, qs->s.values.defined, C);
 	assert(cint_count_bits(C) < 16);
 	for (a = (qs_sm) simple_cint_to_int(C), min = 1; assert(min < qs->base.length), a >= qs->base.data[min].num; ++min);
@@ -402,7 +403,7 @@ static inline void get_started_iteration(qs_sheet *qs) {
 		}
 		qs->relations.length.now = i ;
 	}
-	// D is randomized if algorithm remarks that no relation accumulates (the tester didn't remove it)
+	// D is randomized if algorithm remarks that no relation accumulates (the software tester didn't remove it)
 	if (qs->relations.length.prev == qs->relations.length.now && qs->curves.now)
 		cint_random_bits(&qs->variables.D, qs->d_bits);
 	qs->relations.length.prev = qs->relations.length.now;
@@ -428,7 +429,7 @@ static inline void iteration_part_1(qs_sheet * qs, const cint * D, cint * A) {
 	}
 	// searches the prime number greater than D/A that isn't in the product.
 	cint_div(qs->calc, D, A, X, Y);
-	const qs_sm d_over_a = simple_cint_to_int(X);
+	const qs_sm d_over_a = (qs_sm) simple_cint_to_int(X);
 	for (idx = qs->base.data[0].num != 2 ; qs->base.data[idx].num <= d_over_a; ++idx);
 	for (qs_sm i = 0; i < qs->s.values.subtract_one; ++i)
 		if (idx == qs->s.data[i].a_divisor_idx)
@@ -448,15 +449,13 @@ static inline void iteration_part_2(qs_sheet * qs, const cint * A, cint * B) {
 		*data++ = 1, *data++ = qs->s.data[a].a_divisor_idx;
 		b = qs->base.data[qs->s.data[a].a_divisor_idx].num;
 		simple_int_to_cint(D, b);
-		// A is designed to get the div exact.
-		cint_div(qs->calc, A, D, E, F), assert(F->mem == F->end);
-		cint_div(qs->calc, E, D, C, F), assert(F->mem != F->end);
-		qs->s.data[a].a_over_divisor_mod_divisor = simple_cint_to_int(F);
-		c = modular_inverse(qs->s.data[a].a_over_divisor_mod_divisor, b);
-		c = multiplication_modulo(c, qs->base.data[qs->s.data[a].a_divisor_idx].sqrt, b);
+		cint_div(qs->calc, A, D, E, F), assert(F->mem == F->end); // div exact.
+		cint_div(qs->calc, E, D, C, F);
+		qs->s.data[a].a_mod_prime = (qs_sm) simple_cint_to_int(F);
+		c = (qs_sm) modular_inverse(qs->s.data[a].a_mod_prime, b);
+		c = (qs_sm) multiplication_modulo(c, qs->base.data[qs->s.data[a].a_divisor_idx].sqrt, b);
 		simple_int_to_cint(F, c > b >> 1 ? b > c ? b - c : c - b : c);
 		cint_mul(A, F, E);
-		// B-terms will be used to generate B coefficient with Gray code formula.
 		cint_div(qs->calc, E, D, &qs->s.data[a].B_terms, F);
 		cint_addi(B, &qs->s.data[a].B_terms);
 	}
@@ -464,19 +463,19 @@ static inline void iteration_part_2(qs_sheet * qs, const cint * A, cint * B) {
 
 static inline void iteration_part_3(qs_sheet * qs, const cint * A, const cint * B) {
 	cint *C = qs->variables.TEMP, *D = C + 1, *E = C + 2, *F = C + 3;
-	qs_md_tmp_si i, j, x, y;
+	qs_tmp i, j, x, y;
 	for (i = 0; i < qs->base.length; ++i) {
 		const qs_sm prime = qs->base.data[i].num;
 		simple_int_to_cint(C, prime);
 		cint_div(qs->calc, A, C, D, E);
-		const qs_sm mod_inv_a_prime_twice = modular_inverse(simple_cint_to_int(E), prime) << 1 ;
-		cint_div(qs->calc, B, C, D, E);
+		const qs_sm inv_a_prime_mul_2 = (qs_sm) modular_inverse((qs_sm) simple_cint_to_int(E), prime) << 1 ;
+		cint_div(qs->calc, B, C, D, E) ;
 		x = y = prime;
 		x += qs->base.data[i].sqrt;
 		y -= qs->base.data[i].sqrt;
-		x -= (qs_md_tmp_si) simple_cint_to_int(E);
-		x *= mod_inv_a_prime_twice >> 1;
-		y *= mod_inv_a_prime_twice ;
+		x -= (qs_tmp) simple_cint_to_int(E);
+		x *= inv_a_prime_mul_2 >> 1;
+		y *= inv_a_prime_mul_2 ;
 		x += qs->m.value ;
 		x %= prime ;
 		y += x ;
@@ -486,67 +485,75 @@ static inline void iteration_part_3(qs_sheet * qs, const cint * A, const cint * 
 		// it was using intermediates signed numbers.
 		for (j = 0; j < qs->s.values.defined; ++j) {
 			cint_div(qs->calc, &qs->s.data[j].B_terms, C, E, F);
-			qs->s.data[j].A_inv_2B[i] = multiplication_modulo(simple_cint_to_int(F), mod_inv_a_prime_twice, prime);
+			qs->s.data[j].A_inv_2B[i] = (qs_sm) multiplication_modulo(simple_cint_to_int(F), inv_a_prime_mul_2, prime);
 		}
 	}
+	for (i = 0; i < qs->s.values.defined; cint_left_shifti(&qs->s.data[i++].B_terms, 1));
+	// "B terms" were multiplied by 2 for the next function, they are const now.
 }
 
 static inline qs_sm iteration_part_4(const qs_sheet * qs, const qs_sm curves, qs_sm ** corr, cint *B) {
-	// All the values of B are generated by the following inductive formula :
-	// B is initially the sum of all the "B_terms" up to "s".
-	// now, accordingly to the "curves" argument.
-	qs_sm i, act;
-	for (i = 0; curves >> i & 1; ++i);
-	void (*const fn)(cint *, const cint *) = (act = curves >> i & 2) ? &cint_addi : &cint_subi;
-	// the next B is equals to the previous B + or - the following :
-	fn(B, &qs->s.data[i].B_terms);
-	fn(B, &qs->s.data[i].B_terms);
+	qs_sm i, gray_addi;
+	for (i = 0; curves >> i & 1; ++i); // which "B_term" is considered ? the Gray code in "curves" indicates.
+	if (gray_addi = (curves >> i & 2) != 0, gray_addi) // which action to perform ? the Gray code in "curves" indicates.
+		cint_addi(B, &qs->s.data[i].B_terms) ;
+	else
+		cint_subi(B, &qs->s.data[i].B_terms) ;
 	*corr = qs->s.data[i].A_inv_2B;
-	// To check correctness of the Gray code formula, it is possible to verify with an additional
-	// AVL tree that all the B generated are distinct, the tree must be affected at every iteration.
-	return act;
+	return gray_addi; // All the B generated are distinct, a testing AVL tree must not recognize any duplicate.
 }
 
 static inline void iteration_part_5(qs_sheet *  qs, const cint * KN, const cint * B) {
 	cint *A = qs->variables.TEMP, *C = A + 1, *D = A + 2, *E = A + 3;
 	qs_sm a, b;
 	qs_md c;
-	qs_md_tmp_si s; // temporarily signed.
+	qs_tmp s; // temporarily signed.
 	for (a = 0; a < qs->s.values.defined; ++a) {
 		const qs_sm id = qs->s.data[a].a_divisor_idx, p = qs->base.data[id].num;
 		simple_int_to_cint(A, (qs_md) p * (qs_md) p);
 		cint_div(qs->calc, KN, A, C, D);
 		cint_div(qs->calc, B, A, C, E);
-		s = (qs_md_tmp_si) simple_cint_to_int(D);
 		c = simple_cint_to_int(E);
-		b = multiplication_modulo(c, qs->s.data[a].a_over_divisor_mod_divisor, p);
-		b = modular_inverse(E->nat > 0 ? b : p - b, p) % p ;
-		s = (qs_md_tmp_si) (c * c - s) / p;
-		c = s > 0;
-		s = (qs_md_tmp_si) multiplication_modulo(c ? s : -s, b, p);
-		s = (qs_md_tmp_si) (c ? -s + qs->m.value : s + qs->m.value);
-		s %= p;
-		s += p * (s < 0);
+		b = (qs_sm) multiplication_modulo(c, qs->s.data[a].a_mod_prime, p);
+		b = (qs_sm) modular_inverse(E->nat < 0 ? p - b : b, p) ;
+		s = (qs_tmp) simple_cint_to_int(D);
+		if ((s | c) >> 31){
+			// "cint" is slower but the value may be greater than 64-bit
+			cint_mul(E, E, C);
+			cint_subi(C, D);
+			simple_int_to_cint(A, (qs_md) p);
+			cint_div(qs->calc, C, A, D, E);
+			s = (qs_tmp) simple_cint_to_int(D) ;
+			c = D->nat < 0;
+		} else {
+			// the value can often fit in 64-bit
+			s = (qs_tmp) c * (qs_tmp) c - s;
+			s /= p;
+			c = s < 0;
+		}
+		s = (qs_tmp) multiplication_modulo(c ? (qs_md) -(s % p) : (qs_md) s, b, p);
+		s = (qs_tmp) (c ? s + qs->m.value : -s + qs->m.value) % p;
+		s += p * c;
 		qs->base.data[id].sol[0] = (qs_sm) s;
-		qs->base.data[id].sol[1] = -1U;
+		qs->base.data[id].sol[1] = (qs_sm) -1;
 	}
 }
 
 static inline void iteration_part_6(qs_sheet *qs, const cint *N, const cint *A, const cint *B, cint *C) {
 	cint *D = qs->variables.TEMP, *E = D + 1;
-	cint_mul(B, B, D); // now (B * B) % A = N % A
+	cint_mul(B, B, D); // (B * B) % A = N % A
 	cint_subi(D, N);
 	cint_div(qs->calc, D, A, C, E);
 	assert(E->mem == E->end); // div exact.
 }
 
-static inline void iteration_part_7(qs_sheet * qs, const qs_sm add, const qs_sm * restrict corr) {
+static inline void iteration_part_7(qs_sheet * qs, const qs_sm gray_addi, const qs_sm * restrict corr) {
 	memset(qs->others.sieve, 0, qs->m.double_value);
 	memset(qs->others.flags, 0, qs->base.length);
 	uint8_t * restrict end = qs->others.sieve + qs->m.double_value, *p_0, *p_1;
 	*end = 255;
 	for(qs_sm i = qs->iterative_list[3], j = qs->iterative_list[4]; i < j; ++i){
-		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = add ? prime - corr[i] : corr[i] ;
+		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = gray_addi ? prime - corr[i] : corr[i] ;
 		for(qs->base.data[i].sol[0] += co; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
 		for(qs->base.data[i].sol[1] += co; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
 		p_0 = qs->others.sieve + qs->base.data[i].sol[0] ;
@@ -556,7 +563,7 @@ static inline void iteration_part_7(qs_sheet * qs, const qs_sm add, const qs_sm 
 		*p_0 += (end > p_0) * size, *p_1 += (end > p_1) * size;
 	}
 	for(qs_sm i = qs->iterative_list[4], j = qs->iterative_list[5]; i < j; ++i){
-		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = add ? prime - corr[i] : corr[i] ;
+		const qs_sm prime = qs->base.data[i].num, size = qs->base.data[i].size, co = gray_addi ? prime - corr[i] : corr[i] ;
 		qs->base.data[i].sol[0] += co; for(; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
 		qs->base.data[i].sol[1] += co; for(; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
 		for(p_0 = qs->others.sieve + qs->base.data[i].sol[0]; end > p_0; qs->others.flags[i] |= 1 << ((p_0 - qs->others.sieve) & 7), *p_0 += size, p_0 += prime);
@@ -564,16 +571,16 @@ static inline void iteration_part_7(qs_sheet * qs, const qs_sm add, const qs_sm 
 	}
 }
 
-static inline void iteration_part_8(qs_sheet * qs, const qs_sm add, const qs_sm *  corr) {
+static inline void iteration_part_8(qs_sheet * qs, const qs_sm gray_addi, const qs_sm *  corr) {
 	// this operation takes time.
 	uint8_t * chunk_open = qs->others.sieve, * chunk_close = chunk_open;
 	uint8_t * sieve_close = chunk_open + qs->m.double_value ;
 	qs_sm *buffer = qs->others.buffer[0], walk_idx, * walk = buffer;
 	// initialize
 	for(qs_sm i = 0; i < qs->iterative_list[3]; ++i)
-		if (qs->base.data[i].sol[1] != -1U) {
+		if (qs->base.data[i].sol[1] != (qs_sm) -1) {
 			*walk++ = i ;
-			const qs_sm prime = qs->base.data[i].num, co = add ? prime - corr[i] : corr[i] ;
+			const qs_sm prime = qs->base.data[i].num, co = gray_addi ? prime - corr[i] : corr[i] ;
 			qs->base.data[i].sol[0] += co; for(; qs->base.data[i].sol[0] >= prime; qs->base.data[i].sol[0] -= prime);
 			qs->base.data[i].sol[1] += co; for(; qs->base.data[i].sol[1] >= prime; qs->base.data[i].sol[1] -= prime);
 			qs->others.pos[0][i] = chunk_open + qs->base.data[i].sol[0];
@@ -622,7 +629,7 @@ static int qs_register_factor(qs_sheet * qs){
 					++qs->divisors.total_primes;
 					// functions can check if "n_bits" is greater than one
 					// if they believe the information has not yet been given above.
-					qs->n_bits = cint_count_bits(&qs->variables.N);
+					qs->n_bits = (qs_sm) cint_count_bits(&qs->variables.N);
 					if (qs->n_bits == 1)
 						res = -1;
 					else cint_dup(F, &qs->variables.N);
@@ -659,8 +666,8 @@ static inline void register_relation_kind_2(qs_sheet * qs, const cint * KEY, con
 				// no solution to the linear congruence.
 				old->X = 0;
 				cint_div(qs->calc, &qs->constants.kN, VALUE, A, B);
-				a = simple_cint_to_int(B);
-				b = simple_cint_to_int(VALUE);
+				a = (qs_sm) simple_cint_to_int(B);
+				b = (qs_sm) simple_cint_to_int(VALUE);
 				for (; (a %= b) && (b %= a););
 				simple_int_to_cint(A, a | b);
 				cint_div(qs->calc, &qs->variables.N, A, &qs->variables.FACTOR, B);
@@ -693,10 +700,10 @@ static inline void register_relation_kind_2(qs_sheet * qs, const cint * KEY, con
 
 	// data buffered isn't persistent, so it's copied.
 	data = new->Y.data = mem_aligned(qs->mem.now);
-	new->Y.length = args[1] - args[0];
+	new->Y.length = (qs_sm) (args[1] - args[0]);
 	memcpy(data, args[0], new->Y.length * sizeof(*data));
 	memcpy(data + new->Y.length, args[2], (args[3] - args[2]) * sizeof(*data));
-	new->Y.length += args[3] - args[2];
+	new->Y.length += (qs_sm) (args[3] - args[2]);
 	qs->mem.now = new->Y.data + new->Y.length;
 
 	if (old) {
@@ -803,7 +810,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 			for (b = 0; b < 2; ++b)
 				if (qs->base.data[b].num != 1) {
 					simple_int_to_cint(TMP, qs->base.data[b].num);
-					*data = cint_remove(qs->calc, V, TMP);
+					*data = (qs_sm) cint_remove(qs->calc, V, TMP);
 					if (*data) {
 						extra += b ? *data : qs->base.data[b].size;
 						*++data = b;
@@ -811,11 +818,11 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 					}
 				}
 			for (b = 2; b < qs->iterative_list[1] && verification; ++b) {
-				v_1 = (v_2 = 0, qs->base.data[b].sol[1] == -1U) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
+				v_1 = (v_2 = 0, qs->base.data[b].sol[1] == (qs_sm) -1) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
 				if (v_1) {
 					simple_int_to_cint(TMP, qs->base.data[b].num);
 					// remove is the action of updating a number so that it isn't a multiple of another number anymore.
-					*data = cint_remove(qs->calc, V, TMP);
+					*data = (qs_sm) cint_remove(qs->calc, V, TMP);
 					verification &= v_2 <= *data;
 					if (*data) {
 						*++data = b, ++data;
@@ -825,10 +832,10 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 			}
 			if (qs->others.sieve[a] += extra, qs->others.sieve[a] >= bits) {
 				for (; b < qs->iterative_list[4] && extra < qs->others.sieve[a] && verification; ++b) {
-					v_1 = (v_2 = 0, qs->base.data[b].sol[1] == -1U) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
+					v_1 = (v_2 = 0, qs->base.data[b].sol[1] == (qs_sm) -1) || (v_2 = 1, mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]);
 					if (v_1) {
 						simple_int_to_cint(TMP, qs->base.data[b].num);
-						*data = cint_remove(qs->calc, V, TMP);
+						*data = (qs_sm) cint_remove(qs->calc, V, TMP);
 						verification &= v_2 <= *data;
 						if (*data || v_2) {
 							*++data = b, ++data;
@@ -841,7 +848,7 @@ static inline void register_relations(qs_sheet * qs, const cint * A, const cint 
 					if (qs->others.flags[b] & mask)
 						if (mod = a % qs->base.data[b].num, mod == qs->base.data[b].sol[0] || mod == qs->base.data[b].sol[1]) {
 							simple_int_to_cint(TMP, qs->base.data[b].num);
-							*data = cint_remove(qs->calc, V, TMP);
+							*data = (qs_sm) cint_remove(qs->calc, V, TMP);
 							verification &= *data != 0;
 							++data, *data++ = b;
 							extra += qs->base.data[b].size;
