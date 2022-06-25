@@ -167,14 +167,14 @@ typedef struct {
 		struct {
 			cint B_terms;
 			qs_sm *A_inv_2B;
-			qs_sm a_mod_p;
-			qs_sm a_ind;
+			qs_sm a_over_divisor_mod_divisor;
+			qs_sm a_divisor_idx;
 		} *data;
 	} s;
 
 	// useful data (special)
 	struct {
-		qs_sm *a_invariants; // proportional to the value of "s" (small)
+		qs_sm *a_divisors; // proportional to the value of "s" (small)
 		qs_sm *buffer[2]; // proportional to "length of factor base" (medium or large)
 		uint8_t *sieve;
 		uint8_t **pos[2];
@@ -182,7 +182,7 @@ typedef struct {
 	} others;
 
 	// uniqueness trees : [ relations, cycle finder, divisors of N, ]
-	struct avl_manager uniqueness[3];
+	struct avl_manager uniqueness[4];
 
 	// data collection made by algorithm
 	struct {
@@ -270,19 +270,17 @@ static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);
 static inline qs_sm preparation_part_6(qs_sheet *, cint *);
 static inline void get_started_iteration(qs_sheet *);
-static inline void iteration_part_1(qs_sheet *, cint *);
-static inline void iteration_part_2(qs_sheet *, const cint *, cint *);
-static inline void iteration_part_3(qs_sheet *, const cint *, cint *);
-static inline void iteration_part_4(qs_sheet *, const cint *, const cint *);
-static inline qs_sm iteration_part_5(const qs_sheet *, qs_sm, qs_sm **, cint *);
-static inline void iteration_part_6(qs_sheet *, const cint *, const cint *);
-static inline void iteration_part_7(qs_sheet *, const cint *, const cint *, const cint *, cint *);
-static inline void iteration_part_8(qs_sheet *, qs_sm , const qs_sm *);
-static inline void iteration_part_9(qs_sheet *, qs_sm , const qs_sm *);
-static inline void process_column_array(struct qs_relation *, const qs_sm *);
+static inline void iteration_part_1(qs_sheet *, const cint *, cint *);
+static inline void iteration_part_2(qs_sheet *qs, const cint *A, cint *B);
+static inline void iteration_part_3(qs_sheet *qs, const cint *A, const cint *B);
+static inline qs_sm iteration_part_4(const qs_sheet *qs, const qs_sm curves, qs_sm **corr, cint *B);
+static inline void iteration_part_5(qs_sheet *qs, const cint *KN, const cint *B);
+static inline void iteration_part_6(qs_sheet *qs, const cint *N, const cint *A, const cint *B, cint *C);
+static inline void iteration_part_7(qs_sheet *qs, const qs_sm add, const qs_sm *corr);
+static inline void iteration_part_8(qs_sheet *qs, const qs_sm add, const qs_sm *corr);
 static inline int qs_register_factor(qs_sheet *);
-static inline void register_relation_kind_2(qs_sheet *, const qs_sm *, const cint *, const cint *);
-static inline void register_relation_kind_1(qs_sheet *, const cint *, qs_sm *, const qs_sm *, qs_sm *, const qs_sm *);
+static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm *[4]);
+static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm *[4]);
 static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);
