@@ -57,7 +57,8 @@ The initial software goal was to **factor 200-bit RSA in 30 seconds**, after whi
 - Some RSA numbers larger than 250 bits have been tested, they have been factorized.
 - During a stress test that lasted 2 hours, the software factored a **300-bit RSA** number.
 
-The software factored the **321-bit** RSA number relating to the "bank card case" during a technical test that laster 12 hours. Quadratic sieve parameters were 25,000 prime numbers in factor base and 256 megabytes of memory allocated.
+Aditionally, the software factored the **321-bit** RSA number relating to the "bank card case" during a technical test that laster 12 hours.\
+*Using a single CPU core, the tester fixed the quadratic sieve settings to 25,000 primes in the factor base and 256 megabytes of memory.*
 
 # Fermat numbers factorization
 |F| Value | Took  |
