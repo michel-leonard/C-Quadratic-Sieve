@@ -107,7 +107,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	qs->kn_bits = bits; // input was adjusted so there is at least 115-bit.
 
 	// params as { bits, value } take the extremal value if bits exceed.
-	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {290, 25000}, {0} };
+	static const double param_base_size [][2]= { {110, 800}, {130, 1500}, {210, 4500}, {240, 9000}, {250, 15000}, {320, 25000}, {0} };
 	qs->base.length = linear_param_resolution(param_base_size, bits);
 
 	static const double param_laziness [][2]= {{110, 90}, {190, 100}, {220, 100}, {250, 110}, {0} };
@@ -123,7 +123,7 @@ static inline void qs_parametrize(qs_sheet *qs) {
 	static const double param_threshold [][2]= { {110, 63}, {220, 78}, {300, 99}, {0} };
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
-	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 140}, {0} };
+	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 256}, {0} };
 	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // { Base size, Megabytes }
 
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
