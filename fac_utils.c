@@ -46,8 +46,6 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 			fac_push(&m, &m.number->cint, 0, 1, 0);
 	} while (m.questions.index);
 
-
-
 	// answer goes into an appropriately sized memory allocation.
 	size_t bytes = 0 ;
 	for(unsigned i = 0; i < m.answers.index; ++i)

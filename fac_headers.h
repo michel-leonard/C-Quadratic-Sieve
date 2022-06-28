@@ -98,7 +98,7 @@ typedef struct {
 		cint VALUE;
 		cint CYCLE;
 		cint TEMP[5];
-		cint VERIF[5];
+		cint MY[5];
 	} vars;
 
 	// polynomial vars
@@ -170,8 +170,9 @@ typedef struct {
 		struct {
 			cint B_terms;
 			qs_sm *A_inv_2B;
-			qs_sm a_mod_prime;
-			qs_sm a_divisors;
+			qs_sm A_over_prime_mod_prime;
+			qs_sm prime_index;
+			qs_md prime_squared ;
 		} *data;
 		struct {
 			qs_sm defined;
@@ -274,7 +275,7 @@ static inline void get_started_iteration(qs_sheet *);
 static inline void iteration_part_1(qs_sheet *, const cint *, cint *);
 static inline void iteration_part_2(qs_sheet *, const cint *, cint *);
 static inline void iteration_part_3(qs_sheet *, const cint *, const cint *);
-static inline qs_sm iteration_part_4(const qs_sheet *, qs_sm curves, qs_sm **, cint *);
+static inline qs_sm iteration_part_4(const qs_sheet *, qs_sm nth_curve, qs_sm **, cint *);
 static inline void iteration_part_5(qs_sheet *, const cint *, const cint *);
 static inline void iteration_part_6(qs_sheet *, const cint *, const cint *, const cint *, cint *);
 static inline void iteration_part_7(qs_sheet *, qs_sm, const qs_sm *);
