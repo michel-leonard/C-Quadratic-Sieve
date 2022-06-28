@@ -13,14 +13,14 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	m.calc = cint_new_sheet((1 + (input_bits >> 10)) << 10);
 	assert(m.calc);
 
-	// prepare 5 variables.
+	// prepare 5 vars.
 	const size_t vars_size = 500 * (1 + input_bits / 500) / cint_exponent;
 	for (int i = 0; i < 5; ++i)
 		simple_inline_cint(&m.vars[i], vars_size, &mem);
 
 	simple_inline_cint(&m.trial.cint, vars_size, &mem);
 
-	// prepare a working array.
+	// prepare a working sieve.
 	const int max_factors = input_bits / 10 + 32;
 	m.questions.data = mem, mem = m.questions.data + max_factors ;
 	m.answers.data = mem, mem = m.answers.data + max_factors ;
@@ -31,12 +31,12 @@ static inline fac_cint **c_factor(const cint *N, fac_params *config) {
 	m.number->power = 1, m.number->prime = -1 ;
 
 	m.mem.now = mem ;
-	// iterates the array until it's empty, begin with the input N.
+	// iterates the sieve until it's empty, begin with the input N.
 	// functions must not push their input to the stack, they return 0 instead.
 	do {
 		m.number = &m.questions.data[--m.questions.index];
 		int res =   fac_special_cases(&m)
-		            || fac_trial_division(&m, 1)
+					|| fac_trial_division(&m, 1)
 		            || fac_perfect_checker(&m)
 		            || fac_primality_checker(&m)
 		            || fac_pollard_rho_63_bits(&m)
@@ -97,7 +97,7 @@ static inline int fac_trial_division(fac_caller *m, const int level) {
 	}
 
 	qs_sm bound;
-	if (m->number->bits <= 64) bound = 1024;
+	if (m->number->bits < 64) bound = 1024;
 	else if (bound = 4669921, level == 1)
 		for (int i = 0; i < 250; bound >>= (m->number->bits < i) * 1, i += 30);
 
@@ -357,7 +357,7 @@ static inline void simple_int_to_cint(cint *num, qs_md value) {
 }
 
 static inline qs_md simple_cint_to_int(const cint *num) {
-	// Return the value of a cint as a 64-bit integer (sign is ignored).
+	// Return the length_half of a cint as a 64-bit integer (sign is ignored).
 	qs_md res = 0;
 	for (h_cint_t *ptr = num->end; ptr > num->mem; res = (qs_md) (res * cint_base + *--ptr));
 	return res;
@@ -378,7 +378,7 @@ static inline struct avl_node *avl_cint_inserter(void *args, const void *key_to_
 
 // System
 static inline void *mem_aligned(void *ptr) {
-	// Default alignment of the return value is 64.
+	// Default alignment of the return length_half is 64.
 	char *res __attribute__((aligned(64)));
 	res = (char *) ptr + (64 - (uintptr_t) ptr) % 64;
 	return res;

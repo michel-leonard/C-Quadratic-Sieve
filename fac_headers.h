@@ -89,20 +89,31 @@ typedef struct {
 	// computation sheet
 	cint_sheet *calc;
 
-	// numbers updated
+	// numbers that are updated
 	struct {
 		cint N;
-		cint A;
-		cint B;
-		cint C;
-		cint D;
 		cint FACTOR;
 		cint X;
 		cint KEY;
 		cint VALUE;
 		cint CYCLE;
 		cint TEMP[5];
-	} variables;
+		cint VERIF[5];
+	} vars;
+
+	// polynomial vars
+	struct {
+		cint A;
+		cint B;
+		cint C;
+		cint D ;
+		qs_sm d_bits ;
+		qs_sm min ;
+		qs_sm span ;
+		qs_sm span_half ;
+		qs_sm gray_max ;
+		qs_sm curves ;
+	} poly;
 
 	// constants
 	struct {
@@ -110,8 +121,9 @@ typedef struct {
 		cint ONE;
 		cint SMALL_PRIME;
 		cint LARGE_PRIME;
-		cint M;
+		cint M_HALF;
 	} constants;
+
 
 	// system
 	struct {
@@ -120,31 +132,26 @@ typedef struct {
 		void *now;
 	} mem;
 
-	// parameters and miscellaneous variables
+	// parameters and miscellaneous vars
+	qs_md adjustor;
 	qs_sm knuth_schroeppel;
 	qs_sm n_bits;
 	qs_sm kn_bits;
-	qs_sm d_bits;
 	struct {
-		qs_sm value;
-		qs_sm double_value;
+		uint8_t *sieve;
+		qs_sm length;
+		qs_sm length_half;
+		qs_sm cache_size ;
+		uint8_t **positions[2];
+		uint8_t *flags;
 	} m;
-	struct {
-		qs_sm span;
-		qs_sm span_half;
-		qs_sm min;
-	} the;
-	qs_sm iterative_list[10];
+	qs_sm iterative_list[6];
 	qs_sm error_bits;
 	struct{
 		qs_sm value ;
 	}threshold;
 	unsigned rand_seed;
 	qs_sm sieve_again_perms;
-	struct{
-		qs_sm now ;
-		qs_sm max ;
-	} curves;
 
 	// useful data sharing same length
 	struct {
@@ -159,27 +166,21 @@ typedef struct {
 
 	// useful data sharing same length
 	struct {
+		qs_sm *A_indexes;
+		struct {
+			cint B_terms;
+			qs_sm *A_inv_2B;
+			qs_sm a_mod_prime;
+			qs_sm a_divisors;
+		} *data;
 		struct {
 			qs_sm defined;
 			qs_sm subtract_one;
 			qs_sm double_value;
 		} values;
-		struct {
-			cint B_terms;
-			qs_sm *A_inv_2B;
-			qs_sm a_mod_prime;
-			qs_sm a_divisor_idx;
-		} *data;
 	} s;
 
-	// useful data (special)
-	struct {
-		qs_sm *a_divisors; // proportional to the value of "s" (small)
-		qs_sm *buffer[2]; // proportional to "length of factor base" (medium or large)
-		uint8_t *sieve;
-		uint8_t **pos[2];
-		uint8_t *flags;
-	} others;
+	qs_sm *buffer[2]; // proportional to "length of factor base" (medium or large)
 
 	// uniqueness trees : [ relations, cycle finder, divisors of N, ]
 	struct avl_manager uniqueness[3];
@@ -193,9 +194,10 @@ typedef struct {
 			qs_sm needs;
 			qs_sm reserved;
 		} length;
+		qs_sm large_prime;
 	} relations;
 
-	// pointers to the divisors of N are kept in a flat array
+	// pointers to the divisors of N are kept in a flat sieve
 	struct {
 		qs_sm processing_index;
 		qs_sm total_primes;
@@ -263,12 +265,11 @@ static inline void preparation_part_1(qs_sheet *, fac_caller *);
 static inline void preparation_part_2(qs_sheet *);
 //
 static inline void preparation_part_3(qs_sheet *);
-static inline qs_sm preparation_part_3_original(qs_sheet *);
-static inline qs_sm preparation_part_3_proposition(qs_sheet *);
+static inline qs_sm preparation_part_3_michel(qs_sheet *qs);
 //
 static inline void preparation_part_4(qs_sheet *);
 static inline void preparation_part_5(qs_sheet *);
-static inline qs_sm preparation_part_6(qs_sheet *, cint *);
+static inline void preparation_part_6(qs_sheet *);
 static inline void get_started_iteration(qs_sheet *);
 static inline void iteration_part_1(qs_sheet *, const cint *, cint *);
 static inline void iteration_part_2(qs_sheet *, const cint *, cint *);
@@ -279,8 +280,8 @@ static inline void iteration_part_6(qs_sheet *, const cint *, const cint *, cons
 static inline void iteration_part_7(qs_sheet *, qs_sm, const qs_sm *);
 static inline void iteration_part_8(qs_sheet *, qs_sm, const qs_sm *);
 static inline int qs_register_factor(qs_sheet *);
-static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm *[4]);
-static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm *[4]);
+static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm * const [4]);
+static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm * const [4]);
 static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);

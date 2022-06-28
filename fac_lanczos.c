@@ -279,7 +279,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	dim_0 *= endless_guard != 0 ;
 
 	// ===== answer finalization =====
-	// result will be a simple array of the form [mask, null_rows...]
+	// result will be a simple sieve of the form [mask, null_rows...]
 	// it's assumed that a null mask means "miss, no answer"
 
 	*res = 0; // mask
@@ -304,7 +304,7 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 	// a filtering is not always necessary to make "lanczos_block_worker" succeed :
 	// - it writes to the relations [ Y lengths, relation counter ] will change
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, *counts;
-	counts = memset(qs->others.buffer[1], 0, qs->base.length * sizeof(*qs->others.buffer[1]));
+	counts = memset(qs->buffer[1], 0, qs->base.length * sizeof(*qs->buffer[1]));
 	if (qs->sieve_again_perms)
 		for (a = 0; a < qs->relations.length.now; ++a) {
 			// "snapshot" pointers, so they can be restored if "sieve again" is fired.

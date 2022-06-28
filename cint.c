@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 // memory is supposed provided by the system, allocations are passed to "assert".
-// cint use "computation sheets" instead of global variables.
+// cint use "computation sheets" instead of global vars.
 
 // the functions name that terminates by "i" means immediate, in place.
 // the functions name that begin by "h_" means intended for internal usage.
@@ -33,7 +33,7 @@ typedef struct {
 } cint_sheet;
 
 static cint_sheet * cint_new_sheet(const size_t bits) {
-	// a computation sheet is required by function needing temporary variables.
+	// a computation sheet is required by function needing temporary vars.
 	cint_sheet * sheet = calloc(1, sizeof(cint_sheet));
 	assert(sheet);
 	const size_t num_size = 2 + bits / cint_exponent;
@@ -468,6 +468,7 @@ static void cint_gcd(cint_sheet * sheet, const cint * lhs, const cint * rhs, cin
 				*TMP, *RES = gcd;
 		cint_dup(gcd, lhs);
 		cint_dup(A, rhs);
+		gcd->nat = A->nat = 1 ;
 		for (; A->mem != A->end;) {
 			cint_div(sheet, gcd, A, B, C);
 			TMP = gcd, gcd = A, A = C, C = TMP;
