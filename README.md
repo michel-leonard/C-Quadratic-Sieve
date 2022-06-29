@@ -39,7 +39,7 @@ The software will show you its answer. To see the help use the `-h` option.
 
 # RSA factorization
 
-Factoring RSA numbers from 65 to 130 bits takes about the same time as 130 bits.
+Small and larger RSA numbers have been factored by the software, such as the 100 decimal digit number [**RSA-100**](https://en.wikipedia.org/wiki/RSA_numbers#RSA-100).
 
 |Bits| Command| Took
 |--|--|--|
@@ -53,10 +53,9 @@ Factoring RSA numbers from 65 to 130 bits takes about the same time as 130 bits.
 | 270 | `./qs 1415606447884291776606783262139201189953436249643759632827004228713595295320953939`  | 13 min
 
 The initial software goal was to **factor 200-bit RSA in 30 seconds**, after which there were fewer situations tested.
-- Some RSA numbers larger than 250 bits have been tested, they have been factorized.
-- During a stress test that lasted 2 hours, the software factored a **300-bit RSA** number.
-
-Aditionally, the software factored the **321-bit** RSA number relating to the "[bank card case](https://www.enseignement.polytechnique.fr/profs/informatique/Eric.Goubault/Cours09/qs.pdf)" during a technical test that laster 12 hours.
+- During a test that lasted 2 hours, the software factored a **300-bit RSA** number
+- RSA numbers greater than 250 bits have been tested, they have been factorized
+- The software factored the **321-bit** RSA number relating to the "[bank card case](https://www.enseignement.polytechnique.fr/profs/informatique/Eric.Goubault/Cours09/qs.pdf)"
 # Fermat numbers factorization
 |F| Value | Took  |
 |--|--|--|
