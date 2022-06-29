@@ -6,7 +6,7 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 300 bits
+ - is a C99 **command line** factorizer from 0 to 300 bits (330-bit were factored in the lab)
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
  - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
