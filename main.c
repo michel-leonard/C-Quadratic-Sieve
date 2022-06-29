@@ -65,14 +65,4 @@ static inline void fac_display_help(char *name) {
 
 // ================================================================================================
 
-// Solving of a general modular quadratic equation uses Shanks-Tonelli algorithm for
-// all prime divisors of the modulus, lifting the result by Hensel lemma to higher prime
-// powers and finally Chinese Remainder Theorem to combine the results for distinct modulus divisors.
-
-// Cut down the computational expenses for Tonelli-Shanks to a single modular exponentiation see :
-// R.D. Silverman, The Multiple Polynomial Quadratic Sieve, Math. Comput. 48, (1987), 329-339.
-
-// Hensel's lemma asserts that every factorization of h modulo m into coprime polynomials can be lifted in a
-// unique way into a factorization modulo m^k for every k, see : wikipedia.org "Hensel's Lemma"
-
 // See : https://www2.karlin.mff.cuni.cz/~krypto/Implementace_MPQS_SIQS_files/main_file.pdf for interesting precisions.

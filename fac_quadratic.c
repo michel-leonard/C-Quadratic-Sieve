@@ -125,7 +125,7 @@ void qs_parametrize(qs_sheet *qs) {
 	qs->threshold.value = linear_param_resolution(param_threshold, bits);
 
 	static const double param_alloc [][2]= { {1e3, 2}, {3e3, 8}, {5e3, 20}, {15e3, 80}, {25e3, 256}, {0} };
-	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // { Base size, overall needs of megabytes }
+	qs->mem.bytes_allocated = linear_param_resolution(param_alloc, qs->base.length) << 20 ; // { base size, overall needs of megabytes }
 
 	qs->sieve_again_perms = 3; // Sieve again up to 3 times before giving up
 
@@ -319,13 +319,15 @@ void preparation_part_5(qs_sheet *qs) {
 	static const double inv_ln_2 = 1.44269504088896340736;
 	cint *A = qs->vars.TEMP, *B = A + 1, *C = A + 2;
 	qs_sm i = 0, prime;
-	// The factor base contains [ multiplier, 2, primes... ]
+	// The factor base contain the multiplier different from 2.
 	if (qs->multiplier != 2)
 		qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(qs->base.data[i].num = qs->multiplier)), ++i;
 
+	// Then the number 2.
 	qs->base.data[i].num = 2, qs->base.data[i].size = 1;
 	qs->base.data[i].sqrt = *qs->constants.kN.mem % 8 == 1 || *qs->constants.kN.mem % 8 == 7, ++i;
 
+	// Then the prime numbers for which kN is a quadratic residue modulo.
 	for (prime = 3; i < qs->base.length; prime += 2)
 		if (is_prime_4669921(prime)) {
 			simple_int_to_cint(A, prime);
@@ -333,15 +335,15 @@ void preparation_part_5(qs_sheet *qs) {
 			const qs_sm kn_mod_prime = (qs_sm) simple_cint_to_int(C);
 			qs->base.data[i].sqrt = tonelli_shanks(kn_mod_prime, prime);
 			if (qs->base.data[i].sqrt) {
-				qs->base.data[i].num = prime; // kN is a quadratic residue mod the prime number.
+				qs->base.data[i].num = prime;
 				qs->base.data[i].size = (qs_sm) (.35 + inv_ln_2 * log_computation(prime)), ++i;
-			}
+			} // 2.5 * (base size) * ln(base size) is close to the largest prime number in factor base.
 		}
 }
 
 void preparation_part_6(qs_sheet *qs) {
 	// completes the configuration by the algorithm itself.
-	// computes D, template to the average A polynomial coefficient.
+	// computes D, a template for the A polynomial coefficient.
 	const qs_sm s = qs->s.values.defined ;
 	qs_sm i, min;
 	qs->poly.span_half = (qs->poly.span = qs->base.length / s / s / 2) >> 1;
@@ -352,9 +354,9 @@ void preparation_part_6(qs_sheet *qs) {
 	cint_div(qs->calc, Q, &qs->constants.M_HALF, &qs->poly.D, R);
 	qs->poly.d_bits = (qs_sm) cint_count_bits(&qs->poly.D);
 	cint_nth_root(qs->calc, &qs->poly.D, s, R);
-	const qs_sm root = (qs_sm) simple_cint_to_int(R) ; // read the "s"-th root of D.
+	const qs_sm root = (qs_sm) simple_cint_to_int(R) ; // use the s-th root of D.
 	for (i = 1; assert(i < qs->base.length), qs->base.data[i].num <= root; ++i);
-	assert(i >= qs->poly.span_half);
+	assert(i >= qs->poly.span);
 	for (min = i - qs->poly.span_half, i *= i; i / min < qs->poly.span + min; --min);
 	qs->poly.min = min ;
 }
@@ -392,7 +394,7 @@ void iteration_part_1(qs_sheet * qs, const cint * D, cint * A) {
 		simple_int_to_cint(Y, qs->base.data[i].num);
 		cint_mul(A, Y, X), TMP = A, A = X, X = TMP ;
 	}
-	// A must be close to D, find a prime number that complete the product using the factor base.
+	// A must be close to D, a prime number from the factor base will complete the product.
 	cint_div(qs->calc, D, A, X, Y);
 	const qs_sm d_over_a = (qs_sm) simple_cint_to_int(X);
 	for (i = qs->base.data[0].num != 2 ; qs->base.data[i].num <= d_over_a; ++i);
@@ -429,7 +431,7 @@ void iteration_part_3(qs_sheet * qs, const cint * A, const cint * B) {
 	cint *Q = qs->vars.TEMP, *R = Q + 1, *PRIME = Q + 2;
 	qs_md i, j, x, y;
 	for (i = 0; i < qs->base.length; ++i) {
-		// the algorithm precompute (base length) * (sieve length) "cint" divisions using only :
+		// the algorithm will "simulate" (base length) * (sieve length) "cint" divisions using only :
 		// - (s + 2) * (base length) "cint" divisions
 		// - (base length) modular inversions with native integers
 		// - the initially prepared (Tonelli-Shanks) square roots
@@ -521,8 +523,8 @@ void iteration_part_6(qs_sheet *qs, const cint *kN, const cint *A, const cint *B
 
 void iteration_part_7(qs_sheet * qs, const qs_sm gray_addi, const qs_sm * restrict corr) {
 	// Sieve for larger prime numbers.
-	memset(qs->m.sieve, 0, qs->m.length);
-	memset(qs->m.flags, 0, qs->base.length);
+	memset(qs->m.sieve, 0, qs->m.length * sizeof(*qs->m.sieve));
+	memset(qs->m.flags, 0, qs->base.length * sizeof(*qs->m.flags));
 	uint8_t * restrict end = qs->m.sieve + qs->m.length, *p_0, *p_1;
 	*end = 255;
 	for(qs_sm i = qs->iterative_list[3], j = qs->iterative_list[4]; i < j; ++i){
@@ -562,8 +564,7 @@ void iteration_part_8(qs_sheet * qs, const qs_sm gray_addi, const qs_sm *  corr)
 			qs->m.positions[1][i] = chunk_begin + qs->base.data[i].sol[1];
 		}
 	for(walk_idx = 0; buffer[walk_idx] < qs->iterative_list[1]; ++walk_idx);
-	// iterates step by step until the entire sieve is filled.
-	do{
+	do{ // iterates step by step until the entire sieve is filled.
 		walk = buffer + walk_idx ;
 		chunk_end = chunk_end + qs->m.cache_size < sieve_end ? chunk_end + qs->m.cache_size : sieve_end;
 		do{
@@ -580,7 +581,7 @@ void iteration_part_8(qs_sheet * qs, const qs_sm gray_addi, const qs_sm *  corr)
 			if (*p_1 < chunk_end) **p_1 += size, *p_1 += prime;
 		} while(*++walk);
 	} while(chunk_begin = chunk_end, chunk_begin < sieve_end);
-	memset(qs->buffer[0], 0, (walk - qs->buffer[0]) * sizeof(walk));
+	memset(qs->buffer[0], 0, (walk - qs->buffer[0]) * sizeof(*walk));
 }
 
 int qs_register_factor(qs_sheet * qs){
@@ -757,7 +758,7 @@ void register_relation_kind_1(qs_sheet * qs, const cint * KEY, const qs_sm * con
 void register_relations(qs_sheet * qs, const cint * A, const cint * B, const cint * C) {
 	cint *  TMP = qs->vars.TEMP, * K = &qs->vars.KEY, * V = &qs->vars.VALUE ;
 	qs_sm m_idx, idx, mod;
-	// iterates the values of X in [-M/2, +M/2]
+	// iterates the values of X in [-M/2, +M/2].
 	for (m_idx = 0; m_idx < qs->m.length; ++m_idx)
 		// the trick that permit to step faster using typecast and 0xC0C0C0C0C0C0C0C0 isn't implemented.
 		if (qs->m.sieve[m_idx] >= qs->threshold.value) {
@@ -776,7 +777,7 @@ void register_relations(qs_sheet * qs, const cint * A, const cint * B, const cin
 			//  writes the pairs [index of the prime number, power found in V].
 			if (qs->base.data[0].num != 1) {
 				simple_int_to_cint(TMP, qs->base.data[0].num);
-				*pen++ = 0;
+				*pen++ = 0; // remove powers of the multiplier.
 				*pen = (qs_sm) cint_remove(qs->calc, V, TMP);
 				if (*pen) removed_bits += *pen++ * qs->base.data[0].size; else --pen;
 			}
@@ -807,7 +808,7 @@ void register_relations(qs_sheet * qs, const cint * A, const cint * B, const cin
 							if (*pen) removed_bits += *pen++ * qs->base.data[idx].size; else --pen;
 						}
 				const qs_sm *const prime_indexes_and_powers[4] = {
-						qs->s.A_indexes, // commit outstanding A factors.
+						qs->s.A_indexes, // really factoring A * f(m_idx), commit outstanding A factors.
 						qs->s.A_indexes + qs->s.values.double_value,
 						qs->buffer[1],
 						pen,
@@ -849,7 +850,8 @@ void finalization_part_1(qs_sheet * qs, const uint64_t * lanczos_answer) {
 				}
 			h_cint_subi(C, A);
 			if (C->mem != C->end) {
-				// a 321-bit RSA number has been factored by the software during tests.
+				// The RSA-100 number has been factored by the software in 2022.
+				// A. K. Lenstra announced this factorization completed in 1991.
 				cint_gcd(qs->calc, &qs->vars.N, C, &qs->vars.FACTOR);
 				qs_register_factor(qs);
 			}
@@ -860,7 +862,7 @@ void finalization_part_2(qs_sheet * qs) {
 	if (qs->n_bits == 1)
 		return;
 
-	// Algorithm read Lanczos' answer but N is still greater than one.
+	// Algorithm checked Lanczos answer but N is still greater than one.
 	// Perform basic checks until no new divisor can be discovered.
 
 	cint * F = &qs->vars.FACTOR, **di = qs->divisors.data, *Q = qs->vars.TEMP, *R = Q + 1 ;
