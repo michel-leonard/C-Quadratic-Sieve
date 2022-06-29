@@ -6,10 +6,10 @@ Pure C factorizer using self-initialising  **Quadratic Sieve**.
 This ~2500 lines project :
 
  - is imediately compatible with Microsoft Windows, Linux (no one dependancy)
- - is a C99 **command line** factorizer from 0 to 300 bits (330-bit were factored in the lab)
+ - is a C99 **command line** factorizer from 0 to 300 bits (330 bits were factored in the lab)
  - is built so that you can easily use and test the software
  - use its own "big num" library named **cint** 
- - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize informations
+ - use **[AVL trees](https://en.wikipedia.org/wiki/AVL_tree)** to organize information
  - use **[Lanczos Block](https://en.wikipedia.org/wiki/Lanczos_algorithm)**, a pure C iterative matrix eigenvalues finder algorithm
  - use **[Pollard's Rho](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm)** algorithm to answer under 64 bits
 
@@ -25,7 +25,7 @@ This ~2500 lines project :
 This software implementation would have been impossible without "FLINT: Fast Library for Number Theory" maintained by [William Hart](https://github.com/wbhart).
 
 # Usage
-If you don't know how to get an executable, try to follow this fast procedure :
+If you don't know how to get an executable, try to follow this procedure :
 - Ubuntu provide you a C compiler by the command `sudo apt install build-essential`
 - On Windows you can install [MinGW](https://winlibs.com/), it will, like as Ubuntu, provide you a C compiler
 
