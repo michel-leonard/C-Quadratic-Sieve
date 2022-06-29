@@ -1,17 +1,15 @@
-#ifndef QS_HEADERS
-#define QS_HEADERS
+#ifndef FAC_HEADERS
+#define FAC_HEADERS
 
 #include <errno.h>
 #include <stddef.h>
 
-// Quadratic sieve integers, used by all functions needing "large enough" unsigned integers.
-
-typedef int32_t qs_sm; // small size (32-bit)
-typedef int64_t qs_md; // medium size (64-bit)
+// Quadratic sieve integers.
+typedef int32_t qs_sm; // small size, like a factor base prime number (32-bit)
+typedef int64_t qs_md; // medium size, like a factor base prime number squared (64-bit)
 typedef int64_t qs_tmp; // signed type to perform intermediates computations.
 
-// The factorization manager calls the quadratic sieve with an appropriated input
-// Quadratic sieve can assume N is 63+ bits, isn't trial divisible, isn't a perfect power
+// The factorization manager (calls the quadratic sieve)
 
 typedef struct {
 	cint cint ;
@@ -121,6 +119,7 @@ typedef struct {
 		cint ONE;
 		cint SMALL_PRIME;
 		cint LARGE_PRIME;
+		cint MULTIPLIER;
 		cint M_HALF;
 	} constants;
 
@@ -134,7 +133,7 @@ typedef struct {
 
 	// parameters and miscellaneous vars
 	qs_md adjustor;
-	qs_sm knuth_schroeppel;
+	qs_sm multiplier;
 	qs_sm n_bits;
 	qs_sm kn_bits;
 	struct {
@@ -195,7 +194,7 @@ typedef struct {
 			qs_sm needs;
 			qs_sm reserved;
 		} length;
-		qs_sm large_prime;
+		qs_md large_prime;
 	} relations;
 
 	// pointers to the divisors of N are kept in a flat sieve
@@ -218,13 +217,13 @@ typedef struct {
 } qs_sheet;
 
 // Front-End Factor manager
-static inline fac_cint **c_factor(const cint *, fac_params *);
+static fac_cint **c_factor(const cint *, fac_params *);
 static inline int fac_special_cases(fac_caller *);
 static inline int fac_trial_division(fac_caller *, int);
 static inline int fac_perfect_checker(fac_caller *);
 static inline int fac_primality_checker(fac_caller *);
 static inline int fac_pollard_rho_63_bits(fac_caller *);
-static inline void fac_push(fac_caller *, const cint *, int, int, int);
+static void fac_push(fac_caller *, const cint *, int, int, int);
 
 // Math
 static inline int is_prime_4669921(qs_sm);
@@ -280,14 +279,13 @@ static inline void iteration_part_5(qs_sheet *, const cint *, const cint *);
 static inline void iteration_part_6(qs_sheet *, const cint *, const cint *, const cint *, cint *);
 static inline void iteration_part_7(qs_sheet *, qs_sm, const qs_sm *);
 static inline void iteration_part_8(qs_sheet *, qs_sm, const qs_sm *);
-static inline int qs_register_factor(qs_sheet *);
+static int qs_register_factor(qs_sheet *);
 static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm * const [4]);
 static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm * const [4]);
 static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);
 static inline int finalization_part_3(qs_sheet *);
-
 
 // Quadratic sieve Lanczos part
 static inline void lanczos_mul_MxN_Nx64(const qs_sheet *, const uint64_t *, qs_sm, uint64_t *);
@@ -301,4 +299,5 @@ static void lanczos_combine_cols(qs_sheet *, uint64_t *, uint64_t *, uint64_t *,
 static inline void lanczos_build_array(qs_sheet *, uint64_t **, size_t, size_t);
 static inline uint64_t *lanczos_block_worker(qs_sheet *);
 static inline uint64_t * lanczos_block(qs_sheet *);
-#endif //QS_HEADERS
+
+#endif //FAC_HEADERS

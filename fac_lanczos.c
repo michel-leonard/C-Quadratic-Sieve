@@ -5,7 +5,7 @@
 
 // results of operations are last AND non-const arguments.
 
-static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, const qs_sm max_size, uint64_t *Y) {
+void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, const qs_sm max_size, uint64_t *Y) {
 	assert(Y != X);
 	memset(Y, 0, max_size * sizeof(uint64_t));
 	for (qs_sm a = 0, b ; a < qs->relations.length.now; ++a) {
@@ -15,7 +15,7 @@ static inline void lanczos_mul_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, c
 	}
 }
 
-static inline void lanczos_mul_trans_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, uint64_t *Y) {
+void lanczos_mul_trans_MxN_Nx64(const qs_sheet *qs, const uint64_t *X, uint64_t *Y) {
 	assert(Y != X);
 	for (qs_sm a = 0, b; a < qs->relations.length.now; ++a) {
 		struct qs_relation *const rel = qs->relations.data[a];
@@ -24,7 +24,7 @@ static inline void lanczos_mul_trans_MxN_Nx64(const qs_sheet *qs, const uint64_t
 	}
 }
 
-static void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const uint64_t *Y, uint64_t *Z, uint64_t *T) {
+void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const uint64_t *Y, uint64_t *Z, uint64_t *T) {
 	assert(X != Z && Y != Z);
 	qs_sm a, b, c, d;
 	memset(Z, 0, 256 * 8 * sizeof(*Z));
@@ -45,7 +45,7 @@ static void lanczos_mul_64xN_Nx64(const qs_sheet *qs, const uint64_t *X, const u
 	}
 }
 
-static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_s, uint64_t *s, uint64_t last_dim, uint64_t *w) {
+uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_s, uint64_t *s, uint64_t last_dim, uint64_t *w) {
 	uint64_t i, j, dim, cols[64];
 	uint64_t M[64][2], mask, *row_i, *row_j, m_0, m_1;
 	for (i = 0; i < 64; ++i)
@@ -113,7 +113,7 @@ static uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t 
 	return dim;
 }
 
-static void lanczos_mul_Nx64_64x64_acc(qs_sheet *qs, const uint64_t *X, const uint64_t *Y, uint64_t *Z, uint64_t *T) {
+void lanczos_mul_Nx64_64x64_acc(qs_sheet *qs, const uint64_t *X, const uint64_t *Y, uint64_t *Z, uint64_t *T) {
 	qs_sm a ;
 	uint64_t b, c, d, e ;
 	for (b = 0; b < 8; Y += 8, Z += 256, ++b)
@@ -127,7 +127,7 @@ static void lanczos_mul_Nx64_64x64_acc(qs_sheet *qs, const uint64_t *X, const ui
 		}
 }
 
-static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64_t *Z) {
+void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64_t *Z) {
 	uint64_t a, b, c, d, tmp[64];
 	for (a = 0; a < 64; tmp[a++] = c) {
 		for (b = 0, c = 0, d = X[a]; d; d >>= 1, ++b)
@@ -136,7 +136,7 @@ static void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64
 	memcpy(Z, tmp, sizeof(tmp));
 }
 
-static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
+void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
 	qs_sm a ; // Z will be zeroed automatically by the loop.
 	uint64_t b, c, d, * Z ;
 	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
@@ -145,7 +145,7 @@ static void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t *
 				Y[b][c] |= (Z[a] & 1) * d;
 }
 
-static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
+void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
 	qs_sm i, j, bit_pos, num_deps ;
 	uint64_t k, col, col_words ;
 	uint64_t mask, *mat_1[128], *mat_2[128], *tmp;
@@ -199,7 +199,7 @@ static void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_
 	qs->mem.now = memset(open, 0, close - open);
 }
 
-static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const size_t quantity, const size_t size){
+void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const size_t quantity, const size_t size){
 	// ensure it remains memory for linear algebra
 	const char * mem_needs = (char *)qs->mem.now + quantity * size * sizeof(uint64_t);
 	const char * mem_ends = (char *)qs->mem.now + qs->mem.bytes_allocated;
@@ -208,7 +208,7 @@ static inline void lanczos_build_array(qs_sheet *qs, uint64_t ** target, const s
 		target[i] = qs->mem.now, qs->mem.now = mem_aligned(target[i] + size);
 }
 
-static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
+uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	const qs_sm n_cols = qs->relations.length.now, v_size = n_cols > qs->base.length ? n_cols : qs->base.length;
 	const uint64_t safe_size = qs->lanczos.safe_length;
 	uint64_t *md[6], *xl[2], *sm[13], *tmp, *res, mask_0, mask_1, endless_guard = 1 << 10 ;
@@ -300,7 +300,7 @@ static inline uint64_t *lanczos_block_worker(qs_sheet *qs) {
 	return res;
 }
 
-static inline void lanczos_reduce_matrix(qs_sheet *qs) {
+void lanczos_reduce_matrix(qs_sheet *qs) {
 	// a filtering is not always necessary to make "lanczos_block_worker" succeed :
 	// - it writes to the relations [ Y lengths, relation counter ] will change
 	qs_sm a, b, c, row, col, reduced_rows = qs->base.length, *counts;
@@ -339,7 +339,7 @@ static inline void lanczos_reduce_matrix(qs_sheet *qs) {
 	} while (row != reduced_rows);
 }
 
-static inline uint64_t *lanczos_block(qs_sheet *qs) {
+uint64_t *lanczos_block(qs_sheet *qs) {
 	// the worker algorithm is probabilistic with high success rate
 	// it is interested in the Y field of the relations (to build its matrix)
 	// it receives as input the raw relations then the reduced relations
