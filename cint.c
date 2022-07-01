@@ -549,7 +549,7 @@ static void cint_cbrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem)
 			cint_left_shifti(a, 1);
 			h_cint_addi(a, res);
 			cint_mul(a, res, b);
-			++*b->mem;
+			++*b->mem; // "b" isn't "normalized", it should work for an addition.
 			h_cint_addi(b, a);
 			cint_dup(a, rem);
 			cint_right_shifti(a, c);
@@ -572,16 +572,17 @@ static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nt
 				cint *a = h_cint_tmp(sheet, 2, num),
 				*b = h_cint_tmp(sheet, 3, num),
 				*c = h_cint_tmp(sheet, 4, num),
-				*d = h_cint_tmp(sheet, 5, num), *r = res, *tmp;
+				*d = h_cint_tmp(sheet, 5, num),
+				*e = h_cint_tmp(sheet, 6, num), *r = res, *tmp;
 				cint_erase(a), *a->end++ = 1, cint_erase(d), *d->end++ = 1;
 				cint_left_shifti(a, (cint_count_bits(num) + nth - 1) / nth);
-				h_cint_addi(r, d);
+				h_cint_addi(r, d), cint_reinit(d, nth - 1), cint_reinit(e, nth);
 				do {
 					tmp = a, a = r, r = tmp, cint_dup(a, num);
 					for (unsigned count = nth; --count && (cint_div(sheet, a, r, b, c), tmp = a, a = b, b = tmp, a->mem != a->end););
-					*d->mem = nth - 1, cint_mul(r, d, b);
+					cint_mul(r, d, b);
 					h_cint_addi(b, a);
-					*d->mem = nth, cint_div(sheet, b, d, a, c);
+					cint_div(sheet, b, e, a, c);
 				} while (h_cint_compare(a, r) < 0);
 				r == res ? (void) 0 : cint_dup(res, tmp == a ? a : r);
 				res->nat = nth & 1 ? num->nat : 1;
@@ -645,7 +646,7 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 	// if the number of Miller-Rabin iteration is negative, the function decides for the caller.
 	int res;
 	if (*N->mem < 961 && N->mem + 1 >= N->end) {
-		int n = (int) *N->mem; // Small numbers for which Miller-Rabin is not used: returns either 1 or 0.
+		int n = (int) *N->mem; // Small numbers for which Miller-Rabin is not used.
 		res = (n > 1) & ((n < 6) * 42 + 0x208A2882) >> n % 30 && (n < 49 || (n % 7 && n % 11 && n % 13 && n % 17 && n % 19 && n % 23 && n % 29));
 	} else if(res = (*N->mem & 1) != 0, res && iterations) {
 		cint *A = h_cint_tmp(sheet, 5, N),
@@ -657,7 +658,7 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 		cint_dup(A, N);
 		cint_erase(B), *B->end++ = 1;
 		cint_subi(A, B);
-		cint_dup(C, A); // C = N - 1
+		cint_dup(C, A); // C = (N - 1)
 		a = cint_count_zeros(C);
 		cint_right_shifti(C, a); // divides C by 2 until C is odd
 		for (bits = 2; iterations-- && res;) {
@@ -668,7 +669,7 @@ int cint_is_prime(cint_sheet *sheet, const cint *N, int iterations) {
 				for (b = a; b-- && (res = h_cint_compare(A, B));)
 					cint_mul_modi(sheet, B, B, N);
 				res = !res;
-			}
+			} // only a prime number can hold (res = 1) forever
 		}
 	}
 	return res;

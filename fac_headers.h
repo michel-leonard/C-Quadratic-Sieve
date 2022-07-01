@@ -106,6 +106,7 @@ typedef struct {
 		cint C;
 		cint D ;
 		qs_sm d_bits ;
+		qs_sm offset ;
 		qs_sm min ;
 		qs_sm span ;
 		qs_sm span_half ;
@@ -167,7 +168,7 @@ typedef struct {
 		qs_sm *A_indexes;
 		struct {
 			cint B_terms;
-			qs_sm *double_A_inv_mul_B_terms;
+			qs_sm *A_inv_double_value_B_terms;
 			qs_sm A_over_prime_mod_prime;
 			qs_sm prime_index;
 			qs_md prime_squared ;
