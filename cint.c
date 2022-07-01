@@ -561,7 +561,7 @@ static void cint_cbrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem)
 }
 
 static void cint_nth_root(cint_sheet * sheet, const cint *num, const unsigned nth, cint *res) {
-	// original nth-root algorithm.
+	// original nth-root algorithm, it does not try to decompose "nth" into prime factors.
 	switch(nth){
 		case 0 : cint_reinit(res, num->end == num->mem + 1 && *num->mem == 1) ; break;
 		case 1 : cint_dup(res, num); break;
