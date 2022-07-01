@@ -522,7 +522,7 @@ static unsigned cint_remove(cint_sheet * sheet, cint *N, const cint *F) {
 
 static void cint_sqrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem) {
 	// original square root algorithm.
-	cint_erase(res), cint_dup(rem, num); // answer ** 2 + rem = cint
+	cint_erase(res), cint_dup(rem, num); // answer ** 2 + rem = num
 	if (num->nat > 0 && num->end != num->mem) {
 		cint *a = h_cint_tmp(sheet, 0, num), *b = h_cint_tmp(sheet, 1, num);
 		cint_erase(a), *a->end++ = 1;
@@ -540,7 +540,7 @@ static void cint_sqrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem)
 
 static void cint_cbrt(cint_sheet * sheet, const cint *num, cint *res, cint *rem) {
 	// original cube root algorithm.
-	cint_erase(res), cint_dup(rem, num); // answer ** 3 + rem = cint
+	cint_erase(res), cint_dup(rem, num); // answer ** 3 + rem = num
 	if (num->mem != num->end) {
 		cint *a = h_cint_tmp(sheet, 0, num), *b = h_cint_tmp(sheet, 1, num);
 		for (size_t c = cint_count_bits(num) / 3 * 3; c < -1U; c -= 3) {
@@ -623,6 +623,7 @@ static void cint_modular_inverse(cint_sheet * sheet, const cint * lhs, const cin
 		*e = h_cint_tmp(sheet, 6, rhs),
 		*f = h_cint_tmp(sheet, 7, rhs), *tmp, *out = res;
 		cint_dup(a, lhs), cint_dup(b, rhs), cint_erase(res), *res->end++ = 1, cint_erase(e);
+		a->nat = b->nat = 1 ;
 		int i = 0 ;
 		do{
 			cint_div(sheet, a, b, c, d);

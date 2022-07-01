@@ -117,7 +117,6 @@ typedef struct {
 	struct {
 		cint kN;
 		cint ONE;
-		cint SMALL_PRIME;
 		cint LARGE_PRIME;
 		cint MULTIPLIER;
 		cint M_HALF;
@@ -137,12 +136,12 @@ typedef struct {
 	qs_sm n_bits;
 	qs_sm kn_bits;
 	struct {
+		uint8_t **positions[2];
 		uint8_t *sieve;
+		uint8_t *flags;
 		qs_sm length;
 		qs_sm length_half;
-		qs_sm cache_size ;
-		uint8_t **positions[2];
-		uint8_t *flags;
+		qs_sm cache_size;
 	} m;
 	qs_sm iterative_list[6];
 	qs_sm error_bits;
@@ -157,8 +156,8 @@ typedef struct {
 		struct {
 			qs_sm num;
 			qs_sm size;
-			qs_sm sqrt;
-			qs_sm sol[2];
+			qs_sm kN_sqrt_mod_prime;
+			qs_sm root[2];
 		} *data;
 		qs_sm length;
 	} base;
@@ -168,7 +167,7 @@ typedef struct {
 		qs_sm *A_indexes;
 		struct {
 			cint B_terms;
-			qs_sm *A_inv_2B;
+			qs_sm *double_A_inv_mul_B_terms;
 			qs_sm A_over_prime_mod_prime;
 			qs_sm prime_index;
 			qs_md prime_squared ;
@@ -280,9 +279,9 @@ static inline void iteration_part_6(qs_sheet *, const cint *, const cint *, cons
 static inline void iteration_part_7(qs_sheet *, qs_sm, const qs_sm *);
 static inline void iteration_part_8(qs_sheet *, qs_sm, const qs_sm *);
 static int qs_register_factor(qs_sheet *);
-static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm * const [4]);
-static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm * const [4]);
 static inline void register_relations(qs_sheet *, const cint *, const cint *, const cint *);
+static inline void register_relation_kind_1(qs_sheet *, const cint *, const qs_sm * const restrict [4]);
+static inline void register_relation_kind_2(qs_sheet *, const cint *, const cint *, const qs_sm * const restrict [4]);
 static inline void finalization_part_1(qs_sheet *, const uint64_t *);
 static inline void finalization_part_2(qs_sheet *);
 static inline int finalization_part_3(qs_sheet *);
