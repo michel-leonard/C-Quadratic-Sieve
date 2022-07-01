@@ -116,19 +116,19 @@ int fac_trial_division(fac_caller *m, const int level) {
 	return res ;
 }
 
-int fac_any_root_check(fac_caller * m, const cint *N, cint *Q, cint *R){
-	// Can normally say if a number is a perfect power.
-	// It takes in account the trial divisions initially done.
+int fac_any_root_check(fac_caller * m, const cint *N, cint *ROOT, cint *REM){
+	// Can normally say if a number is a perfect power, it takes in account the trial divisions initially done.
+	// Indicates the lowest root found, not the highest, functions can call recursively if they are not "satisfied".
 	int res = 0 ;
 	const int max_root = 30 ;
 	for(int nth = 2; nth < max_root ; ++nth)
 		if (is_prime_4669921(nth)) {
-			cint_nth_root_remainder(m->calc, N, nth, Q, R);
-			if (R->mem == R->end){
+			cint_nth_root_remainder(m->calc, N, nth, ROOT, REM);
+			if (REM->mem == REM->end){
 				res = nth ;
 				break;
 			}
-			if (h_cint_compare(Q, &m->trial.cint) <= 0)
+			if (h_cint_compare(ROOT, &m->trial.cint) <= 0)
 				break;
 		}
 	return res ;

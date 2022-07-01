@@ -602,6 +602,7 @@ int qs_register_factor(qs_sheet * qs){
 					if (qs->n_bits == 1) res = -1;
 					else cint_dup(F, &qs->vars.N);
 				} else if (i++ == 0)
+					// the given number isn't prime, it's only registered with the known divisors of N.
 					qs->divisors.data[qs->divisors.length++] = node->key;
 			}
 	}
