@@ -179,7 +179,7 @@ The input **N is** duplicated and called "**kN**" after this function complete :
 
 *A **Knuth-Schroeppel** multiplier make the algorithm completes up to 2.5 times faster, 1.45 times on average.*
 
-*The quadratic sieve could factor number fewer than 120-bit without using two multipliers, this possibly interesting challenge is left to any keen developer.*
+*The quadratic sieve could factor number fewer than 120-bit without using two multipliers, this interesting challenge is left to developers.*
 
 ### qs_parametrize, preparation_part_4
 
@@ -198,7 +198,7 @@ There is a struct inside the **qs_sheet** (or manager) called **mem** :
 - one to store the relations that wait to be paired (partials)
 - one to store the known divisors of N
 
-With small precautions you are supposed to be able to store anything in **now**, then to update **now** accordingly to what you stored.  **now** is always supposed to contain only zero until its end. This is the main memory management technique used by this software.  `mem_align` aims to provide aligned pointers, wasting a few bits if necessary.
+With small precautions you are supposed to be able to store anything in **now**, then to update **now** accordingly to what you stored. **now** is always supposed to contain only zero until its end. This is the main memory management technique used by this software. `mem_align` aims to provide aligned pointers, wasting a few bits if necessary.
 
 ### preparation_part_5 .. 6
 Fill the manager's **base** array with prime numbers provided [by](https://stackoverflow.com/a/61895974/18765627) a constant expression :
