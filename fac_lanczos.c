@@ -49,15 +49,15 @@ uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_
 	uint64_t i, j, dim, cols[64];
 	uint64_t M[64][2], mask, *row_i, *row_j, m_0, m_1;
 	for (i = 0; i < 64; ++i)
-		M[i][0] = t[i], M[i][1] = 1LLU << i;
+		M[i][0] = t[i], M[i][1] = (uint64_t) 1 << i;
 	mask = 0;
 	for (i = 0; i < last_dim; ++i)
-		mask |= 1LLU << (cols[63 - i] = last_s[i]);
+		mask |= (uint64_t) 1 << (cols[63 - i] = last_s[i]);
 	for (i = j = 0; i < 64; ++i)
-		if (!(mask & (1LLU << i)))
+		if (!(mask & ((uint64_t) 1 << i)))
 			cols[j++] = i;
 	for (i = dim = 0; i < 64; ++i) {
-		mask = 1LLU << (cols[i]);
+		mask = (uint64_t) 1 << (cols[i]);
 		row_i = M[cols[i]];
 		for (j = i; j < 64; ++j) {
 			row_j = M[cols[j]];
@@ -68,7 +68,7 @@ uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_
 				row_j[1] = row_i[1];
 				row_i[0] = m_0;
 				row_i[1] = m_1;
-				break; // i = j = 64 ;
+				break;
 			}
 		}
 		if (j < 64) {
@@ -89,10 +89,10 @@ uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_
 				row_j[1] = row_i[1];
 				row_i[0] = m_0;
 				row_i[1] = m_1;
-				break; // i = j = 64 ;
+				break;
 			}
 		}
-		if (j == 64) return 0; // submatrix is not invertible
+		if (j == 64) return 0; // sub-matrix is not invertible
 
 		for (j = 0; j < 64; ++j) {
 			row_j = M[cols[j]];
@@ -106,10 +106,10 @@ uint64_t lanczos_find_non_singular_sub(const uint64_t *t, const uint64_t * last_
 		w[i] = M[i][1];
 	mask = 0;
 	for (i = 0; i < dim; ++i)
-		mask |= 1LLU << s[i];
+		mask |= (uint64_t) 1 << s[i];
 	for (i = 0; i < last_dim; ++i)
-		mask |= 1LLU << last_s[i];
-	dim *= mask == -1LLU;
+		mask |= (uint64_t) 1 << last_s[i];
+	dim *= mask == -(uint64_t) 1;
 	return dim;
 }
 
@@ -131,7 +131,7 @@ void lanczos_mul_64x64_64x64(const uint64_t *X, const uint64_t *Y, uint64_t *Z) 
 	uint64_t a, b, c, d, tmp[64];
 	for (a = 0; a < 64; tmp[a++] = c) {
 		for (b = 0, c = 0, d = X[a]; d; d >>= 1, ++b)
-				c ^= (d & 1) * Y[b];
+			c ^= (d & 1) * Y[b];
 	}
 	memcpy(Z, tmp, sizeof(tmp));
 }
@@ -141,8 +141,8 @@ void lanczos_transpose_vector(qs_sheet *qs, const uint64_t *X, uint64_t **Y) {
 	uint64_t b, c, d, * Z ;
 	Z = memcpy(qs->mem.now, X, qs->relations.length.now * sizeof(*X));
 	for (a = 0; a < qs->relations.length.now; ++a)
-		for (b = 0, c = a >> 6, d = 1LLU << (a % 64); Z[a]; Z[a] >>= 1, ++b)
-				Y[b][c] |= (Z[a] & 1) * d;
+		for (b = 0, c = a >> 6, d = (uint64_t) 1 << (a % 64); Z[a]; Z[a] >>= 1, ++b)
+			Y[b][c] |= (Z[a] & 1) * d;
 }
 
 void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, uint64_t *av) {
@@ -163,7 +163,7 @@ void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, 
 		lanczos_transpose_vector(qs, av, mat_2 + 64);
 	}
 	for (i = bit_pos = 0; i < num_deps && bit_pos < qs->relations.length.now; ++bit_pos) {
-		mask = 1LLU << (bit_pos % 64);
+		mask = (uint64_t) 1 << (bit_pos % 64);
 		col = bit_pos / 64;
 		for (j = i; j < num_deps; ++j)
 			if (mat_2[j][col] & mask) {
@@ -189,10 +189,10 @@ void lanczos_combine_cols(qs_sheet *qs, uint64_t *x, uint64_t *v, uint64_t *ax, 
 	for (j = 0; j < qs->relations.length.now; ++j) {
 		uint64_t word = 0;
 		col = j / 64;
-		mask = 1LLU << (j % 64);
+		mask = (uint64_t) 1 << (j % 64);
 		for (k = i; k < 64; ++k)
 			if (mat_1[k][col] & mask)
-				word |= 1LLU << k;
+				word |= (uint64_t) 1 << k;
 		x[j] = word;
 	}
 	char * open = (char*)mat_1[0], * close = qs->mem.now ;
@@ -240,18 +240,18 @@ uint64_t *lanczos_block_worker(qs_sheet *qs) {
 			if (dim_0) {
 				mask_0 = 0;
 				for (i = 0; i < dim_0; ++i)
-					mask_0 |= 1LLU << sm[11][i];
+					mask_0 |= (uint64_t) 1 << sm[11][i];
 				for (i = 0; i < 64; ++i)
 					sm[7][i] = (sm[5][i] & mask_0) ^ sm[3][i];
 				lanczos_mul_64x64_64x64(sm[0], sm[7], sm[7]);
 				for (i = 0; i < 64; ++i)
-					sm[7][i] ^= 1LLU << i;
+					sm[7][i] ^= (uint64_t) 1 << i;
 				lanczos_mul_64x64_64x64(sm[1], sm[3], sm[8]);
 				for (i = 0; i < 64; ++i)
 					sm[8][i] &= mask_0;
 				lanczos_mul_64x64_64x64(sm[4], sm[1], sm[9]);
 				for (i = 0; i < 64; ++i)
-					sm[9][i] ^= 1LLU << i;
+					sm[9][i] ^= (uint64_t) 1 << i;
 				lanczos_mul_64x64_64x64(sm[2], sm[9], sm[9]);
 				for (i = 0; i < 64; ++i)
 					sm[10][i] = ((sm[6][i] & mask_1) ^ sm[4][i]) & mask_0;
@@ -360,6 +360,8 @@ uint64_t *lanczos_block(qs_sheet *qs) {
 	do {
 		if (tries == reduce_at) // 230-bit can need reduce
 			lanczos_reduce_matrix(qs);
+		// Try to find a subset of all exponent vectors such that
+		// the sum of their exponent vectors is the zero vector.
 		res = lanczos_block_worker(qs);
 	} while (!*res && --tries);
 	return res;

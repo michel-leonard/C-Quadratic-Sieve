@@ -160,7 +160,7 @@ static void cint_reinit_by_double(cint *num, const double value) {
 	uint64_t ex = (memory << 1 >> 53) - 1023, m_1 = 1ULL << 52;
 	if (ex < 1024) {
 		h_cint_t m_2 = 1 << ex % cint_exponent;
-		num->nat *= 1 - ((value < 0) << 1);
+		num->nat *= (value > 0) - (value < 0);
 		num->end = 1 + num->mem + ex / cint_exponent;
 		h_cint_t *n = num->end;
 		for (*(n - 1) |= m_2; --n >= num->mem; m_2 = cint_base)
@@ -213,7 +213,7 @@ static void cint_rescale(cint *num, const size_t bits) {
 }
 
 static inline cint * h_cint_tmp(cint_sheet * sheet, const int id, const cint * least){
-	// request at least the double of "least" to perform multiplication then modulo...
+	// request at least the double of "least" to allow performing multiplication then modulo...
 	size_t required = (1 + least->end - least->mem) << 1 ;
 	if (sheet->temp[id].size <= required) {
 		required = (1 + ((required * cint_exponent) >> 10)) << 10 ;
@@ -406,7 +406,6 @@ static void cint_div(cint_sheet * sheet, const cint *lhs, const cint *rhs, cint 
 				cint_addi(q, b), cint_mul(b, rhs, a), h_cint_subi(r, a);
 			if (r->end != r->mem && r->nat != lhs->nat) // lhs = q * rhs + r
 				cint_reinit(b, q->nat), h_cint_subi(q, b), h_cint_subi(r, rhs);
-
 		}
 	} else cint_erase(r), *q->end++ = 1 ;
 	if (lhs->nat != rhs->nat) // Signs

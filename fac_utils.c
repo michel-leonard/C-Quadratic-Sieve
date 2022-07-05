@@ -31,7 +31,7 @@ fac_cint **c_factor(const cint *N, fac_params *config) {
 	m.number->power = 1, m.number->prime = -1 ;
 
 	m.mem.now = mem ;
-	// iterates the sieve until it's empty, begin with the input N.
+	// iterates the array until it's empty, begin with the input N.
 	// functions must not push their input to the stack, they return 0 instead.
 	do {
 		m.number = &m.questions.data[--m.questions.index];
@@ -402,8 +402,8 @@ char *fac_fill_params(fac_params *params, int argc, char **args) {
 		char *s = args[i];
 		for (; *s && !(*s >= '1' && *s <= '9') && !(*s >= 'a' && *s <= 'z'); ++s);
 		if (*s >= 'a' && *s <= 'z') {
-			int a =
-					fac_apply_custom_param("limit=", s, 1, &params->qs_limit) // add command line parameters...
+			int a = // add command line parameters...
+					fac_apply_custom_param("limit=", s, 1, &params->qs_limit)
 					|| fac_apply_custom_param("testing=", s, 1, &params->testing)
 					|| fac_apply_custom_param("silent=", s, 1, &params->silent)
 					|| fac_apply_custom_param("multiplier=", s, 1, &params->qs_multiplier)

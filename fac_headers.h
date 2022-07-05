@@ -5,8 +5,8 @@
 #include <stddef.h>
 
 // Quadratic sieve integers.
-typedef int32_t qs_sm; // small size, like a factor base prime number (32-bit)
-typedef int64_t qs_md; // medium size, like a factor base prime number squared (64-bit)
+typedef uint32_t qs_sm; // small size, like a factor base prime number (32-bit)
+typedef uint64_t qs_md; // medium size, like a factor base prime number squared (64-bit)
 typedef int64_t qs_tmp; // signed type to perform intermediates computations.
 
 // The factorization manager (calls the quadratic sieve)
@@ -144,7 +144,7 @@ typedef struct {
 		qs_sm length_half;
 		qs_sm cache_size;
 	} m;
-	qs_sm iterative_list[6];
+	qs_sm iterative_list[5];
 	qs_sm error_bits;
 	struct{
 		qs_sm value ;
@@ -157,7 +157,7 @@ typedef struct {
 		struct {
 			qs_sm num;
 			qs_sm size;
-			qs_sm kN_sqrt_mod_prime;
+			qs_sm sqrt_kN_mod_prime;
 			qs_sm root[2];
 		} *data;
 		qs_sm length;
