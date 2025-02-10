@@ -177,7 +177,7 @@ The software using a Quadratic Sieve is evaluated against RSA integers :
 For every additional 3 decimal digits (or 10 bits) to the input number, the factorization duration roughly doubles.
 
 ### Performance in the lab
-  - Successfully factors RSA numbers greater than 300 bits.
+  - [Successfully](https://github.com/michel-leonard/C-Quadratic-Sieve/discussions/8#discussion-7939649) factors RSA numbers greater than 300 bits.
   - Factored the **321-bit RSA** number related to the [bank card case](https://www.enseignement.polytechnique.fr/profs/informatique/Eric.Goubault/Cours09/qs.pdf).
   - Factored [RSA-100](https://en.wikipedia.org/wiki/RSA_numbers#RSA-100), a 330-bit number.
 
