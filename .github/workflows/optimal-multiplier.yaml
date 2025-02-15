@@ -106,3 +106,4 @@ jobs:
           if [[ "$failed_tests" -eq "$total_tests" ]]; then
             echo "🚨 All tests failed! Marking job as failed."
             exit 1
+          fi
