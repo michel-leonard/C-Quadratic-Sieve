@@ -86,8 +86,7 @@ jobs:
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
           find  
-          cat ./times/execution-times-*/times.txt
-          cat ./times/execution-times-*/times.txt >> $GITHUB_ENV
+          cat ./times/execution-times-*/times.txt | eval            
           failed_tests=0
           total_tests=0
           for bit in 120 130 140 150 160; do
