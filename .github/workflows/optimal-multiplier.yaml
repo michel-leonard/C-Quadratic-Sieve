@@ -58,10 +58,10 @@ jobs:
           last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log)
           if [[ "$last_line" == *"verified"* ]]; then
             exec_time=$((end_time - start_time))
-            echo "✅ Math test passed for bits=${{ matrix.bits }}"
+            echo "✅ Test passed successfully for bit length ${{ matrix.bits }}"
           else
             exec_time=0
-            echo "❌ Math test failed for bits=${{ matrix.bits }} - setting execution time to 0"
+            echo "❌ Test failed for bit length ${{ matrix.bits }} - execution time set to 0"
           fi
 
           echo $exec_time >> times.txt
@@ -92,15 +92,17 @@ jobs:
             t_0=$(head -n 1 ./times/execution-times-0-$bit/times.txt)
             t_1=$(head -n 1 ./times/execution-times-1-$bit/times.txt)
             if [[ "$t_0" -eq 0 || "$t_1" -eq 0 ]]; then
-              echo "⚠️ Skipping bits=$bit (factorization failed)"
+              echo "⚠️ Skipping bit length $bit due to factorization failure"
               failed_tests=$((failed_tests + 1))
             else
               ratio=$(echo "scale=2; $t_1 / $t_0" | bc)
               if (( $(echo "$ratio >= 1.5" | bc -l) )); then
-                echo "✅ Passed! At $bit bits the multiplier speeds up things by $ratio ($t_0 s vs $t_1 s)"
+                echo "✅ Success! At $bit bits, the multiplier improved performance by a factor of $ratio (${t_0}s vs ${t_1}s)"
               else
-                echo "❌ Test failed at $bit bits: Unexpected execution time ratio of $ratio."
+                echo "❌ Failure at $bit bits: Unexpected execution time ratio of $ratio."
               fi
             fi
           done
-
+          if [[ "$failed_tests" -eq "$total_tests" ]]; then
+            echo "🚨 All tests failed! Marking job as failed."
+            exit 1
