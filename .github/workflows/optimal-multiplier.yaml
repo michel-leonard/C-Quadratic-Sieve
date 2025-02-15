@@ -44,7 +44,7 @@ jobs:
         run: |
           bits=${{ matrix.bits }}
           chmod 0700 ./factor
-          ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 1000)) --rand-seed 0
+          ./factor --demand $bits $((bits + 10)) $((170 - bits)) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
@@ -79,20 +79,13 @@ jobs:
     
     steps:
       - name: 📥 Download execution times
-        run: |
-          mkdir -p times
-          for multiplier in 0 1; do
-            for bit in 120 130 140 150 160; do
-              artifact_name="execution-times-${multiplier}-${bit}"
-              gh run download --name "$artifact_name" --dir times || echo "⚠️ Skipping missing artifact: $artifact_name"
-            done
-          done
-
-      - name: 🕒 Load execution times into environment
-        run: find; cat times/* >> $GITHUB_ENV
+        uses: actions/download-artifact@v4
+        with:
+          path: times
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
+          cat times/* >> $GITHUB_ENV
           failed_tests=0
           total_tests=0
 
