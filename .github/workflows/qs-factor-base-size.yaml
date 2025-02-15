@@ -26,7 +26,6 @@ jobs:
         run: |
           ./factor -i demand.txt --verbose 4 2>&1 | tee output-normal.log
           BASE_SIZE=$(grep -oP 'The factor base of \K\d+' output-normal.log)
-          echo "Base size: $BASE_SIZE"
           echo "BASE_SIZE=$BASE_SIZE" >> $GITHUB_ENV
 
       - name: 🔍 Run factorization with 10% smaller base size
@@ -34,12 +33,14 @@ jobs:
           SMALL_BASE=$(echo "scale=0; $BASE_SIZE * 0.9 / 1" | bc)
           echo "Using smaller base size: $SMALL_BASE"
           ./factor -i demand.txt --verbose 4 --qs-base-size $SMALL_BASE 2>&1 | tee output-small.log
+          echo "SMALL_BASE=$SMALL_BASE" >> $GITHUB_ENV
 
       - name: 🔍 Run factorization with 10% larger base size
         run: |
           LARGE_BASE=$(echo "scale=0; $BASE_SIZE * 1.1 / 1" | bc)
           echo "Using larger base size: $LARGE_BASE"
           ./factor -i demand.txt --verbose 4 --qs-base-size $LARGE_BASE 2>&1 | tee output-large.log
+          echo "LARGE_BASE=$LARGE_BASE" >> $GITHUB_ENV
 
       - name: 📊 Compare execution times
         run: |
