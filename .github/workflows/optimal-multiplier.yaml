@@ -97,4 +97,5 @@ jobs:
               failed_tests=$((failed_tests + 1))
               continue
             fi
+          done
             
