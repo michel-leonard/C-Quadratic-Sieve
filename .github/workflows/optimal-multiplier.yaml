@@ -64,7 +64,7 @@ jobs:
             echo "❌ Test failed for bits=${{ matrix.bits }} - setting execution time to 0"
           fi
 
-          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bits }}=$exec_time" >> times.txt
+          echo $exec_time >> times.txt
 
       - name: 📤 Upload execution times
         uses: actions/upload-artifact@v4
@@ -85,14 +85,12 @@ jobs:
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
-          find  
-          cat ./times/execution-times-*/times.txt | eval            
           failed_tests=0
           total_tests=0
           for bit in 120 130 140 150 160; do
             total_tests=$((total_tests + 1))
-            time0=$(printenv MY_TIME_0_$bit)
-            time1=$(printenv MY_TIME_1_$bit)
+            time0=$(head -n 1 ./times/execution-times-0-$bit/times.txt)
+            time1=$(head -n 1 ./times/execution-times-1-$bit/times.txt)
             if [[ "$time0" -eq 0 || "$time1" -eq 0 ]]; then
               echo "⚠️ Skipping bits=$bit (factorization failed)"
               failed_tests=$((failed_tests + 1))
