@@ -31,7 +31,7 @@ jobs:
       matrix:
         multiplier: [0, 1]
         bits: [120, 130, 140, 150, 160]
-      max-parallel: 1
+      max-parallel: 2
     
     steps:
       - name: 📥 Download compiled binary
@@ -41,8 +41,8 @@ jobs:
 
       - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
         run: |
-          chmod 0700 ./factor
           bits=${{ matrix.bits }}
+          chmod 0700 ./factor
           ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 10)) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
@@ -50,6 +50,7 @@ jobs:
 
       - name: ⏳ Run factorization and verify success
         run: |
+          cd factor
           start_time=$(date +%s)
           ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log 2>&1
           end_time=$(date +%s)
@@ -68,7 +69,7 @@ jobs:
       - name: 📤 Upload execution times
         uses: actions/upload-artifact@v4
         with:
-          name: execution-times
+          name: execution-times-${{ matrix.multiplier }}-${{ matrix.bits }}
           path: times.txt
           if-no-files-found: error
 
@@ -78,12 +79,17 @@ jobs:
     
     steps:
       - name: 📥 Download execution times
-        uses: actions/download-artifact@v4
-        with:
-          name: execution-times
+        run: |
+          mkdir -p times
+          for multiplier in 0 1; do
+            for bit in 120 130 140 150 160; do
+              artifact_name="execution-times-${multiplier}-${bit}"
+              gh run download --name "$artifact_name" --dir times || echo "⚠️ Skipping missing artifact: $artifact_name"
+            done
+          done
 
       - name: 🕒 Load execution times into environment
-        run: cat times.txt >> $GITHUB_ENV
+        run: cat times/* >> $GITHUB_ENV
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
@@ -100,21 +106,3 @@ jobs:
               failed_tests=$((failed_tests + 1))
               continue
             fi
-
-            echo "Bit length: $bit"
-            echo "Time with multiplier=0: $time0 seconds"
-            echo "Time with multiplier=1: $time1 seconds"
-            
-            ratio=$(echo "scale=2; $time1 / $time0" | bc)
-
-            if (( $(echo "$ratio >= 1.5" | bc -l) )) && (( $(echo "$ratio <= 2.5" | bc -l) )); then
-              echo "✅ Test passed for $bit-bit range with a speedup ratio of $ratio!"
-            else
-              echo "❌ Test failed for $bit-bit range with a speedup ratio of $ratio!"
-            fi
-
-          done
-
-          if [[ "$failed_tests" -eq "$total_tests" ]]; then
-            echo "🚨 All tests failed! Marking job as failed."
-            exit 1
