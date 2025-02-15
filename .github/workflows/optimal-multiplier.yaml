@@ -85,7 +85,7 @@ jobs:
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
-          cat times/* >> $GITHUB_ENV
+          cat times/execution-times-*/* >> $GITHUB_ENV
           failed_tests=0
           total_tests=0
 
