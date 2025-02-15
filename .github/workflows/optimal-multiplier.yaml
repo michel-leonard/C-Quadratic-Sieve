@@ -21,6 +21,7 @@ jobs:
       - name: 📤 Upload compiled binary
         uses: actions/upload-artifact@v4
         with:
+          retention-days: 1
           name: factor-binary
           path: factor
 
@@ -43,7 +44,7 @@ jobs:
         run: |
           bits=${{ matrix.bits }}
           chmod 0700 ./factor
-          ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 10)) --rand-seed 0
+          ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 1000)) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
@@ -88,7 +89,7 @@ jobs:
           done
 
       - name: 🕒 Load execution times into environment
-        run: cat times/* >> $GITHUB_ENV
+        run: find; cat times/* >> $GITHUB_ENV
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
