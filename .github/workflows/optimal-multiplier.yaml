@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         multiplier: [0, 1]
-        bit_length: [120, 130, 140, 150, 160]
+        bits: [120, 130, 140, 150, 160]
       max-parallel: 2
     
     steps:
@@ -28,8 +28,8 @@ jobs:
       - name: ⚙️ Compile the program
         run: gcc -Wall -pedantic -O2 -march=native -std=c99 main.c -o factor
 
-      - name: 📜 Generate demand.txt for bit_length=${{ matrix.bit_length }}
-        run: ./factor --demand ${{ matrix.bit_length }} $((matrix.bit_length + 10)) $((70 - (matrix.bit_length - 120) / 10)) --rand-seed 0
+      - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
+        run: ./factor --demand ${{ matrix.bits }} $((matrix.bits + 10)) $((70 - (matrix.bits - 120) / 10)) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
@@ -37,19 +37,19 @@ jobs:
       - name: ⏳ Run factorization and verify success
         run: |
           start_time=$(date +%s)
-          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bit_length }}.log 2>&1
+          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log 2>&1
           end_time=$(date +%s)
           
-          last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bit_length }}.log)
+          last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log)
           if [[ "$last_line" == *"verified"* ]]; then
             exec_time=$((end_time - start_time))
-            echo "✅ Test passed for bit_length=${{ matrix.bit_length }}"
+            echo "✅ Test passed for bits=${{ matrix.bits }}"
           else
             exec_time=0
-            echo "❌ Test failed for bit_length=${{ matrix.bit_length }} - setting execution time to 0"
+            echo "❌ Test failed for bits=${{ matrix.bits }} - setting execution time to 0"
           fi
 
-          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bit_length }}=$exec_time" >> $GITHUB_ENV
+          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bits }}=$exec_time" >> $GITHUB_ENV
 
   compare-times:
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
             time1=$(printenv MY_TIME_1_$bit)
 
             if [[ "$time0" -eq 0 || "$time1" -eq 0 ]]; then
-              echo "⚠️ Skipping bit_length=$bit (factorization failed)"
+              echo "⚠️ Skipping bits=$bit (factorization failed)"
               failed_tests=$((failed_tests + 1))
               continue
             fi
