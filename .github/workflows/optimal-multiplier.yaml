@@ -1,23 +1,13 @@
 name: Optimal multiplier
 
-# Tu peux lire ça ?
-# ChatGPT ?
-# Si oui, on va placer un commentaire expliquant l'objectif de la tâche ici.
-
 on:
   schedule:
     - cron: "8 14 * * 3"
   workflow_dispatch:
 
 jobs:
-  optimal-multiplier:
+  compile:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        multiplier: [0, 1]
-        bits: [120, 130, 140, 150, 160]
-      max-parallel: 2
-    
     steps:
       - name: 📥 Clone the repository
         uses: actions/checkout@v4
@@ -27,6 +17,27 @@ jobs:
 
       - name: ⚙️ Compile the program
         run: gcc -Wall -pedantic -O2 -march=native -std=c99 main.c -o factor
+
+      - name: 📤 Upload compiled binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: factor-binary
+          path: factor
+
+  optimal-multiplier:
+    runs-on: ubuntu-latest
+    needs: compile
+    strategy:
+      matrix:
+        multiplier: [0, 1]
+        bits: [120, 130, 140, 150, 160]
+      max-parallel: 2
+    
+    steps:
+      - name: 📥 Download compiled binary
+        uses: actions/download-artifact@v4
+        with:
+          name: factor-binary
 
       - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
         run: |
@@ -51,13 +62,28 @@ jobs:
             echo "❌ Test failed for bits=${{ matrix.bits }} - setting execution time to 0"
           fi
 
-          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bits }}=$exec_time" >> $GITHUB_ENV
+          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bits }}=$exec_time" >> times.txt
+
+      - name: 📤 Upload execution times
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-times
+          path: times.txt
+          if-no-files-found: error
 
   compare-times:
     runs-on: ubuntu-latest
     needs: optimal-multiplier
     
     steps:
+      - name: 📥 Download execution times
+        uses: actions/download-artifact@v4
+        with:
+          name: execution-times
+
+      - name: 🕒 Load execution times into environment
+        run: cat times.txt >> $GITHUB_ENV
+
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
           failed_tests=0
@@ -81,16 +107,13 @@ jobs:
             ratio=$(echo "scale=2; $time1 / $time0" | bc)
 
             if (( $(echo "$ratio >= 1.5" | bc -l) )) && (( $(echo "$ratio <= 2.5" | bc -l) )); then
-              echo -n "✅ Test passed for $bit-bit range"
+              echo "✅ Test passed for $bit-bit range with a speedup ratio of $ratio!"
             else
-              echo -n "❌ Test failed for $bit-bit range"
+              echo "❌ Test failed for $bit-bit range with a speedup ratio of $ratio!"
             fi
-
-            echo " with a speedup ratio of $ratio !"
 
           done
 
           if [[ "$failed_tests" -eq "$total_tests" ]]; then
             echo "🚨 All tests failed! Marking job as failed."
             exit 1
-          fi
