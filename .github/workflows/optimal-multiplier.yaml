@@ -41,7 +41,7 @@ jobs:
 
       - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
         run: |
-          find
+          chmod 0700 ./factor
           bits=${{ matrix.bits }}
           ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 10)) --rand-seed 0
 
