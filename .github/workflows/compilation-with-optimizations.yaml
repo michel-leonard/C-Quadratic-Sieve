@@ -1,0 +1,49 @@
+name: Compilation with optimizations
+
+on:
+  schedule:
+    - cron: "3 11 * * 2"
+  workflow_dispatch:
+
+jobs:
+  compilation-with-optimizations:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Clone the repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install GCC
+        run: which gcc || sudo apt-get update && sudo apt-get install -y gcc
+
+      - name: ⚙️ Compile the program with -O0
+        run: gcc -Wall -pedantic -O0 -std=c99 main.c -o factor_O0
+
+      - name: ⚙️ Compile the program with -O1
+        run: gcc -Wall -pedantic -O1 -std=c99 main.c -o factor_O1
+
+      - name: ⚙️ Compile the program with -O2
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor_O2
+
+      - name: ⚙️ Compile the program with -O3
+        run: gcc -Wall -pedantic -O3 -std=c99 main.c -o factor_O3
+
+      - name: ⚙️ Compile the program with -Ofast
+        run: gcc -Wall -pedantic -Ofast -std=c99 main.c -o factor_Ofast
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor_O3 --demand 120 170 --rand-seed 0
+
+      - name: 🚀 Run factorization with different optimizations
+        run: |
+          for opt in O0 O1 O2 O3 Ofast; do
+            echo "Running factor_$opt..."
+            /usr/bin/time -f "Execution time: %E" ./factor_$opt -i demand.txt --output-csv --verbose 3 > output_$opt.log 2>&1
+          done
+
+      - name: 📄 Display the execution times
+        run: |
+          for opt in O0 O1 O2 O3 Ofast; do
+            echo -n "Compilation flag -$opt "
+            grep "Execution time" output_$opt.log || echo "No time recorded."
+          done

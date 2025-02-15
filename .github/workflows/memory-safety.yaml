@@ -1,0 +1,83 @@
+name: Memory safety
+
+on:
+  schedule:
+    - cron: "16 22 * * 5"
+  workflow_dispatch:
+
+jobs:
+  memory-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install GCC
+        run: |
+          gcc || sudo apt-get update && sudo apt-get install -y gcc
+
+      - name: Install Valgrind
+        run: |
+          valgrind || sudo apt-get update && sudo apt-get install -y valgrind
+
+      - name: Compile the software
+        run: |
+          gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+          
+      - name: Install Python dependencies
+        run: pip3 install sympy
+        
+      - name: Generate demand.txt
+        run: |
+          python3 - <<EOF
+          import random
+          import sympy
+          
+          random_numbers = []
+          
+          primes = list(sympy.primerange(1, 1501))
+          n = 1
+          for p in primes:
+              n *= p
+          
+          random_numbers.append(n)
+          
+          num_samples = 6
+          min_bits, max_bits = 120, 125
+          
+          for exp in range(2, 8):
+              for _ in range(num_samples):
+                  n = random.getrandbits(random.randint(min_bits, max_bits))
+                  if n % 2 == 0:
+                      n += 1
+                  random_numbers.append(n**exp)
+          
+          with open("demand.txt", "w") as f:
+              for num in random_numbers:
+                  f.write(str(num) + "\n")
+          
+          print("Fichier demand.txt ready.")
+          EOF
+
+      - name: Run factorization with Valgrind
+        run: |
+          valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./factor -i demand.txt -c -v 3 2> valgrind-output.txt
+
+      - name: Check for memory leaks
+        run: |
+          if grep -q "no leaks are possible" valgrind-output.txt; then
+            echo "No memory leaks detected."
+          else
+            echo "Memory leaks detected!"
+            cat valgrind-output.txt
+            exit 1
+          fi
+
+      - name: Verify output
+        run: |
+          if grep -q "completely accurate and verified" valgrind-output.txt; then
+            echo "Output successfully verified."
+          else
+            echo "Output verification failed."
+            exit 1
+          fi

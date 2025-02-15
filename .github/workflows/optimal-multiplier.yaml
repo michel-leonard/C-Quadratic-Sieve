@@ -1,0 +1,86 @@
+name: Optimal multiplier
+
+# This job tests two different multipliers in the quadratic sieve.
+# - When the multiplier is 0, the algorithm selects it automatically.
+# - When the multiplier is 1, we explicitly disable its use.
+#
+# The goal of this test is to demonstrate that the algorithm 
+# naturally selects an efficient multiplier when left to decide.
+#
+# If the test fails, it may indicate that the automatic selection 
+# does not perform optimally or that there is an issue with 
+# the multiplier handling in the sieve implementation.
+
+on:
+  schedule:
+    - cron: "8 14 * * 3"
+  workflow_dispatch:
+
+jobs:
+  optimal-multiplier:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        multiplier: [0, 1]
+    
+    steps:
+      - name: 📥 Clone the repository
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install GCC
+        run: which gcc || sudo apt-get update && sudo apt-get install -y gcc
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor --demand 150 170 --rand-seed 0
+
+      - name: ⏳ Run the factorization with multiplier=${{ matrix.multiplier }}
+        run: |
+          start_time=$(date +%s)
+          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}.log 2>&1
+          end_time=$(date +%s)
+          echo "Execution time: $((end_time - start_time)) seconds" > time.log
+
+      - name: 📤 Upload execution time log
+        uses: actions/upload-artifact@v4
+        with:
+          name: time-logs-${{ matrix.multiplier }}
+          path: time.log
+
+      - name: 🔎 Display "Maintenance" messages and the next line
+        run: |
+          grep -FA 1 "Maintenance" merged-output-${{ matrix.multiplier }}.log || echo "No maintenance message."
+
+      - name: ✅ Check that the last line is "verified"
+        run: |
+          tail -n 1 merged-output-${{ matrix.multiplier }}.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
+
+      - name: 📄 Display the contents of merged-output-${{ matrix.multiplier }}.log
+        run: cat merged-output-${{ matrix.multiplier }}.log
+
+  compare-times:
+    runs-on: ubuntu-latest
+    needs: optimal-multiplier
+
+    steps:
+      - name: 📥 Download execution time logs
+        uses: actions/download-artifact@v4
+        with:
+          path: times
+
+      - name: 🕒 Retrieve execution times
+        run: |
+          time0=$(cat times/time-logs-0/time.log | awk '{print $3}')
+          time1=$(cat times/time-logs-1/time.log | awk '{print $3}')
+          echo "Time with multiplier=0: $time0 seconds"
+          echo "Time with multiplier=1: $time1 seconds"
+          ratio=$(echo "scale=2; $time1 / $time0" | bc)
+          echo "Speedup ratio: $ratio"
+          if (( $(echo "$ratio >= 1.5" | bc -l) )) && (( $(echo "$ratio <= 2.5" | bc -l) )); then
+            echo "✅ Test passed: multiplier=0 is approximately twice as fast as multiplier=1."
+          else
+            echo "❌ Test failed: Unexpected execution time ratio."
+            exit 1
+          fi

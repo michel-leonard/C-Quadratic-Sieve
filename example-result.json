@@ -1,0 +1,3827 @@
+[
+    {
+        "input": "55",
+        "factors": [
+            {
+                "num": "5",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "85",
+        "factors": [
+            {
+                "num": "5",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "17",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "169",
+        "factors": [
+            {
+                "num": "13",
+                "power": 2,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "275",
+        "factors": [
+            {
+                "num": "5",
+                "power": 2,
+                "prime": true
+            },
+            {
+                "num": "11",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "779",
+        "factors": [
+            {
+                "num": "19",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "41",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1271",
+        "factors": [
+            {
+                "num": "31",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "41",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3737",
+        "factors": [
+            {
+                "num": "37",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "101",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "7379",
+        "factors": [
+            {
+                "num": "47",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "157",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "13289",
+        "factors": [
+            {
+                "num": "97",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "137",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "27857",
+        "factors": [
+            {
+                "num": "89",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "313",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "62857",
+        "factors": [
+            {
+                "num": "239",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "263",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "111343",
+        "factors": [
+            {
+                "num": "23",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "47",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "103",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "135169",
+        "factors": [
+            {
+                "num": "29",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "59",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "79",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "343487",
+        "factors": [
+            {
+                "num": "389",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "883",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "835781",
+        "factors": [
+            {
+                "num": "877",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "953",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1268699",
+        "factors": [
+            {
+                "num": "71",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "107",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "167",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3414841",
+        "factors": [
+            {
+                "num": "17",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "37",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "61",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "89",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "8118989",
+        "factors": [
+            {
+                "num": "1109",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7321",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "15868351",
+        "factors": [
+            {
+                "num": "149",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "281",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "379",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "26010311",
+        "factors": [
+            {
+                "num": "179",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "331",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "439",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "55818863",
+        "factors": [
+            {
+                "num": "4861",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11483",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "77088283",
+        "factors": [
+            {
+                "num": "233",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "373",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "887",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "178597589",
+        "factors": [
+            {
+                "num": "71",
+                "power": 3,
+                "prime": true
+            },
+            {
+                "num": "499",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "452798453",
+        "factors": [
+            {
+                "num": "71",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "101",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "233",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "271",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1003954967",
+        "factors": [
+            {
+                "num": "1003954967",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2039538691",
+        "factors": [
+            {
+                "num": "30911",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "65981",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2639856253",
+        "factors": [
+            {
+                "num": "733",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "947",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3803",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6797606549",
+        "factors": [
+            {
+                "num": "157",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "197",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "271",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "811",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "14891737001",
+        "factors": [
+            {
+                "num": "69151",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "215351",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "32376854717",
+        "factors": [
+            {
+                "num": "82903",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "390539",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "42090624179",
+        "factors": [
+            {
+                "num": "163561",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "257339",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "82575721939",
+        "factors": [
+            {
+                "num": "143243",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "576473",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "262392705061",
+        "factors": [
+            {
+                "num": "506533",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "518017",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "286514610097",
+        "factors": [
+            {
+                "num": "284651",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1006547",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "971951993923",
+        "factors": [
+            {
+                "num": "647303",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1501541",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1646550567377",
+        "factors": [
+            {
+                "num": "767623",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2144999",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3403953245543",
+        "factors": [
+            {
+                "num": "1658807",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2052049",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5368407867919",
+        "factors": [
+            {
+                "num": "1738621",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3087739",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "15251649836309",
+        "factors": [
+            {
+                "num": "3735541",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4082849",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "29741031950783",
+        "factors": [
+            {
+                "num": "2712329",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "10965127",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "35193788441179",
+        "factors": [
+            {
+                "num": "4669549",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7536871",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "137810622175711",
+        "factors": [
+            {
+                "num": "8306609",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16590479",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "168572527331063",
+        "factors": [
+            {
+                "num": "12751049",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "13220287",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "384160898836529",
+        "factors": [
+            {
+                "num": "8695879",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "44177351",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "953256466876157",
+        "factors": [
+            {
+                "num": "21800321",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "43726717",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2037671991129457",
+        "factors": [
+            {
+                "num": "23347417",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "87276121",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4268084382942221",
+        "factors": [
+            {
+                "num": "36037829",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "118433449",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "7884056240824943",
+        "factors": [
+            {
+                "num": "45720473",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "172440391",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "9705727417356601",
+        "factors": [
+            {
+                "num": "116969",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "212183",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "391063",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "24837677531181667",
+        "factors": [
+            {
+                "num": "133717",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "319343",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "581657",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "71680881484450033",
+        "factors": [
+            {
+                "num": "185021147",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "387419939",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "89581849919112157",
+        "factors": [
+            {
+                "num": "195655147",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "457855831",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "195376496743752659",
+        "factors": [
+            {
+                "num": "441552193",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "442476563",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "553618274006830969",
+        "factors": [
+            {
+                "num": "278753441",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1986050009",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "998547889339705819",
+        "factors": [
+            {
+                "num": "566971",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "979031",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1798919",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1585941090609035047",
+        "factors": [
+            {
+                "num": "897473",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "905693",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1951123",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3345569280173505337",
+        "factors": [
+            {
+                "num": "1821667633",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1836542089",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6215264027227750141",
+        "factors": [
+            {
+                "num": "1570877281",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3956556061",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "12750900537316952953",
+        "factors": [
+            {
+                "num": "2875791463",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4433875231",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "29918393324344732309",
+        "factors": [
+            {
+                "num": "2514187679",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11899824971",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "41387583680098561559",
+        "factors": [
+            {
+                "num": "4835628373",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "8558884283",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "135965758816897179631",
+        "factors": [
+            {
+                "num": "5309161441",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "25609648591",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "157022265456778678057",
+        "factors": [
+            {
+                "num": "9761926253",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16085172269",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "543089834817680407921",
+        "factors": [
+            {
+                "num": "9866709289",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "55042650889",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "845612209365947808511",
+        "factors": [
+            {
+                "num": "27523965929",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "30722760359",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1215119145650334097669",
+        "factors": [
+            {
+                "num": "27279705127",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "44542972147",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2577433668250037587219",
+        "factors": [
+            {
+                "num": "48593330369",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "53040893651",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6144906495559724821847",
+        "factors": [
+            {
+                "num": "54435903871",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "112883337257",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "17676807389093909506123",
+        "factors": [
+            {
+                "num": "85913999071",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "205750024213",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "23399630531480924028353",
+        "factors": [
+            {
+                "num": "92287735367",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "253550815159",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "52086716643959417732953",
+        "factors": [
+            {
+                "num": "144783206549",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "359756617397",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "99360040183107798350393",
+        "factors": [
+            {
+                "num": "270220112501",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "367700387893",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "246685731128980982090821",
+        "factors": [
+            {
+                "num": "298620522961",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "826084318261",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "311528853571461228884971",
+        "factors": [
+            {
+                "num": "52277851",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "60855791",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "97921631",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "636923170741876502842283",
+        "factors": [
+            {
+                "num": "673676176339",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "945444106697",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1921140840721237218613037",
+        "factors": [
+            {
+                "num": "816703100537",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2352312412501",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4236602126433178727754143",
+        "factors": [
+            {
+                "num": "2010429981403",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2107311453581",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "9357825339441965577968167",
+        "factors": [
+            {
+                "num": "2001492574943",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4675423459769",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "11786332229102101145118559",
+        "factors": [
+            {
+                "num": "3283116092327",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3589983387017",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "24077469516382820567411651",
+        "factors": [
+            {
+                "num": "3250444877423",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7407438189037",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "72588888091075716155528543",
+        "factors": [
+            {
+                "num": "248418211",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "368265671",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "793460803",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "117065450351616368941179521",
+        "factors": [
+            {
+                "num": "5748372662693",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "20364972353197",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "248674022213346810253824187",
+        "factors": [
+            {
+                "num": "10817746884911",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "22987598513717",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "581289797761242784690249217",
+        "factors": [
+            {
+                "num": "16807475044669",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "34585194755093",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "910313656328519450820341989",
+        "factors": [
+            {
+                "num": "28760640972827",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "31651368868607",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2334861228566887667876887187",
+        "factors": [
+            {
+                "num": "760894223",
+                "power": 2,
+                "prime": true
+            },
+            {
+                "num": "4032854003",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2742414971357923699736309911",
+        "factors": [
+            {
+                "num": "799937837",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1330614107",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2576468329",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6453072997502382244657848137",
+        "factors": [
+            {
+                "num": "1367271517",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1434971467",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3289035383",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "10511772447406078616597574449",
+        "factors": [
+            {
+                "num": "1660615681",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1886428679",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3355570951",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "30334054211511225235666819537",
+        "factors": [
+            {
+                "num": "95995114710757",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "315995811900541",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "56684218526521505220531240247",
+        "factors": [
+            {
+                "num": "2346052847",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3223887847",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7494530783",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "98889226721618459930614281719",
+        "factors": [
+            {
+                "num": "14000477",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "15043949",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16738669",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "28049387",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "253254595392311983559167246169",
+        "factors": [
+            {
+                "num": "302959936137059",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "835934277718291",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "431806025231615807205429339059",
+        "factors": [
+            {
+                "num": "4302756629",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "8486734301",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11825004371",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "775815978854559807581593993801",
+        "factors": [
+            {
+                "num": "765245134821899",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1013813670354299",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2243514438085212308950680733799",
+        "factors": [
+            {
+                "num": "4309404181",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "20382157981",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "25542386759",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4260060338026208187445748616749",
+        "factors": [
+            {
+                "num": "1281095692138729",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3325325628809381",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5899946252472889152040335074693",
+        "factors": [
+            {
+                "num": "16785563",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "20166229",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "120125437",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "145095007",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "19678165901145235927488712180747",
+        "factors": [
+            {
+                "num": "47939743",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "52857599",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "78234361",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "99262211",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "24974434291114475560497641508659",
+        "factors": [
+            {
+                "num": "22608052393",
+                "power": 2,
+                "prime": true
+            },
+            {
+                "num": "48861788291",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "44335660977822600299677415892491",
+        "factors": [
+            {
+                "num": "23662174021",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "37123936519",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "50471303609",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "145022304658503634107765292927877",
+        "factors": [
+            {
+                "num": "7222352854393679",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "20079648222985963",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "265488337730920478518816449089633",
+        "factors": [
+            {
+                "num": "10894891338251329",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "24368149207583777",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "410480832483375178833664047498127",
+        "factors": [
+            {
+                "num": "10855302531965663",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "37813854682965329",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "745014578751813063619209103164229",
+        "factors": [
+            {
+                "num": "24511514166676679",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "30394473947458451",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1866628939729729264884915484770199",
+        "factors": [
+            {
+                "num": "29556055000565017",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "63155551026483247",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3643475312283260924458295803666459",
+        "factors": [
+            {
+                "num": "38050863837291559",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "95752762088741101",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6796809853648283777803014045038893",
+        "factors": [
+            {
+                "num": "49594136033759507",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "137048659321771199",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "19552004483167530774733989981303613",
+        "factors": [
+            {
+                "num": "82801756663681621",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "236130310164583753",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "32171440944085218744795362740779539",
+        "factors": [
+            {
+                "num": "153562851829",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "306340484323",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "683880073517",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "49634069414400585021725112719215111",
+        "factors": [
+            {
+                "num": "168816045942979403",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "294012747053472437",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "137795442750628357084434791538190327",
+        "factors": [
+            {
+                "num": "192004913242695557",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "717666232720065611",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "299907327612456712066877923414516169",
+        "factors": [
+            {
+                "num": "546488509270798687",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "548789814469539287",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "337116901383104903981395360320814277",
+        "factors": [
+            {
+                "num": "541652511945625097",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "622385928151934941",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "803951167823260892749698752490088411",
+        "factors": [
+            {
+                "num": "884066811202174949",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "909378293174504639",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1542203187695430133089756092872987571",
+        "factors": [
+            {
+                "num": "775329971281",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "946063278283",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2102494355177",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3503493574384421516875085905912989217",
+        "factors": [
+            {
+                "num": "591528629191",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2316928603189",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2556306389083",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5454594328401208326965181286617992959",
+        "factors": [
+            {
+                "num": "11160089",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "19332493",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "21345277",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "23200897",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "51050543",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "12440283234605373409064355108764693437",
+        "factors": [
+            {
+                "num": "3414357443848173341",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3643521054604193057",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "28214518856728570586531001643955422501",
+        "factors": [
+            {
+                "num": "3933269840819908601",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7173298552749973901",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "45075059309725788367595628977629138411",
+        "factors": [
+            {
+                "num": "2489329360423",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2586823110881",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6999825492797",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "144845569882618223332265035745275831183",
+        "factors": [
+            {
+                "num": "8368016852839619779",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "17309426167499415877",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "221331024823510427617860262232563022207",
+        "factors": [
+            {
+                "num": "2730573429173",
+                "power": 2,
+                "prime": true
+            },
+            {
+                "num": "29684830620983",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "383769197475670989079301192831375202661",
+        "factors": [
+            {
+                "num": "15119824359718453451",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "25381855525920749711",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1063388809999442829387087910644902445239",
+        "factors": [
+            {
+                "num": "27454049816587764661",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "38733404255606115899",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2475006346843482187837521589950709482689",
+        "factors": [
+            {
+                "num": "26811383057838976819",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "92311774499072412731",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3645150994282265739821245590060208479977",
+        "factors": [
+            {
+                "num": "9693748519921",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11976907357307",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "31396344360091",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5653152863742628074174423141748044195601",
+        "factors": [
+            {
+                "num": "6430334791",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7251477397",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "10742798509",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11285302807",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "11455842194237878588595176215334447044041",
+        "factors": [
+            {
+                "num": "90305255733517166929",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "126856871188572423929",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "42593785192075307161436788419251709319903",
+        "factors": [
+            {
+                "num": "28434060513641",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "32922281484601",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "45500632017983",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "66792488633746578695275354847443702975411",
+        "factors": [
+            {
+                "num": "186970438690431484421",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "357235556067424431191",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "122424311280183579071235066356623563460193",
+        "factors": [
+            {
+                "num": "30683766547549",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "34119610614503",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "116937803893219",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "284178822852338251817620753223192141923729",
+        "factors": [
+            {
+                "num": "444976179704557085617",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "638638281808746272737",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "690040703112145993580867154442032883533211",
+        "factors": [
+            {
+                "num": "52141513859737",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "104913084565711",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "126142495034173",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "871705115460427238411563484532670942360321",
+        "factors": [
+            {
+                "num": "53741735809499",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "62853062348579",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "258066399440401",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1751832886979668702453924550084295462540529",
+        "factors": [
+            {
+                "num": "60271640662169",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "136728815188463",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "212578633484407",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3129059016877672977133748382732856120250323",
+        "factors": [
+            {
+                "num": "1539824237013602428027",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2032088430395339751049",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "10301771139491350835303179891288064932246739",
+        "factors": [
+            {
+                "num": "2130231392483693169299",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4835986914773724730561",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "15901563097714645719480799739977189829509873",
+        "factors": [
+            {
+                "num": "2833456990026427992917",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5612071456770667245869",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "25261644426713274982490443068799585485416209",
+        "factors": [
+            {
+                "num": "4699332227808571829369",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5375581721425445206361",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "84343231159669204423847921700232558351137689",
+        "factors": [
+            {
+                "num": "5415477548475797482117",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "15574477117610405690117",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "118420565695105192161430032031511139538789487",
+        "factors": [
+            {
+                "num": "228665382259603",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "548116322120291",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "944830653616519",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "250105146920460580180769524392395377015204447",
+        "factors": [
+            {
+                "num": "11327932321574394883103",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "22078622984366498150849",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "581247387533633662740074693053905050372065349",
+        "factors": [
+            {
+                "num": "14557965970053100539247",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "39926414770394847171467",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1380205884219947145432276015794695543666780009",
+        "factors": [
+            {
+                "num": "1027242065515321",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1084813385781649",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1238557129957921",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1662263163122261924061007880036956415507945563",
+        "factors": [
+            {
+                "num": "28309884528861420907277",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "58716705870969355654919",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4713705488363487866882073710089954493005881623",
+        "factors": [
+            {
+                "num": "918240852637151",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1973626811633149",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2601002665842877",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "7039811828581093234447979880001644481916650021",
+        "factors": [
+            {
+                "num": "49965004343786169139321",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "140894850726788538866701",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "11921338766456447873573249483810864719828178071",
+        "factors": [
+            {
+                "num": "93114552125606830721269",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "128028739808307982032859",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "42939630231237709950990486559098221809660325303",
+        "factors": [
+            {
+                "num": "188256662309",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "229896791977",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "728679938407",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1361564506453",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "46264888287966680293426988114743809349305787669",
+        "factors": [
+            {
+                "num": "202878103107236890818403",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "228042788153988608214823",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "169048683558892540219892112286184063000198226599",
+        "factors": [
+            {
+                "num": "215113662281380905853381",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "785857493968780312499579",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "227742699827450167396891510036678121111179142683",
+        "factors": [
+            {
+                "num": "2733463693638719",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "8449161608540897",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "9860922325674181",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "657881573347585889336089113542340258189265844273",
+        "factors": [
+            {
+                "num": "600803936972790605018639",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1095002101122017504374207",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1190289425480849925760379772094566525740985961511",
+        "factors": [
+            {
+                "num": "820034170168959450003881",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1451511984233051238865231",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2276358371933617840219826379916593324142450567763",
+        "factors": [
+            {
+                "num": "550447261739",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "697355374747",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2165917100213",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2737971585647",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4909944821632418307163945472205783235701876624143",
+        "factors": [
+            {
+                "num": "15613861298127401",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "17302555789437077",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "18174230682679259",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "9946558706111841819444481702434200458508606678831",
+        "factors": [
+            {
+                "num": "9139214321187541",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "31534084774584529",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "34513083125922179",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "15595959935439352029270078681845521702642588944601",
+        "factors": [
+            {
+                "num": "2837959705087880642473441",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5495483218975586347616761",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "34402050511839838086411070936204351479940758299191",
+        "factors": [
+            {
+                "num": "4605320512506784299767261",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7470066506427365388708131",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "70483677360836606309509657509333067677582747139147",
+        "factors": [
+            {
+                "num": "1499267114687",
+                "power": 2,
+                "prime": true
+            },
+            {
+                "num": "4111906074061",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7625833844983",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "186849036711039114790045468328107563176841314895841",
+        "factors": [
+            {
+                "num": "5636387573",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6903825223",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "10683465341",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16683857797",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "26939628427",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "237459247256575550033927467497607754839162478092189",
+        "factors": [
+            {
+                "num": "10372416787035153585944747",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "22893338373500780064233687",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "419587976447132884964122222715390830831005182645173",
+        "factors": [
+            {
+                "num": "17740866792983307614025629",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "23650928747916881751846137",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "838131874696820940449232990436737833890151024385139",
+        "factors": [
+            {
+                "num": "21010703571303443270825957",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "39890709602011945545239927",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2054135299022003614080928872815586405106080864742639",
+        "factors": [
+            {
+                "num": "75699655640684921",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "109004907528538999",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "248936793393762641",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "4587388611047761162030048942331222184057385264470851",
+        "factors": [
+            {
+                "num": "12258423239",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "12776989297",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "27072846733",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "30136774793",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "35898118913",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "7807002669058390455560040087900062567102814580192063",
+        "factors": [
+            {
+                "num": "65413351913203630550189299",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "119348763527932796168412037",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "14702191333735173598524226932843774121606227681879181",
+        "factors": [
+            {
+                "num": "103787308237598084993635289",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "141656928803642913531382229",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "38806196590254066150806592150021667274431927864551593",
+        "factors": [
+            {
+                "num": "12961127143",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "25399936391",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "31164625277",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "56064401891",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "67464697423",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "72748332847579466081861070648458655253308108793099343",
+        "factors": [
+            {
+                "num": "9657153722107",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "14434111144501",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16361819225189",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "31897178261941",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "144638220176628474805022823318073858730720819021947589",
+        "factors": [
+            {
+                "num": "175600997126093059226740193",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "823675392189081505010569573",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "210345102199083487052662120948084007643791669235534829",
+        "factors": [
+            {
+                "num": "514834526778939383",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "600776620901375371",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "680067022255758353",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "538198790657599648013779835440842257953404656851596187",
+        "factors": [
+            {
+                "num": "27822891571",
+                "power": 3,
+                "prime": true
+            },
+            {
+                "num": "120245815187",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "207809767691",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1160474675309000701433001774072587238945034016808286829",
+        "factors": [
+            {
+                "num": "44001123143",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "44935008289",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "65828232971",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "84973448603",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "104928058579",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2324119548019477266013310236482366597418224906150846497",
+        "factors": [
+            {
+                "num": "598745000896428833",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1279643455583938943",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3033385337734779263",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5696773140610201876277220210696796985782645824881460121",
+        "factors": [
+            {
+                "num": "1289182071099248951696370833",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4418905031585433974164032137",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "6219386668160451855630124085146666978226234082685557539",
+        "factors": [
+            {
+                "num": "1270435637532900161",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1766759254675505177",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2770878708913568987",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "16819649779278516852543451137653020523038312647624135227",
+        "factors": [
+            {
+                "num": "2540545369950234904955003543",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6620487859899146796239099389",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "41294929144878755565153977428822087016053023786035919001",
+        "factors": [
+            {
+                "num": "58442990055343",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "66699187869079",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "94758270385613",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "111796093223141",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "57666820520838259976391215619804962997562389989666474749",
+        "factors": [
+            {
+                "num": "6499081389561460360618504643",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "8873072525828062295135175743",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "146737065408524704384937896219101897627010925369639222611",
+        "factors": [
+            {
+                "num": "6045532011097407138416056441",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "24271985515777370636466563371",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "368750776113909529017022326423866450790980519037808786943",
+        "factors": [
+            {
+                "num": "49162345382489",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "104514064224571",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "219152303601593",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "327476072402429",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "478043878093868816451844246399579572125993511426959132699",
+        "factors": [
+            {
+                "num": "19093081559414137358026678583",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "25037544442801687711830446653",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "968161807324057430137004187657103239046155742550012413361",
+        "factors": [
+            {
+                "num": "5840825106481864327",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "11125180953717191143",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "14899327295728741601",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1600220903629325887442488170409981442927869333766966678623",
+        "factors": [
+            {
+                "num": "26078017060609850585598528629",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "61362829079762237497140925187",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3643209273620604713083101503167023426310589320313499989021",
+        "factors": [
+            {
+                "num": "8114961736526086829",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "12809285088045746437",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "35048767524477494077",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "11444903062461620550503417309525816834490652435954084580513",
+        "factors": [
+            {
+                "num": "162484178757349",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "176478266632643",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "443799324652763",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "899338472583293",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "24259118308648323267149689091284654051175198000707425708247",
+        "factors": [
+            {
+                "num": "162477577077791",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "305840445071741",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "316978417301951",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1540128539878787",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "41838590342678897666594707345330355484210596393425562832881",
+        "factors": [
+            {
+                "num": "89048885326129716909866303561",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "469838450974996673532172182121",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "67603350215594784212197626045973573500113318600693893321123",
+        "factors": [
+            {
+                "num": "168888620190525929236676339329",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "400283631539711635721001815587",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "165088890794930209491448614058907711052907811297491021113989",
+        "factors": [
+            {
+                "num": "30533453336348290123",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "68977892990882298457",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "78384826168145992199",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "276095703593417550402249509707368562705957189003748966780621",
+        "factors": [
+            {
+                "num": "595157833",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6774002357",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16176908827",
+                "power": 4,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "732156962933674515368190511665254242775206080996569375314643",
+        "factors": [
+            {
+                "num": "461617564149757",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "560634507684917",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1443805176732857",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1959446687674571",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1491980244891554169885792250365312096860854207745912418058487",
+        "factors": [
+            {
+                "num": "501932028397307",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "660383879017519",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1982823436392091",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2270061678548929",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1873135617044442808026714176518925518455731497731361986972077",
+        "factors": [
+            {
+                "num": "1147557575354860776847245664261",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1632280294489982826954497637257",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "3871451441637890401394477504716759568611465988343012154299599",
+        "factors": [
+            {
+                "num": "113274680508114018037",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "117304480761008269613",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "291357612050795590879",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "11468472167452011189167432595017424345384703420216778444847659",
+        "factors": [
+            {
+                "num": "565099428020383",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1274859995848771",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3574821152050537",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4453114733297999",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "22359370198280502131056194072273963255197712116586049164598033",
+        "factors": [
+            {
+                "num": "1049232498450371",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1480945238655107",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3793363110494717",
+                "power": 2,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "48475756749402740035311168919529821246059713817256486803968021",
+        "factors": [
+            {
+                "num": "1362010374888773",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2250234284267209",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3193858923805787",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4952228960195819",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "60898083103573209285120324329863436184103011387089791458293131",
+        "factors": [
+            {
+                "num": "169041167304526530203",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "331347809207020143121",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1087244040804060915137",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "200805433240477720513195903161364759863628724512004101380361837",
+        "factors": [
+            {
+                "num": "10140553183331302759317463452373",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "19802216862345821339015004819769",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "227319668791263705520044120160960712454514273754891029588012457",
+        "factors": [
+            {
+                "num": "10832278629408970950798287356031",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "20985397123565929251683738009047",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "411947509813799855205744357928809379106489442566957165887116257",
+        "factors": [
+            {
+                "num": "1421138532041",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2163970194889",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2693484720551",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6657928899133",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "7469654647571",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1170153993205419809589385644339319119401700944912158129151818019",
+        "factors": [
+            {
+                "num": "31392363129492503579421886787359",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "37275116510935212216224048015741",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "2038444204914981191765042992629336897140686611041288526023691089",
+        "factors": [
+            {
+                "num": "31429565372848856085045664361587",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "64857537186178766502335573269547",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "5374540582717118817821600428349228348693609117503364722158386329",
+        "factors": [
+            {
+                "num": "4598721222744703",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5061889720999273",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "12348125834553337",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "18697801181492743",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "7727686752320028156763871159191331486961773957462229389404822091",
+        "factors": [
+            {
+                "num": "2827841299301",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "4376405682293",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5825972188951",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "6542093567543",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "16382936381059",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "15578285972111744298245221651349888899545962625908930993814421529",
+        "factors": [
+            {
+                "num": "121171796074145248909571937705769",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "128563630125440758028182361565041",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "30441980866272082158772753995717773612491678235214452504634922471",
+        "factors": [
+            {
+                "num": "1447428671082991409191",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3740716297092413061923",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "5622389980935538479947",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "65823974334958432248586947190358844202442551242094067032950609181",
+        "factors": [
+            {
+                "num": "807670823",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "825590741",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1786188269",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1824138689",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "2611093603",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3311829737",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "3503558417",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "186331688364205024568960221905712191298334524032151550836013008921",
+        "factors": [
+            {
+                "num": "75629951",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "80560243",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "81666619",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "83451143",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "217152049",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "246872519",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "249492589",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "335506499",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "234926800946290795556598467458554982347032685442518762544728333071",
+        "factors": [
+            {
+                "num": "11807258585667997",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "14378895688771063",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "23753109704722253",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "58255573559153137",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "714963983238301101449758780270371010061566791702889999142975007877",
+        "factors": [
+            {
+                "num": "470604103569077665624483727024713",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1519247235236560254373485928462429",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    },
+    {
+        "input": "1169586329222935678575066725976811495307334066618462292041655819727",
+        "factors": [
+            {
+                "num": "1028487084149818157395192212447139",
+                "power": 1,
+                "prime": true
+            },
+            {
+                "num": "1137191071475394247770989833272293",
+                "power": 1,
+                "prime": true
+            }
+        ]
+    }
+]
