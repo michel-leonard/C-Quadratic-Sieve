@@ -49,6 +49,7 @@ jobs:
 
       - name: ⏳ Run factorization and verify success
         run: |
+          
           start_time=$(date +%s)
           ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log 2>&1
           end_time=$(date +%s)
