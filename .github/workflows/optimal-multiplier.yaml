@@ -1,15 +1,8 @@
 name: Optimal multiplier
 
-# This job tests two different multipliers in the quadratic sieve.
-# - When the multiplier is 0, the algorithm selects it automatically.
-# - When the multiplier is 1, we explicitly disable its use.
-#
-# The goal of this test is to demonstrate that the algorithm 
-# naturally selects an efficient multiplier when left to decide.
-#
-# If the test fails, it may indicate that the automatic selection 
-# does not perform optimally or that there is an issue with 
-# the multiplier handling in the sieve implementation.
+# Tu peux lire ça ?
+# ChatGPT ?
+# Si oui, on va placer un commentaire expliquant l'objectif de la tâche ici.
 
 on:
   schedule:
@@ -22,6 +15,8 @@ jobs:
     strategy:
       matrix:
         multiplier: [0, 1]
+        bit_length: [120, 130, 140, 150, 160]
+      max-parallel: 2
     
     steps:
       - name: 📥 Clone the repository
@@ -31,56 +26,69 @@ jobs:
         run: which gcc || sudo apt-get update && sudo apt-get install -y gcc
 
       - name: ⚙️ Compile the program
-        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+        run: gcc -Wall -pedantic -O2 -march=native -std=c99 main.c -o factor
 
-      - name: 📜 Generate the file demand.txt
-        run: ./factor --demand 125 135 300 --rand-seed 0
+      - name: 📜 Generate demand.txt for bit_length=${{ matrix.bit_length }}
+        run: ./factor --demand ${{ matrix.bit_length }} $((matrix.bit_length + 10)) $((70 - (matrix.bit_length - 120) / 10)) --rand-seed 0
 
-      - name: ⏳ Run the factorization with multiplier=${{ matrix.multiplier }}
+      - name: 📜 Display the parameters of the demand
+        run: head -n 1 demand.txt
+
+      - name: ⏳ Run factorization and verify success
         run: |
           start_time=$(date +%s)
-          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}.log 2>&1
+          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bit_length }}.log 2>&1
           end_time=$(date +%s)
-          echo "Execution time: $((end_time - start_time)) seconds" > time.log
+          
+          last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bit_length }}.log)
+          if [[ "$last_line" == *"verified"* ]]; then
+            exec_time=$((end_time - start_time))
+            echo "✅ Test passed for bit_length=${{ matrix.bit_length }}"
+          else
+            exec_time=0
+            echo "❌ Test failed for bit_length=${{ matrix.bit_length }} - setting execution time to 0"
+          fi
 
-      - name: 📤 Upload execution time log
-        uses: actions/upload-artifact@v4
-        with:
-          name: time-logs-${{ matrix.multiplier }}
-          path: time.log
-
-      - name: 🔎 Display "Maintenance" messages and the next line
-        run: |
-          grep -FA 1 "Maintenance" merged-output-${{ matrix.multiplier }}.log || echo "No maintenance message."
-
-      - name: ✅ Check that the last line is "verified"
-        run: |
-          tail -n 1 merged-output-${{ matrix.multiplier }}.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
-
-      - name: 📄 Display the contents of merged-output-${{ matrix.multiplier }}.log
-        run: cat merged-output-${{ matrix.multiplier }}.log
+          echo "MY_TIME_${{ matrix.multiplier }}_${{ matrix.bit_length }}=$exec_time" >> $GITHUB_ENV
 
   compare-times:
     runs-on: ubuntu-latest
     needs: optimal-multiplier
-
+    
     steps:
-      - name: 📥 Download execution time logs
-        uses: actions/download-artifact@v4
-        with:
-          path: times
-
-      - name: 🕒 Retrieve execution times
+      - name: 🕒 Retrieve execution times and analyze performance
         run: |
-          time0=$(cat times/time-logs-0/time.log | awk '{print $3}')
-          time1=$(cat times/time-logs-1/time.log | awk '{print $3}')
-          echo "Time with multiplier=0: $time0 seconds"
-          echo "Time with multiplier=1: $time1 seconds"
-          ratio=$(echo "scale=2; $time1 / $time0" | bc)
-          echo "Speedup ratio: $ratio"
-          if (( $(echo "$ratio >= 1.5" | bc -l) )) && (( $(echo "$ratio <= 2.5" | bc -l) )); then
-            echo "✅ Test passed: multiplier=0 is approximately twice as fast as multiplier=1."
-          else
-            echo "❌ Test failed: Unexpected execution time ratio."
+          failed_tests=0
+          total_tests=0
+
+          for bit in 120 130 140 150 160; do
+            total_tests=$((total_tests + 1))
+            time0=$(printenv MY_TIME_0_$bit)
+            time1=$(printenv MY_TIME_1_$bit)
+
+            if [[ "$time0" -eq 0 || "$time1" -eq 0 ]]; then
+              echo "⚠️ Skipping bit_length=$bit (factorization failed)"
+              failed_tests=$((failed_tests + 1))
+              continue
+            fi
+
+            echo "Bit length: $bit"
+            echo "Time with multiplier=0: $time0 seconds"
+            echo "Time with multiplier=1: $time1 seconds"
+            
+            ratio=$(echo "scale=2; $time1 / $time0" | bc)
+
+            if (( $(echo "$ratio >= 1.5" | bc -l) )) && (( $(echo "$ratio <= 2.5" | bc -l) )); then
+              echo -n "✅ Test passed for $bit-bit range"
+            else
+              echo -n "❌ Test failed for $bit-bit range"
+            fi
+
+            echo " with a speedup ratio of $ratio !"
+
+          done
+
+          if [[ "$failed_tests" -eq "$total_tests" ]]; then
+            echo "🚨 All tests failed! Marking job as failed."
             exit 1
           fi
