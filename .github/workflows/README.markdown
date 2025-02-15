@@ -10,7 +10,7 @@
 [![Small Numbers Factorization](https://github.com/michel-leonard/C-Quadratic-Sieve/actions/workflows/small-numbers.yml/badge.svg)](https://github.com/michel-leonard/C-Quadratic-Sieve/actions/workflows/small-numbers.yml)
 
 ## Introduction
-The project is progressing well, and several GitHub Actions workflows have been implemented to automate essential tasks. These workflows ensure code quality, project portability, and result reliability.
+The project is progressing well, and several GitHub Actions (version 4) workflows have been implemented to automate essential tasks. These workflows ensure code quality, project portability, and result reliability.
 
 Each workflow can be triggered manually via `workflow_dispatch`, but scheduled runs (`schedule`) are also defined. These scheduled executions help ensure, with a slight delay, that everything continues to function correctly over time.
 
@@ -39,3 +39,6 @@ On average, workflows take about **1 minute** to execute, with some heavier work
 
 These workflows provide continuous monitoring of the project's proper functioning and performance. They also help quickly identify potential regressions.
 
+## Production Readiness
+
+The software has successfully factorized hundreds of thousands of numbers over multiple days with minimal difficulties. Any encountered issues were promptly addressed and resolved. As of now, this software is considered **production ready** as a **single-thread stateless factorizer**.
