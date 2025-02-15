@@ -19,12 +19,12 @@ On average, workflows take about **1 minute** to execute, with some heavier work
 ## Workflow Categories
 
 ### **Regression Prevention**
-- **Cross-Platform Testing** - Ensures compatibility across different operating systems.
+- **Cross-Platform Testing** - Ensures compatibility across different operating systems (Ubuntu, macOS, Windows).
 - **Memory Safety** - Detects potential memory leaks using Valgrind.
 - **JSON and CSV Output Generation** - Validates correctness of output formats.
 
 ### **Deployment Assurance**
-- **Compilation with Optimizations** - Verifies compilation and execution performance.
+- **Compilation with Optimizations** - Verifies compilation and execution performance using both GCC and Clang.
 - **Small Numbers Factorization** - Ensures basic correctness with small inputs.
 
 ### **Performance Evaluation**
