@@ -88,14 +88,13 @@ jobs:
           cat times/execution-times-*/* >> $GITHUB_ENV
           failed_tests=0
           total_tests=0
-
           for bit in 120 130 140 150 160; do
             total_tests=$((total_tests + 1))
             time0=$(printenv MY_TIME_0_$bit)
             time1=$(printenv MY_TIME_1_$bit)
-
             if [[ "$time0" -eq 0 || "$time1" -eq 0 ]]; then
               echo "⚠️ Skipping bits=$bit (factorization failed)"
               failed_tests=$((failed_tests + 1))
               continue
             fi
+            
