@@ -14,31 +14,23 @@ The project is progressing well, and several GitHub Actions workflows have been 
 
 Each workflow can be triggered manually via `workflow_dispatch`, but scheduled runs (`schedule`) are also defined. These scheduled executions help ensure, with a slight delay, that everything continues to function correctly over time.
 
-## List of Workflows
+On average, workflows take about **1 minute** to execute, with some heavier workflows like **Cross-Platform Testing** and **Optimal Multiplier Selection** taking **2 to 3 minutes**.
 
-### 1. Compilation with Optimizations
-Compiles the program with different optimization levels (`-O0`, `-O1`, `-O2`, `-O3`, `-Ofast`) and compares execution times to assess their impact.
+## Workflow Categories
 
-### 2. Cross-Platform Testing
-Verifies the project's compatibility by compiling and testing on **Ubuntu, macOS, and Windows**. Integrity checks are performed by comparing SHA256 hashes of results across systems.
+### **Regression Prevention**
+- **Cross-Platform Testing** - Ensures compatibility across different operating systems.
+- **Memory Safety** - Detects potential memory leaks using Valgrind.
+- **JSON and CSV Output Generation** - Validates correctness of output formats.
 
-### 3. JSON and CSV Output Generation
-Tests the generation of results in JSON and CSV formats while validating their accuracy using a Python script.
+### **Deployment Assurance**
+- **Compilation with Optimizations** - Verifies compilation and execution performance.
+- **Small Numbers Factorization** - Ensures basic correctness with small inputs.
 
-### 4. Large Numbers Factorization
-Tests the factorization of large numbers while monitoring performance and ensuring validated results.
-
-### 5. Medium-Sized Numbers Factorization
-Similar to the previous workflow but applied to a smaller range of numbers.
-
-### 6. Memory Safety
-Uses **Valgrind** to detect potential memory leaks during program execution.
-
-### 7. Optimal Multiplier Selection
-Evaluates the impact of the `qs-multiplier` parameter by comparing performance across different number sizes.
-
-### 8. Small Numbers Factorization
-Runs the program on smaller numbers to validate its correct operation in this context.
+### **Performance Evaluation**
+- **Large Numbers Factorization** - Measures performance with large inputs.
+- **Medium-Sized Numbers Factorization** - Tests intermediate workloads.
+- **Optimal Multiplier Selection** - Evaluates the impact of the `qs-multiplier` parameter.
 
 ## Using the Workflows
 - To trigger a workflow manually, go to the **Actions** tab in the GitHub repository and select **Run workflow**.
@@ -46,3 +38,4 @@ Runs the program on smaller numbers to validate its correct operation in this co
 - In case of failure, check the error messages and adjust the code or workflow parameters as needed.
 
 These workflows provide continuous monitoring of the project's proper functioning and performance. They also help quickly identify potential regressions.
+
