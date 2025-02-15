@@ -32,7 +32,7 @@ jobs:
       matrix:
         multiplier: [0, 1]
         bits: [120, 130, 140, 150, 160]
-      max-parallel: 2
+      max-parallel: 1
     
     steps:
       - name: 📥 Download compiled binary
@@ -44,7 +44,7 @@ jobs:
         run: |
           bits=${{ matrix.bits }}
           chmod 0700 ./factor
-          ./factor --demand $bits $((bits + 10)) $((70 - bits)) --rand-seed 0
+          ./factor --demand $bits $((bits + 10)) $((660 -  8 * bits + 25 * bits * bits / 1000 )) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
@@ -58,10 +58,10 @@ jobs:
           last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log)
           if [[ "$last_line" == *"verified"* ]]; then
             exec_time=$((end_time - start_time))
-            echo "✅ Test passed for bits=${{ matrix.bits }}"
+            echo "✅ Math test passed for bits=${{ matrix.bits }}"
           else
             exec_time=0
-            echo "❌ Test failed for bits=${{ matrix.bits }} - setting execution time to 0"
+            echo "❌ Math test failed for bits=${{ matrix.bits }} - setting execution time to 0"
           fi
 
           echo $exec_time >> times.txt
