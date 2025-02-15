@@ -44,7 +44,7 @@ jobs:
         run: |
           bits=${{ matrix.bits }}
           chmod 0700 ./factor
-          ./factor --demand $bits $((bits + 10)) $((170 - bits)) --rand-seed 0
+          ./factor --demand $bits $((bits + 10)) 1 --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
@@ -85,7 +85,8 @@ jobs:
 
       - name: 🕒 Retrieve execution times and analyze performance
         run: |
-          cat times/execution-times-*/* >> $GITHUB_ENV
+          find  
+          cat times/execution-times-*/times.txt >> $GITHUB_ENV
           failed_tests=0
           total_tests=0
           for bit in 120 130 140 150 160; do
