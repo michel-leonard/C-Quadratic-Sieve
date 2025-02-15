@@ -1,4 +1,4 @@
-name: Factorization with varying base size
+name: Varying factor base size
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  factorization-different-base-size:
+  factor-base-size:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,8 +24,8 @@ jobs:
 
       - name: 🔍 Run initial factorization to determine base size
         run: |
-          ./factor -i demand.txt --verbose 4 2> base-size.log
-          BASE_SIZE=$(grep -oP 'The factor base of \K\d+' base-size.log)
+          ./factor -i demand.txt --verbose 4 2>&1 | tee output-normal.log
+          BASE_SIZE=$(grep -oP 'The factor base of \K\d+' output-normal.log)
           echo "Base size: $BASE_SIZE"
           echo "BASE_SIZE=$BASE_SIZE" >> $GITHUB_ENV
 
@@ -33,17 +33,16 @@ jobs:
         run: |
           SMALL_BASE=$(echo "scale=0; $BASE_SIZE * 0.9 / 1" | bc)
           echo "Using smaller base size: $SMALL_BASE"
-          /usr/bin/time -f "%e" ./factor -i demand.txt --qs-base-size $SMALL_BASE > output_small.log 2>&1
+          ./factor -i demand.txt --qs-base-size $SMALL_BASE 2>&1 | tee output-small.log
 
       - name: 🔍 Run factorization with 10% larger base size
         run: |
           LARGE_BASE=$(echo "scale=0; $BASE_SIZE * 1.1 / 1" | bc)
           echo "Using larger base size: $LARGE_BASE"
-          /usr/bin/time -f "%e" ./factor -i demand.txt --qs-base-size $LARGE_BASE > output_large.log 2>&1
+          ./factor -i demand.txt --qs-base-size $LARGE_BASE 2>&1 | tee output-large.log
 
       - name: 📊 Compare execution times
         run: |
-          SMALL_TIME=$(grep -oE '[0-9]+\.[0-9]+' output_small.log | tail -1)
-          LARGE_TIME=$(grep -oE '[0-9]+\.[0-9]+' output_large.log | tail -1)
-          echo "Execution time with smaller base: $SMALL_TIME seconds"
-          echo "Execution time with larger base: $LARGE_TIME seconds"
+          echo "Normal factor base ($BASE_SIZE): "$(tee -n 1 output-normal.log)
+          echo "Small base ($SMALL_BASE) : "$(tee -n 1 output-small.log)
+          echo "Large factor base ($LARGE_BASE) : "$(tee -n 1 output-large.log)
