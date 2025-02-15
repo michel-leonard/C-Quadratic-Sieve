@@ -29,7 +29,9 @@ jobs:
         run: gcc -Wall -pedantic -O2 -march=native -std=c99 main.c -o factor
 
       - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
-        run: ./factor --demand ${{ matrix.bits }} $((matrix.bits + 10)) $((70 - (matrix.bits - 120) / 10)) --rand-seed 0
+        run: |
+          bits=${{ matrix.bits }}
+          ./factor --demand $bits $((bits + 10)) $((70 - (bits - 120) / 10)) --rand-seed 0
 
       - name: 📜 Display the parameters of the demand
         run: head -n 1 demand.txt
