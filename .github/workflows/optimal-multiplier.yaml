@@ -34,7 +34,7 @@ jobs:
         run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
 
       - name: 📜 Generate the file demand.txt
-        run: ./factor --demand 125 135 100 --rand-seed 0
+        run: ./factor --demand 125 135 200 --rand-seed 0
 
       - name: ⏳ Run the factorization with multiplier=${{ matrix.multiplier }}
         run: |
