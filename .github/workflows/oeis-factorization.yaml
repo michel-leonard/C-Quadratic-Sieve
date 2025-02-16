@@ -2,7 +2,7 @@ name: OEIS Factorization
 
 on:
   schedule:
-    - cron: '1 2 * * 5'
+    - cron: '1 2 3 * 5'
   workflow_dispatch:
 
 jobs:
