@@ -89,13 +89,13 @@ jobs:
         shell: msys2 {0}
         run: ./factor.exe --input-file oeis-002109.txt --output-file answer.csv --output-csv --verbose 2
 
-      - name: Compute SHA256 checksum (Linux/macOS)
+      - name: Compute SHA256 checksum (Ubuntu & macOS)
         if: runner.os != 'Windows'
         run: openssl dgst -sha256 answer.csv | awk '{print toupper($2)}' > checksum.txt
 
       - name: Compute SHA256 checksum (Windows)
         if: runner.os == 'Windows'
-        shell: powershell
+        shell: pwsh
         run: |
           echo (Get-FileHash answer.csv -Algorithm SHA256).Hash > checksum.txt
 
@@ -104,10 +104,9 @@ jobs:
         with:
           name: checksums-${{ matrix.os }}
           path: checksum.txt
-          retention-days: 1
 
   compare-checksums:
-    needs: oeis-factorization
+    needs: build-and-test
     runs-on: ubuntu-latest
 
     steps:
@@ -120,6 +119,7 @@ jobs:
         run: |
           echo "Computed checksums:"
           cat checksums/*/checksum.txt
+          
           CHECKSUM_UBUNTU=$(cat checksums/checksums-ubuntu-latest/checksum.txt | tr -d '\r\n')
           CHECKSUM_MACOS=$(cat checksums/checksums-macos-latest/checksum.txt | tr -d '\r\n')
           CHECKSUM_WINDOWS=$(cat checksums/checksums-windows-latest/checksum.txt | tr -d '\r\n')
