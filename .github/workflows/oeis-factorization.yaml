@@ -106,7 +106,7 @@ jobs:
           path: checksum.txt
 
   compare-checksums:
-    needs: build-and-test
+    needs: oeis-factorization
     runs-on: ubuntu-latest
 
     steps:
