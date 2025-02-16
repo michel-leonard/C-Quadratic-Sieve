@@ -16,13 +16,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install dependencies (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt-get update -y && sudo apt-get install -y awk
+      - name: Install GCC on Windows
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
 
+      - name: Compile on Ubuntu with GCC
+        if: runner.os == 'Linux'
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: Compile on macOS with Clang
+        if: runner.os == 'macOS'
+        run: clang -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: Compile on Windows with GCC
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor.exe
+        
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
-        run: brew update && brew install wget awk
+        run: brew update && brew install wget
 
       - name: Install dependencies (Windows)
         if: matrix.os == 'windows-latest'
