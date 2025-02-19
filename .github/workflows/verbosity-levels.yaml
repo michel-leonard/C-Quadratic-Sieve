@@ -2,7 +2,7 @@ name: Verbosity levels
 
 on:
   schedule:
-    - cron: "22 14 * * 1"
+    - cron: "3 17 * * 2"
   workflow_dispatch:
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
         run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
 
       - name: 📜 Generate the file demand.txt
-        run: ./factor --demand 30 130 --rand-seed 0 && head -n 1 demand.txt
+        run: ./factor --demand 30 150 --rand-seed 0 && head -n 1 demand.txt
 
       - name: 🔍 Run the factorization with different verbosity levels
         run: |
@@ -43,12 +43,6 @@ jobs:
       - name: ⏳ Display execution times
         run: |
           for v in {0..4}; do
-            echo "Time for --verbose $v is " $(cat time_$v.log) " and size is " $(du -h output_$v.log | cut -f 1) "."
+            echo "Time for --verbose $v is" $(cut -d' ' -f 1 time_$v.log) " and size is" $(du -h output_$v.log | cut -f 1) "."
           done
 
-      - name: 📄 Display the contents of all logs
-        run: |
-          for v in {0..4}; do
-            echo "=== Verbosity $v ==="
-            cat output_$v.log
-          done
