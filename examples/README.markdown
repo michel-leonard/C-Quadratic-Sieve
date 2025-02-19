@@ -1,3 +1,5 @@
+Factorization in 2025 is one of the great open problems of mathematics and theoretical computer science, marking a turning point in the history of **fundamental science**.
+
 ### **Example 1: Factorizing a Single Number**  
 
 #### **Description**  
