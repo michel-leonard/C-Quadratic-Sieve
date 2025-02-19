@@ -1,4 +1,4 @@
-# Quadratic Sieve Factorization Performance Logs
+# Factorization Software Performance Logs
 
 This repository contains performance logs for the **Self-Initializing Quadratic Sieve (SIQS)** implemented in C. These logs provide insights into the execution of the factorization algorithm with different input sizes.
 
