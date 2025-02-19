@@ -170,7 +170,7 @@ qs_sm linear_param_resolution(const double v[][2], const qs_sm point) {
 void preparation_part_1(qs_sheet *qs, state *state, int bits) {
 	// initializing (until kN is computed) with manager resources.
 	qs->state = state;
-	DEBUG_LEVEL_4("\nQuadratic Sieve for %s.\n", simple_cint_string(state, &state->session.num));
+	DEBUG_LEVEL_4("\nQuadratic Sieve on %s.\n", simple_cint_string(state, &state->session.num));
 	qs->sheet = state->session.sheet;
 	qs->seed = state->session.seed;
 	qs->n_bits = qs->kn_bits = bits;

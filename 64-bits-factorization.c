@@ -111,7 +111,7 @@ void fac_64_worker(state *state, u64 n, fac64_row *rows) {
 					*rows++ = (fac64_row) {(n = 1, x), pow * 3};
 				else {
 					// The number has 2 or 3 prime factors greater than 65536.
-					const char *format = "%sPollard's Rho for %" PRIu64 " (%d-bit).\n", *another = "- Takes another " ;
+					const char *format = "%sPollard's Rho on %" PRIu64 " (%d-bit).\n", *another = "- Recursively applying " ;
 					debug_print(state, 4, format, i++ ? another : "\n", n, bit_size(n));
 					while (x = pollard_rho(n, state->session.seed), x == 1 || x == n);
 					n /= x;
