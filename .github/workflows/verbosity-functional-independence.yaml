@@ -1,4 +1,4 @@
-name: Verbosity levels
+name: Verbosity Functional Independence
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  verbosity-levels:
+  verbosity-functional-independence:
     runs-on: ubuntu-latest
 
     steps:
