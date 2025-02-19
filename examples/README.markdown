@@ -1,4 +1,4 @@
-Factorization in 2025 is one of the great open problems of mathematics and theoretical computer science, marking a turning point in the history of **fundamental science**.
+In 2025, integer factorization is still a major challenge, especially for the large numbers used in cryptography; it is one of the great open problems of mathematics and theoretical computer science.
 
 ### **Example 1: Factorizing a Single Number**  
 
