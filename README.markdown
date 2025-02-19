@@ -388,7 +388,7 @@ The software's source code is organized into the following files :
 
 | Filename                | Purpose                                                                                                               |
 |-------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| `64-bits-factorization.c` | Contains functions for factoring classical integers, including Pollard's Rho algorithm and a [deterministic ](64-bits-factorization.c#L19) Miller-Rabin primality checker. |
+| `64-bits-factorization.c` | Contains functions for factoring classical integers, including Pollard's Rho algorithm and a [deterministic ](64-bits-factorization.c#L26) Miller-Rabin primality checker. |
 | `avl-trees.c`           | Contains the AVL Trees functions, originally a separate project from the integer factorization project.               |
 | `basic-math.c`          | Includes a prime number generator capable of yielding the first 326,983 prime numbers, along with the Kronecker symbol function, Tonelli-Shanks function, and modular inverse function. |
 | `big-num.c`             | Contains the `cint` library, also initially a separate project from the integer factorization project.               |
