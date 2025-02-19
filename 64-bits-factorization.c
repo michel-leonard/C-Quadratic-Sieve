@@ -4,12 +4,9 @@
 // to fully factor the number, and Miller-Rabin identifies that the number is not prime.
 
 int bit_size(u64 n) {
-	// Brian Kernighan’s Algorithm.
 	int size = 0;
-	while (n) {
-		n &= (n - 1);
-		++size;
-	}
+	while (n) // Brian Kernighan's method.
+		n &= (n - 1), ++size;
 	return size;
 }
 
