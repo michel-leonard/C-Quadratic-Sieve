@@ -2,7 +2,7 @@ name: Verbosity levels
 
 on:
   schedule:
-    - cron: "3 17 * * 2"
+    - cron: "22 14 * * 1"
   workflow_dispatch:
 
 jobs:
@@ -43,6 +43,7 @@ jobs:
       - name: ⏳ Display execution times
         run: |
           for v in {0..4}; do
-            echo "Time for --verbose $v is" $(cut -d' ' -f 1 time_$v.log) " and size is" $(du -h output_$v.log | cut -f 1) "."
+            echo "Time for --verbose $v is "$(cut -f 2 time_$v.log)" and size is "$(du -h output_$v.log | cut -f 1)"."
+            echo "Time for --verbose $v is "$(cut -d ' ' -f 2 time_$v.log)" and size is "$(du -h output_$v.log | cut -f 1)"."
           done
 
