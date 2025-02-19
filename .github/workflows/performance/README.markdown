@@ -1,6 +1,6 @@
 # Quadratic Sieve Factorization Performance Logs
 
-This repository contains performance logs for the **Quadratic Sieve Factorization** implemented in C. These logs provide insights into the execution of the factorization algorithm with different input sizes and settings.
+This repository contains performance logs for the **Self-Initializing Quadratic Sieve (SIQS)** implemented in C. These logs provide insights into the execution of the factorization algorithm with different input sizes.
 
 ## Test Parameters
 
@@ -8,7 +8,7 @@ This repository contains performance logs for the **Quadratic Sieve Factorizatio
 - **Bit range:** 30-bit to 260-bit numbers
 - **Samples per series:** 231
 - **Total factored samples:** 2310
-- **Seed generation:** Based on the millisecond timestamp at test start
+- **Seed generation:** Based on the millisecond timestamp at test start (`--rand-seed 0`)
 - **Verbose mode:** `--verbose 4`
 
 ## Purpose of Performance Logs
@@ -19,7 +19,7 @@ The logs serve multiple purposes:
    - Provides data for assessing execution times and efficiency across different bit sizes.
    
 2. **Understanding Verbose Output**
-   - Shows detailed breakdowns of factorization steps.
+   - Shows detailed data of factorization steps.
    - Includes maintenance messages and progress markers.
    - Beyond 220-bit numbers, displays `.` progress indicators (one per percentage point).
 
