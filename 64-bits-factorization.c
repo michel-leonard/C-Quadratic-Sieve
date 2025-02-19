@@ -104,14 +104,15 @@ void fac_64_worker(state *state, u64 n, fac64_row *rows) {
 					*rows++ = (fac64_row) {prime, p * pow};
 					limit = square_extraction(&n, &pow);
 				}
+			int i = 0 ;
 			while (n >> 32 && !is_prime_64_bits(n)) {
 				u64 x, y;
 				if (x = nth_root(n, 3), x * x * x == n) // Maybe a cube ?
 					*rows++ = (fac64_row) {(n = 1, x), pow * 3};
 				else {
 					// The number has 2 or 3 prime factors greater than 65536.
-					const char * format = "\nPollard's Rho for %" PRIu64 " (%d-bit).\n" ;
-					debug_print(state, 4, format, n, bit_size(n));
+					const char *format = "%sPollard's Rho for %" PRIu64 " (%d-bit).\n", *another = "- Takes another " ;
+					debug_print(state, 4, format, i++ ? another : "\n", n, bit_size(n));
 					while (x = pollard_rho(n, state->session.seed), x == 1 || x == n);
 					n /= x;
 					if (x >> 32) {
@@ -124,7 +125,7 @@ void fac_64_worker(state *state, u64 n, fac64_row *rows) {
 							*rows++ = (fac64_row) {x, pow};
 						else {
 							// Pollard's Rho produced a composite number.
-							debug_print(state, 4, format, n, bit_size(n));
+							debug_print(state, 4, format, another, n, bit_size(n));
 							while (y = pollard_rho(x, state->session.seed), y == 1 || y == x);
 							*rows++ = (fac64_row) {x / y, pow};
 							*rows++ = (fac64_row) {y, pow};
