@@ -43,7 +43,6 @@ jobs:
       - name: ⏳ Display execution times
         run: |
           for v in {0..4}; do
-            echo "Time for --verbose $v is "$(cut -f 2 time_$v.log)" and size is "$(du -h output_$v.log | cut -f 1)"."
-            echo "Time for --verbose $v is "$(cut -d ' ' -f 2 time_$v.log)" and size is "$(du -h output_$v.log | cut -f 1)"."
+            echo "Time for --verbose $v is "$(grep real time_$v.log | cut -f 2)" and size is "$(du -h output_$v.log | cut -f 1)"."
           done
 
