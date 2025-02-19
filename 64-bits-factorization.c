@@ -3,13 +3,14 @@
 // The "worker" algorithm uses the Pollard Rho method when trial division isn't enough
 // to fully factor the number, and Miller-Rabin identifies that the number is not prime.
 
-void print_debug(const state *state, u64 n, int algo) {
-	if (3 < state->params.verbose) {
-		const char * algo_name = "Pollard's Rho";
-		int bits = 1 ;
-		for(u64 tmp = n; tmp >>= 1; ++bits);
-		fprintf(stderr, "%s for %" PRIu64 " (%d-bit).\n", algo_name, n, bits);
+int bit_size(u64 n) {
+	// Brian Kernighan’s Algorithm.
+	int size = 0;
+	while (n) {
+		n &= (n - 1);
+		++size;
 	}
+	return size;
 }
 
 u64 mul_mod(u64 a, u64 b, const u64 mod) {
@@ -112,7 +113,8 @@ void fac_64_worker(state *state, u64 n, fac64_row *rows) {
 					*rows++ = (fac64_row) {(n = 1, x), pow * 3};
 				else {
 					// The number has 2 or 3 prime factors greater than 65536.
-					print_debug(state, n, 1);
+					const char * format = "\nPollard's Rho for %" PRIu64 " (%d-bit).\n" ;
+					debug_print(state, 4, format, n, bit_size(n));
 					while (x = pollard_rho(n, state->session.seed), x == 1 || x == n);
 					n /= x;
 					if (x >> 32) {
@@ -125,7 +127,7 @@ void fac_64_worker(state *state, u64 n, fac64_row *rows) {
 							*rows++ = (fac64_row) {x, pow};
 						else {
 							// Pollard's Rho produced a composite number.
-							print_debug(state, n, 1);
+							debug_print(state, 4, format, n, bit_size(n));
 							while (y = pollard_rho(x, state->session.seed), y == 1 || y == x);
 							*rows++ = (fac64_row) {x / y, pow};
 							*rows++ = (fac64_row) {y, pow};

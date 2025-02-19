@@ -307,7 +307,7 @@ static qs_sm tonelli_shanks(qs_sm, qs_sm);
 static qs_sm modular_inverse(qs_sm, qs_sm);
 
 // 64-bit factorization.
-static void print_debug(const state *, u64, int);
+static int bit_size(u64);
 static u64 mul_mod(u64, u64, u64);
 static u64 pow_mod(u64, u64, u64);
 static int is_prime_64_bits(u64);
