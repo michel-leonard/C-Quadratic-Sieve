@@ -8,7 +8,7 @@ This repository contains performance logs for the **Self-Initializing Quadratic 
 - **Bit range:** 30-bit to 260-bit numbers
 - **Samples per series:** 231
 - **Total factored samples:** 2310
-- **Seed generation:** Based on the millisecond timestamp at test start (`--rand-seed 0`)
+- **Seed generation:** Based on the Unix timestamp
 - **Verbose mode:** `--verbose 4`
 
 ## Purpose of Performance Logs
