@@ -4,9 +4,9 @@
 // to fully factor the number, and Miller-Rabin identifies that the number is not prime.
 
 int bit_size(u64 n) {
-	int size = 0;
-	while (n) // Brian Kernighan's method.
-		n &= (n - 1), ++size;
+	int size = n != 0;
+	while (n >>= 1)
+		++size;
 	return size;
 }
 
