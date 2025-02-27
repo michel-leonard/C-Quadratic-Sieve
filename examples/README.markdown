@@ -234,4 +234,4 @@ Since every number is worth factoring, you can explore the **OEIS** dataset to [
 |[003424](https://oeis.org/A003424/b003424.txt)|4738|3 s|
 |[003381](https://oeis.org/A003381/b003381.txt)|8000|2 s|
 
-A [Bash script](../.github/workflows/scripts/oeis-lists.sh) is available to make this factorization task interactive during **15 minutes** on Linux.
+A [Bash script](../.github/workflows/scripts/oeis-multiple.sh) is available to make this factorization task interactive during **15 minutes** on Linux.
