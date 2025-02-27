@@ -42,6 +42,7 @@ sequences=(
 	'003021' #   325 rows factored in  16 s
 	'004071' #     8 rows factored in  16 s
 	'000886' #     7 rows factored in  15 s
+	'272919' #  1000 rows factored in  15 s
 	'008392' #  1001 rows factored in  15 s
 	'000610' #     9 rows factored in  15 s
 	'001270' #  1248 rows factored in  15 s
