@@ -29,7 +29,7 @@ for oeis in "$@"; do
 	sequences+=("A$oeis")
 
 	# Prepare the sequence as a file for factorization
-	awk '{if ($1 ~ /^[0-9]+$/) print $2}' "b$oeis.txt" | sort -n | uniq > "task.txt"
+	awk '{if ($1 ~ /^[0-9]+$/) print $2}' "b$oeis.txt" | sort -rn | uniq > "task.txt"
 
 	# Process the "task.txt" file for factorization
 	./factor --input-file "task.txt" --output-csv --verbose 2
