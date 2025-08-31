@@ -1,0 +1,39 @@
+name: Factorize large numbers
+
+on:
+  schedule:
+    - cron: '23 3 2,16 * *'
+  workflow_dispatch:
+
+jobs:
+  factorization-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v5
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor --demand 195 201 --rand-seed 0 && head -n 1 demand.txt
+
+      - name: 🔍 Run the factorization and merge the outputs
+        run: |
+          ./factor -i demand.txt --output-csv --verbose 3 > merged-output.log 2>&1
+
+      - name: 🔎 Display "Maintenance" messages and the next line
+        run: |
+          grep -FA 1 "Maintenance" merged-output.log || echo "No maintenance message."
+
+      - name: ✅ Check that the last line contains "verified"
+        run: |
+          tail -n 1 merged-output.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
+
+      - name: 📄 Display the contents of merged-output.log
+        run: cat merged-output.log

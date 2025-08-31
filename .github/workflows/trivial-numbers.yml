@@ -1,0 +1,53 @@
+name: Factorize trivial numbers
+
+on:
+  schedule:
+    - cron: '27 3 8,22 * *'
+  workflow_dispatch:
+
+jobs:
+  factorize-trivial-numbers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v5
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📝 Generate the file demand.txt
+        run: ./factor --demand 63 66 --rand-seed 0 &&  head -n 1 demand.txt
+
+      - name: 📚 Prepare the 'trivial.txt' file based on 'demand.txt' with Python
+        run: |
+          python3 <<EOF
+          import random
+          numbers = []
+          result = []
+          for i in range(-1000, 1001):
+          	if i != 0:
+          		result.append(i)
+          with open('demand.txt', 'r') as file:
+          	for line in file:
+          		if line.strip() and not line.startswith("#"):
+          			n = int(line.split(' ')[0])
+          			for k in range(0, 38):
+          				result.append(n * 2 ** k if random.choice([True, False]) else -n * 2 ** k)
+          				result.append(n ** k if random.choice([True, False]) else -(n ** k))
+          with open('trivial.txt', 'w') as file:
+          	for n in result:
+          		file.write(f"{n}\n")
+          EOF
+
+      - name: 🔍 Run factorization
+        run: |
+          ./factor --input-file trivial.txt --verbose 2 > result.log 2>&1
+
+      - name: ✅ Check that the last line contails "verified"
+        run: |
+          tail -n 1 result.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
