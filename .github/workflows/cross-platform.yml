@@ -1,0 +1,94 @@
+name: Cross-platform software
+
+on:
+  schedule:
+    - cron: '55 3 12,26 * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v5
+
+      - name: Install GCC on Windows
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+
+      - name: Compile on Ubuntu with GCC
+        if: runner.os == 'Linux'
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: Compile on macOS with Clang
+        if: runner.os == 'macOS'
+        run: clang -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: Compile on Windows with GCC
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor.exe
+
+      - name: Run tests on Ubuntu & macOS
+        if: runner.os != 'Windows'
+        run: |
+          ./factor --demand 120 170 && head -n 1 demand.txt
+          ./factor --input-file demand.txt --output-file answer.csv --output-csv --verbose 3
+
+      - name: Run tests on Windows
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          ./factor.exe --demand 120 170
+          ./factor.exe --input-file demand.txt --output-file answer.csv --output-csv --verbose 3
+
+      - name: Compute SHA256 checksum (Ubuntu & macOS)
+        if: runner.os != 'Windows'
+        run: openssl dgst -sha256 answer.csv | awk '{print toupper($2)}' > checksum.txt
+
+      - name: Compute SHA256 checksum (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          echo (Get-FileHash answer.csv -Algorithm SHA256).Hash > checksum.txt
+
+      - name: Upload checksum artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums-${{ matrix.os }}
+          path: checksum.txt
+
+  compare-checksums:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Download all checksum artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: checksums
+
+      - name: Compare checksums across OS
+        run: |
+          echo "Computed checksums:"
+          cat checksums/*/checksum.txt
+          
+          CHECKSUM_UBUNTU=$(cat checksums/checksums-ubuntu-latest/checksum.txt | tr -d '\r\n')
+          CHECKSUM_MACOS=$(cat checksums/checksums-macos-latest/checksum.txt | tr -d '\r\n')
+          CHECKSUM_WINDOWS=$(cat checksums/checksums-windows-latest/checksum.txt | tr -d '\r\n')
+
+          if [[ "$CHECKSUM_UBUNTU" == "$CHECKSUM_MACOS" && "$CHECKSUM_MACOS" == "$CHECKSUM_WINDOWS" ]]; then
+            echo "✅ Checksums match across all platforms!"
+          else
+            echo "❌ Checksum mismatch!"
+            exit 1
+          fi

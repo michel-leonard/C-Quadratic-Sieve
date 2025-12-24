@@ -1,0 +1,49 @@
+name: Verbosity Functional Independence
+
+on:
+  schedule:
+    - cron: '14 2 13,27 * *'
+  workflow_dispatch:
+
+jobs:
+  verbosity-functional-independence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v5
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor --demand 30 150 --rand-seed 0 && head -n 1 demand.txt
+
+      - name: 🔍 Run the factorization with different verbosity levels
+        run: |
+          for v in {0..4}; do
+            echo "Running with --verbose $v..."
+            { time ./factor --input-file demand.txt --output-csv --verbose $v > output_$v.log 2>&1; } 2> time_$v.log
+          done
+
+      - name: 🔎 Display "Maintenance" messages for all logs
+        run: |
+          for v in {0..4}; do
+            echo "=== Verbosity $v ==="
+            grep -FA 1 "Maintenance" output_$v.log || echo "No maintenance message."
+          done
+
+      - name: ✅ Check that --verbose 4 ends with "verified"
+        run: |
+          tail -n 1 output_4.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
+
+      - name: ⏳ Display execution times
+        run: |
+          for v in {0..4}; do
+            echo "Time for --verbose $v is "$(grep real time_$v.log | cut -f 2)" and size is "$(du -h output_$v.log | cut -f 1)"."
+          done
+

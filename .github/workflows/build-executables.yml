@@ -1,0 +1,21 @@
+name: Creates executables
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v5
+      - name: ⚙️ Build
+        run: |
+          mkdir build
+          cd build
+          gcc -Wall -pedantic -O2 -std=c99 ../main.c -o factor-${{ matrix.os }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: factor-${{ matrix.os }}
+          path: build/factor-*

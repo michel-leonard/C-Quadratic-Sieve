@@ -1,0 +1,35 @@
+name: Factorize small numbers
+
+on:
+  schedule:
+    - cron: '6 4 2,16 * *'
+  workflow_dispatch: 
+
+jobs:
+  factorization-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v5
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor --demand 30 50 50000 --rand-seed 0
+
+      - name: 🔍 Run the factorization and merge the outputs
+        run: |
+          ./factor -i demand.txt --output-csv --verbose 3 > merged-output.log 2>&1
+
+      - name: ✅ Check that the last line is "verified"
+        run: |
+          tail -n 1 merged-output.log | grep -q "verified" && echo "Passed ✅" || (echo "Failed ❌" && exit 1)
+
+      - name: 📄 Display the contents of merged-output.log
+        run: cat merged-output.log
