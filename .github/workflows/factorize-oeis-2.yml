@@ -1,0 +1,99 @@
+name: Factorize OEIS Sequences 2
+
+on:
+  schedule:
+    - cron: '54 5 2,16 * *'
+  workflow_dispatch:
+
+jobs:
+  factorize-oeis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v6
+
+      - name: Installer wget and GCC
+        run: |
+          command -v wget > /dev/null || { sudo apt-get update && sudo apt-get install -y wget ; }
+          command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+        
+      - name: Randonly select OEIS sequences
+        id: select-sequences
+        run: |
+          sequences=(
+            '007262:25' '005575:25' '007722:25' '007257:25' '004982:24' '006911:24' '006055:24' '000594:23' '002559:23' '008280:23'
+            '004072:22' '006686:22' '000889:22' '004634:21' '005577:21' '005709:21' '000829:21' '008421:21' '001531:20' '002600:20'
+            '001361:20' '008506:20' '008349:19' '001384:19' '006289:19' '006477:18' '006271:18' '007632:18' '007252:18' '000856:17'
+            '002592:17' '000877:17' '000702:17' '005973:16' '003021:16' '004071:16' '000886:15' '008392:15' '000610:15' '001270:15'
+            '006418:4' '000100:15' '008362:15' '008657:15' '003260:15' '003020:14' '002590:14' '008863:14' '001271:14' '008353:13'
+            '000545:13' '006733:13' '002591:13' '001537:13' '000458:13' '008377:13' '005710:13' '007253:13' '008394:13' '002594:13'
+            '005422:12' '007088:12' '008484:12' '005036:12' '007616:12' '004802:12' '000835:12' '006914:12' '001590:12' '006290:12'
+            '001467:12' '008393:12' '008378:11' '005783:11' '007551:11' '006053:11' '002779:11' '000880:11' '006909:11' '008376:11'
+            '001005:10' '008514:10' '008937:10' '007263:10' '007597:10' '004814:10' '008395:10' '008512:10' '007592:10' '003380:10'
+            '006054:10' '007654:10' '008494:10' '001611:9' '003238:9' '004010:9' '006732:9' '004875:9' '008504:9' '006734:9'
+            '000832:9' '006729:9' '006561:9' '005199:9' '007488:9' '007045:9' '002574:9' '008515:9' '006424:9' '002778:9'
+            '003819:8' '000369:8' '000145:8' '007044:8' '008295:8' '007626:8' '000892:8' '008413:8' '004534:8' '002721:8'
+            '001328:8' '006731:7' '008505:7' '008922:7' '008414:7' '001781:7' '003458:7' '008419:7' '008406:7' '004803:7'
+            '008453:7' '008417:7' '002599:7' '003821:7' '000090:7' '008398:6' '000518:6' '007258:6' '006730:6' '006728:6'
+            '005933:6' '008513:6' '008495:6' '008498:6' '002649:6' '000585:6' '002646:6' '000613:6' '008499:6' '001326:6'
+            '002622:5' '000362:5' '006448:5' '002650:5' '003402:5'
+          )
+
+          # Shuffle the sequences
+          shuffled=($(shuf -e "${sequences[@]}"))
+
+          total_time=0
+          selected=()
+          for entry in "${shuffled[@]}"; do
+            seq_id=${entry%%:*}
+            seq_time=${entry##*:}
+            (( total_time += seq_time ))
+            if (( total_time > 90 )); then break; fi
+            selected+=("$seq_id")
+          done
+
+          echo "Selected sequences: ${selected[@]}"
+          echo "oeis_sequences=${selected[*]}" >> $GITHUB_ENV
+
+      - name: Download and factor the sequences
+        run: |
+          n_success=0
+          n_errors=0
+          for oeis in $oeis_sequences; do
+            url="https://oeis.org/A$oeis/b$oeis.txt"
+            output="oeis-$oeis.txt"
+            wget -q "$url" -O "oeis-raw.txt"
+
+            awk '{if ($1 ~ /^[0-9]+$/) print $2}' oeis-raw.txt | sort -n | uniq > "$output"
+            rm oeis-raw.txt
+
+            echo "Factorizing $oeis..."
+            ./factor --input-file "$output" --output-file "answer-$oeis.csv" --output-csv --verbose 2 2> "error-$oeis.log"
+
+            last_line=$(tail -n 1 "error-$oeis.log")
+            echo $last_line
+
+            if [[ "$last_line" == *"verified"* ]]; then
+              echo "✅ Sequence $oeis: PASSED"
+              n_success=$(( n_success + 1 ))
+            else
+              echo "❌ Sequence $oeis: FAILED"
+               n_errors=$(( n_errors + 1 ))
+            fi
+          done
+          echo "n_success=$n_success" >> $GITHUB_ENV
+          echo "n_errors=$n_errors" >> $GITHUB_ENV
+
+      - name: Analyze the results
+        run: |
+           if [[ "$n_errors" -eq 0 ]]; then
+             echo "✅ THE TEST PASSED"
+           else
+             echo "❌ THE TEST FAILED"
+           fi
+           exit $n_errors

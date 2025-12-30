@@ -1,0 +1,64 @@
+name: Compilation with optimizations
+
+on:
+  schedule:
+    - cron: '18 4 12,26 * *'
+  workflow_dispatch:
+
+jobs:
+  compilation-with-optimizations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v6
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program with -O0
+        run: gcc -Wall -pedantic -O0 -std=c99 main.c -o factor_O0
+
+      - name: ⚙️ Compile the program with -O1
+        run: gcc -Wall -pedantic -O1 -std=c99 main.c -o factor_O1
+
+      - name: ⚙️ Compile the program with -O2
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor_O2
+
+      - name: ⚙️ Compile the program with -O3
+        run: gcc -Wall -pedantic -O3 -std=c99 main.c -o factor_O3
+
+      - name: ⚙️ Compile the program with -Ofast
+        run: gcc -Wall -pedantic -Ofast -std=c99 main.c -o factor_Ofast
+
+      - name: 📜 Generate the file demand.txt
+        run: ./factor_O3 --demand 120 170 --rand-seed 0 && head -n 1 demand.txt
+
+      - name: 🚀 Run factorization with different optimizations
+        run: |
+          for opt in O0 O1 O2 O3 Ofast; do
+            echo "Running factor_$opt..."
+            /usr/bin/time -f "Execution time: %E" ./factor_$opt -i demand.txt --output-csv --verbose 3 > output_$opt.log 2>&1
+          done
+
+      - name: 📄 Display the execution times
+        run: |
+          for opt in O0 O1 O2 O3 Ofast; do
+            echo -n "Compilation flag -$opt "
+            grep "Execution time" output_$opt.log || echo "No time recorded."
+          done
+          
+      - name: ✅ Validate optimization performance
+        run: |
+          O0_time=$(grep "Execution time" output_O0.log | awk '{print 60*substr($3,1,1)+substr($3,3)}')
+          O1_time=$(grep "Execution time" output_O1.log | awk '{print 60*substr($3,1,1)+substr($3,3)}')
+          O2_time=$(grep "Execution time" output_O2.log | awk '{print 60*substr($3,1,1)+substr($3,3)}')
+          O0_O2_ratio=$(echo "$O0_time / $O2_time" | bc -l)
+          O1_O2_ratio=$(echo "$O1_time / $O2_time" | bc -l)
+          if (( $(echo "$O0_O2_ratio >= 2.0" | bc -l) )) && (( $(echo "$O1_O2_ratio >= 1.0" | bc -l) )); then
+            echo "✅ Success: O2 is at least 2 times faster than O0."
+          else
+            echo "❌ Failure: O2 is not at least 2 times faster than O0."
+            exit 1
+          fi

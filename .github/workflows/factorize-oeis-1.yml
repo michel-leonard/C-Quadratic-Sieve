@@ -1,0 +1,139 @@
+name: Factorize OEIS Sequences 1
+
+on:
+  schedule:
+    - cron: '5 2 2,16 * *'
+  workflow_dispatch:
+
+jobs:
+  select-sequence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    outputs:
+      selected_sequence: ${{ steps.select-sequence.outputs.oeis_id }}
+    steps:
+      - name: Select random OEIS sequence
+        id: select-sequence
+        run: |
+          sequences=(
+            '002559' '000889' '000829' '001531' '002600' '001361' '001384' '000856' '002592'
+            '000877' '000702' '000886' '000610' '001270' '000100' '002590' '001271' '000545'
+            '002591' '001537' '000458' '000835' '001590' '001467' '002779' '000880' '001005'
+            '001611' '000832' '002574' '002778' '000369' '000892' '002721' '001328' '002599'
+            '000090' '000518' '000585' '000613' '001326' '000128' '000126' '001383' '000614'
+            '001721' '000235' '000814' '000859' '000618' '002583' '002582' '001578' '000640'
+            '000820' '001716' '002099' '000339' '002931' '000409' '002585' '000775' '002584'
+            '002185' '002528'
+          )
+          index=$(( $(date +%s) % ${#sequences[@]} ))
+          echo "oeis_id=${sequences[$index]}" >> $GITHUB_OUTPUT
+
+  factorize-oeis:
+    needs: select-sequence
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v6
+
+      - name: Install GCC on Windows
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc
+
+      - name: Install dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: command -v wget > /dev/null || { brew update && brew install wget ; }
+
+      - name: Download and process OEIS data (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          oeis="${{ needs.select-sequence.outputs.selected_sequence }}"
+          url="https://oeis.org/A$oeis/b$oeis.txt"
+          output="oeis-$oeis.txt"
+          wget -q "$url" -O "oeis-raw.txt"
+          awk '{if ($1 ~ /^[0-9]+$/) print $2}' oeis-raw.txt > "$output"
+          rm oeis-raw.txt
+          echo "Processed OEIS file is ready: $output"
+
+      - name: Download and process OEIS data (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $oeis = "${{ needs.select-sequence.outputs.selected_sequence }}"
+          $url = "https://oeis.org/A$oeis/b$oeis.txt"
+          $output = "oeis-$oeis.txt"
+          Invoke-WebRequest -Uri $url -OutFile "oeis-raw.txt"
+          Get-Content "oeis-raw.txt" | ForEach-Object {
+              if ($_ -match "^\s*\d+\s+(\S+)") { $matches[1] }
+          } | Set-Content $output
+          Remove-Item oeis-raw.txt
+          Write-Host "Processed OEIS file is ready: $output"
+
+      - name: Compile software (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: Compile software (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor.exe
+
+      - name: Run factorization (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: ./factor --input-file oeis-${{ needs.select-sequence.outputs.selected_sequence }}.txt --output-file answer.csv --output-csv --verbose 2
+
+      - name: Run factorization (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: ./factor.exe --input-file oeis-${{ needs.select-sequence.outputs.selected_sequence }}.txt --output-file answer.csv --output-csv --verbose 2
+
+      - name: Compute SHA256 checksum (Ubuntu & macOS)
+        if: runner.os != 'Windows'
+        run: openssl dgst -sha256 answer.csv | awk '{print toupper($2)}' > checksum.txt
+
+      - name: Compute SHA256 checksum (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          echo (Get-FileHash answer.csv -Algorithm SHA256).Hash > checksum.txt
+
+      - name: Upload checksum artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums-${{ matrix.os }}
+          path: checksum.txt
+
+  compare-checksums:
+    needs: factorize-oeis
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Download all checksum artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: checksums
+
+      - name: Compare checksums across OS
+        run: |
+          echo "Computed checksums:"
+          cat checksums/*/checksum.txt
+          
+          CHECKSUM_UBUNTU=$(cat checksums/checksums-ubuntu-latest/checksum.txt | tr -d '\r\n')
+          CHECKSUM_MACOS=$(cat checksums/checksums-macos-latest/checksum.txt | tr -d '\r\n')
+          CHECKSUM_WINDOWS=$(cat checksums/checksums-windows-latest/checksum.txt | tr -d '\r\n')
+
+          if [[ "$CHECKSUM_UBUNTU" == "$CHECKSUM_MACOS" && "$CHECKSUM_MACOS" == "$CHECKSUM_WINDOWS" ]]; then
+            echo "✅ Checksums match across all platforms!"
+          else
+            echo "❌ Checksum mismatch!"
+            exit 1
+          fi
