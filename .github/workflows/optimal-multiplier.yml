@@ -1,0 +1,109 @@
+name: Optimal multiplier
+
+on:
+  schedule:
+    - cron: '39 5 12,26 * *'
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v6
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📤 Upload compiled binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: factor-binary
+          path: factor
+
+  optimal-multiplier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    needs: compile
+    strategy:
+      matrix:
+        multiplier: [0, 1]
+        bits: [120, 130, 140, 150]
+      max-parallel: 1
+    steps:
+      - name: 📥 Download compiled binary
+        uses: actions/download-artifact@v4
+        with:
+          name: factor-binary
+
+      - name: 📜 Generate demand.txt for bits=${{ matrix.bits }}
+        run: |
+          bits=${{ matrix.bits }}
+          chmod 0700 ./factor
+          ./factor --demand $bits $((bits + 10)) $((660 - 8 * bits + 25 * bits * bits / 1000 )) --rand-seed 0 && head -n 1 demand.txt
+
+      - name: ⏳ Run factorization and verify success
+        run: |
+          start_time=$(date +%s)
+          ./factor -i demand.txt --output-csv --verbose 3 --qs-multiplier ${{ matrix.multiplier }} > merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log 2>&1
+          end_time=$(date +%s)
+          
+          last_line=$(tail -n 1 merged-output-${{ matrix.multiplier }}-${{ matrix.bits }}.log)
+          if [[ "$last_line" == *"verified"* ]]; then
+            exec_time=$((end_time - start_time))
+            echo "✅ Test passed successfully for bit length ${{ matrix.bits }}"
+          else
+            exec_time=0
+            echo "❌ Test failed for bit length ${{ matrix.bits }} - execution time set to 0"
+          fi
+
+          echo $exec_time >> times.txt
+
+      - name: 📤 Upload execution times
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-times-${{ matrix.multiplier }}-${{ matrix.bits }}
+          path: times.txt
+          if-no-files-found: error
+
+  compare-times:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    needs: optimal-multiplier
+    steps:
+      - name: 📥 Download execution times
+        uses: actions/download-artifact@v4
+        with:
+          path: times
+
+      - name: 🕒 Analyze execution times
+        run: |
+          failed_tests=0
+          total_tests=0
+          for bit in 120 130 140 150; do
+            total_tests=$((total_tests + 1))
+            t_0=$(head -n 1 ./times/execution-times-0-$bit/times.txt)
+            t_1=$(head -n 1 ./times/execution-times-1-$bit/times.txt)
+            if [[ "$t_0" -eq 0 || "$t_1" -eq 0 ]]; then
+              echo "⚠️ Skipping bit length $bit due to factorization failure"
+              failed_tests=$((failed_tests + 1))
+            else
+              ratio=$(echo "scale=2; $t_1 / $t_0" | bc)
+              if (( $(echo "$ratio >= 1.5" | bc -l) )); then
+                echo "✅ Success! At $bit bits, the multiplier improved performance by a factor of $ratio (${t_0}s vs ${t_1}s)"
+              else
+                echo "❌ Failure at $bit bits: Unexpected execution time ratio of $ratio."
+              fi
+            fi
+          done
+          if [[ "$failed_tests" -eq "$total_tests" ]]; then
+            echo "🚨 All tests failed! Marking job as failed."
+            exit 1
+          fi

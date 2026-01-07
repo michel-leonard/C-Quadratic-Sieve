@@ -1,0 +1,63 @@
+name: JSON and CSV outputs
+
+on:
+  schedule:
+    - cron: '52 4 13,27 * *'
+  workflow_dispatch:
+
+jobs:
+  json-csv-outputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v6
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 📝 Generate the file demand.txt
+        run: ./factor --demand 50 150 500 --rand-seed 0 && head -n 1 demand.txt
+
+      - name: 🔍 Run factorization (CSV & JSON)
+        run: |
+          ./factor --input-file demand.txt --output-file results.json --output-json --verbose 3 --rand-seed 0 2> errors-json.log
+          ./factor --input-file demand.txt --output-file results.csv --output-csv --verbose 3 --rand-seed 0 2> errors-csv.log
+
+      - name: 🔎 Check if the errors.log file contains "verified"
+        run: |
+          tail -n 1 errors-json.log | grep -q "verified" && echo "JSON Verified ✅" || (echo "JSON Failed ❌" && exit 1)
+          tail -n 1 errors-csv.log | grep -q "verified" && echo "CSV Verified ✅" || (echo "CSV Failed ❌" && exit 1)
+
+      - name: 📚 Validate factorization results with Python
+        run: |
+          python3 <<EOF
+          import json
+          import csv
+          
+          with open('results.json', 'r', encoding='utf-8') as file:
+              for row in json.load(file):
+                  calc = 1
+                  for col in row['factors']:
+                      calc *= int(col['num']) ** col['power']
+                  if not calc == int(row['input']):
+                      print(f"JSON Verification failed for {row['input']}")
+                      exit(1)
+              print("All JSON verifications passed! ✅")          
+          
+          with open('results.csv', 'r', encoding='utf-8') as file:
+              reader = csv.reader(file)
+              next(reader)
+              for row in reader:
+                  calc = 1
+                  for col in row[1:][0].split(';'):
+                      calc *= int(col)
+                  if not calc == int(row[0]):
+                      print(f"CSV Verification failed for {row[0]}")
+                      exit(1)
+              print("All CSV verifications passed! ✅")
+          EOF
