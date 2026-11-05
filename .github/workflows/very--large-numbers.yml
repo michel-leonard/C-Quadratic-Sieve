@@ -1,0 +1,48 @@
+name: Factorize very large numbers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  factorization-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📂 With each step we’ll start at the root of the reopsitory
+        uses: actions/checkout@v7
+
+      - name: 🔧 Install GCC
+        run: command -v gcc > /dev/null || { sudo apt-get update && sudo apt-get install -y gcc ; }
+
+      - name: ⚙️ Compile the program
+        run: gcc -Wall -pedantic -O2 -std=c99 main.c -o factor
+
+      - name: 🔍 Factorizes one number of 260 bits per vCPU
+        run: |
+          for i in $(seq 1 "$(nproc)"); do
+            seed=$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')
+            ./factor --demand 260 --rand-seed "$seed"
+            mv demand.txt demand-$i.txt
+            (
+              echo "Factorization of a number from seed $seed using vCPU $i started..."
+              start=$(date +%s)
+              ./factor --input-file demand-$i.txt --force -v 4 > result-$i.txt 2>&1
+              end=$(date +%s)
+              duration=$((end - start))
+              echo "Factoring using vCPU $i completed in $duration seconds..."
+            ) &
+          done
+          wait
+
+      - name: 🔎 Display factorization results
+        run: cat result-* | tee results.txt
+
+      - name: ✅ Check that all factorizations have been successful
+        run: |
+          if [ "$(grep -Fo "completely accurate and verified" results.txt | wc -l)" -eq "$(nproc)" ]; then
+            echo "✔️ Verification successful: all $(nproc) factorizations were correctly executed."
+          else
+            echo "❌ Verification failed. See above for details."
+            exit 1
+          fi
